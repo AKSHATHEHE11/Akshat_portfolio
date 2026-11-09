@@ -49,6 +49,17 @@ export function Console({ rig }: { rig: Rig }) {
   const [live, setLive] = useState(false);
   const [mode, setMode] = useState<Mode>("idle");
   const [knob, setKnob] = useState(rig.knob);
+  // Once the 3D console has faded in, the SVG stand-in leaves rendering entirely (display:none).
+  // Kept merely invisible, its ~100 shapes were restyled every frame along with the hero.
+  const [standInGone, setStandInGone] = useState(false);
+  useEffect(() => {
+    if (!live) {
+      setStandInGone(false);
+      return;
+    }
+    const id = window.setTimeout(() => setStandInGone(true), 450);
+    return () => window.clearTimeout(id);
+  }, [live]);
 
   useEffect(() => setGl(hasWebGL() ? "ok" : "none"), []);
 
@@ -154,6 +165,7 @@ export function Console({ rig }: { rig: Rig }) {
             "absolute inset-0 m-auto aspect-[2.35/1.85] w-[min(100cqw,calc(100cqh*1.27))] transition-opacity duration-300",
             "drop-shadow-[0_26px_28px_rgb(40_28_18/0.22)]",
             live && "pointer-events-none opacity-0",
+            standInGone && "hidden",
           )}
         >
           <div data-console-drop className="absolute inset-0">

@@ -1,10 +1,10 @@
 "use client";
 // The 3D console. Loaded with next/dynamic(ssr:false) from Console.tsx — never import it directly.
 // Every visible motion reads the shared Rig in useFrame; React only re-renders this on prop changes.
-import { Suspense, memo, useEffect, useMemo, useRef } from "react";
+import { Suspense, memo, useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { Canvas, useFrame, useThree, type RootState } from "@react-three/fiber";
-import { Environment, Lightformer, Shadow, useGLTF } from "@react-three/drei";
+import { Environment, Lightformer, PerformanceMonitor, Shadow, useGLTF } from "@react-three/drei";
 import { EffectComposer, SelectiveBloom, ToneMapping } from "@react-three/postprocessing";
 import { ToneMappingMode } from "postprocessing";
 import { pointer } from "@/lib/pointer";
@@ -39,11 +39,15 @@ interface Fit {
 // memo: Console re-renders on every knob move; the Canvas must not (see Lights).
 export default memo(function Scene({ rig, active, reduced, coarse, dark, playing, onReady, onLost }: SceneProps) {
   const post = !coarse;
+  // Resolution governor: start at 1.5× (1.25× on touch); drei's PerformanceMonitor drops to 1× when
+  // the frame rate sags (integrated GPUs, busy laptops) and climbs back once there is headroom.
+  const ceiling = Math.min(typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1, coarse ? 1.25 : 1.5);
+  const [dpr, setDpr] = useState(ceiling);
   return (
     <Canvas
       aria-hidden
       frameloop={!active ? "never" : reduced && !playing ? "demand" : "always"}
-      dpr={coarse ? [1, 1.25] : [1, 1.75]}
+      dpr={dpr}
       camera={{ fov: 24, position: [0, 0, 9], near: 3, far: 20 }}
       gl={{ alpha: true, antialias: !post, powerPreference: "high-performance", toneMapping: THREE.NeutralToneMapping }}
       style={{ position: "absolute", inset: 0, pointerEvents: "none" }}
@@ -54,6 +58,7 @@ export default memo(function Scene({ rig, active, reduced, coarse, dark, playing
         })
       }
     >
+      <PerformanceMonitor flipflops={4} onDecline={() => setDpr(1)} onIncline={() => setDpr(ceiling)} />
       <Suspense fallback={null}>
         <Stage rig={rig} coarse={coarse} dark={dark} post={post} onReady={onReady} />
       </Suspense>
@@ -255,12 +260,23 @@ function Stage({ rig, coarse, dark, post, onReady }: { rig: Rig; coarse: boolean
         y0 = Math.min(y0, y);
         y1 = Math.max(y1, y);
       }
-      const key = `${x0.toFixed(1)},${y0.toFixed(1)},${(x1 - x0).toFixed(1)},${(y1 - y0).toFixed(1)}`;
-      if (S.rects[id] === key) return;
-      S.rects[id] = key;
-      el.style.transform = `translate(${x0.toFixed(1)}px, ${y0.toFixed(1)}px)`;
-      el.style.width = `${(x1 - x0).toFixed(1)}px`;
-      el.style.height = `${(y1 - y0).toFixed(1)}px`;
+      // Position follows the tilt every frame through transform (no layout). Width/height are layout
+      // properties inside a size container: writing them every frame restyled the whole hero
+      // (including the hidden SVG fallback) per frame, so they're whole-pixel and change-only.
+      const pos = `${Math.round(x0 * 2) / 2},${Math.round(y0 * 2) / 2}`;
+      const dim = `${Math.round(x1 - x0)},${Math.round(y1 - y0)}`;
+      const [prevPos, prevDim] = (S.rects[id] ?? "|").split("|");
+      if (prevPos === pos && prevDim === dim) return;
+      S.rects[id] = `${pos}|${dim}`;
+      if (prevPos !== pos) {
+        const [tx, ty] = pos.split(",");
+        el.style.transform = `translate(${tx}px, ${ty}px)`;
+      }
+      if (prevDim !== dim) {
+        const [w, h] = dim.split(",");
+        el.style.width = `${w}px`;
+        el.style.height = `${h}px`;
+      }
     };
     for (const id of KEYS) place(id, parts.keys[id]);
     place("knob", parts.knob);
@@ -321,7 +337,7 @@ function Post({ selection, dark }: { selection: THREE.Object3D[]; dark: boolean 
     <>
       {/* SelectiveBloom wants a light on its layer; the phosphor is unlit, so this one is dark. */}
       <ambientLight ref={light} intensity={0} />
-      <EffectComposer multisampling={4}>
+      <EffectComposer multisampling={2}>
         <SelectiveBloom
           selection={selection}
           lights={lights}
@@ -371,20 +387,24 @@ function Cable({ rig, socket, fit }: { rig: Rig; socket: THREE.Object3D; fit: Re
   }, [material]);
 
   const swing = useRef({ t: 0, whip: 0 });
+  // window.scrollY forces a synchronous layout when anything changed layout this frame (the kinetic
+  // headline always has), so the "is the canvas at the top of the page" test runs twice a second.
+  const top = useRef({ open: true, n: 0 });
   useFrame((state, delta) => {
     const m = mesh.current;
     const F = fit.current;
     if (!m || !F) return;
+    if (top.current.n++ % 30 === 0) top.current.open = state.size.top + window.scrollY < 4;
     // Rebuild the tube only when the frame changes (resize), never per frame. The canvas edges in
     // device units decide the route: where the canvas starts at the top of the page the cable may
     // leave through the top edge; anywhere else it arcs under it and leaves through the right edge.
     const s0 = socket.userData.p0 as THREE.Vector3;
-    const top = (F.visH / 2 - F.cy) / F.s;
+    const topEdge = (F.visH / 2 - F.cy) / F.s;
     const right = (F.visW / 2 - F.cx) / F.s;
-    const open = state.size.top + window.scrollY < 4;
-    const peak = open ? s0.y + 0.44 : Math.max(s0.y + 0.06, Math.min(s0.y + 0.44, top - 0.14));
+    const open = top.current.open;
+    const peak = open ? s0.y + 0.44 : Math.max(s0.y + 0.06, Math.min(s0.y + 0.44, topEdge - 0.14));
     const ex = Math.max(1.7, right + 0.5);
-    const ey = open ? Math.min(2.6, Math.max(1.35, top + 0.3)) : Math.max(s0.y, Math.min(peak + 0.4, top - 0.1));
+    const ey = open ? Math.min(2.6, Math.max(1.35, topEdge + 0.3)) : Math.max(s0.y, Math.min(peak + 0.4, topEdge - 0.1));
     const b = built.current;
     if (Math.abs(ex - b.ex) > 0.04 || Math.abs(ey - b.ey) > 0.04) {
       b.ex = ex;
