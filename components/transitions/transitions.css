@@ -521,6 +521,49 @@
   }
 }
 
+/* Phones: the same moves without blurring whole page snapshots (nav-back would run two at once) —
+   brief §2b performance budget. Later same-named @keyframes win while the query matches. */
+@media (hover: none), (pointer: coarse) {
+  @keyframes vt-recede {
+    to {
+      transform: scale(0.9);
+      opacity: 0.2;
+      filter: brightness(0.7) saturate(0.4);
+    }
+  }
+  @keyframes vt-drop {
+    to {
+      transform: translateY(6vh) scale(0.97);
+      opacity: 0;
+    }
+  }
+  @keyframes vt-settle {
+    from {
+      transform: scale(1.035);
+      opacity: 0;
+    }
+  }
+  @keyframes vt-sink {
+    to {
+      transform: scale(0.88);
+      opacity: 0.12;
+      filter: brightness(0.55) saturate(0.4);
+    }
+  }
+  @keyframes vt-shove-left {
+    to {
+      transform: translateX(-16%) scale(0.96);
+      filter: brightness(0.3);
+    }
+  }
+  @keyframes vt-shove-right {
+    to {
+      transform: translateX(16%) scale(0.96);
+      filter: brightness(0.3);
+    }
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   ::view-transition-group(*),
   ::view-transition-image-pair(*),
