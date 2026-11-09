@@ -60,6 +60,7 @@ try {
     isMobile: mobile,
     hasTouch: mobile,
     reducedMotion: opt.reduced ? "reduce" : "no-preference",
+    colorScheme: opt.scheme === "dark" ? "dark" : "light", // --scheme=dark → prefers-color-scheme: dark
   });
   await context.addInitScript(
     ({ boot, dark, chaos }) => {
@@ -75,7 +76,8 @@ try {
   const errors = [];
   page.on("pageerror", (e) => errors.push(`pageerror: ${e.message}`));
   page.on("console", (m) => m.type() === "error" && errors.push(`console.error: ${m.text().slice(0, 300)}`));
-  await page.goto(base + route, { waitUntil: "networkidle", timeout: 90_000 });
+  // --until=load|domcontentloaded for external sites that never go network-idle (e.g. github.com)
+  await page.goto(base + route, { waitUntil: opt.until ?? "networkidle", timeout: 90_000 });
   await page.waitForTimeout(Number(opt.wait ?? 1800));
   if (opt.scroll) {
     await page.mouse.move(w / 2, h / 2);
