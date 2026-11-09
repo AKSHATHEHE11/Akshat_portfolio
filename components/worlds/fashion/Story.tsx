@@ -146,7 +146,9 @@ function Band({ words }: { words: string[] }) {
                     "whitespace-nowrap px-[0.35em] text-[clamp(3rem,1.6rem+6vw,8.5rem)] leading-[0.95]",
                     i % 2 ? "font-serif italic tracking-[-0.02em]" : "font-display font-black uppercase tracking-[-0.035em]",
                   )}
-                  style={i % 2 ? undefined : { fontVariationSettings: '"wdth" var(--w)' }}
+                  // round(): GSAP eases --w through decimals, and every distinct wdth value is a new font instance
+                  // to build and shape — steps of 4 keep the band to a handful of cached ones
+                  style={i % 2 ? undefined : { fontVariationSettings: '"wdth" round(var(--w), 4)' }}
                 >
                   {i % 2 ? w.toLowerCase() : w}
                 </span>
