@@ -1,0 +1,12 @@
+/* terminal lines type themselves out */
+.term-print {
+  animation: term-print 380ms steps(16, end) both;
+}
+@keyframes term-print {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
