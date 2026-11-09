@@ -1,0 +1,31 @@
+/* Scroll rail (components/system/rail/Rail.tsx) — chaos behaviour only; layout is Tailwind.
+   In chaos the sleepers twitch out of line and the track breaks into a dashed signal wire. */
+@keyframes rail-jitter {
+  0%,
+  100% {
+    transform: none;
+  }
+  20% {
+    transform: translateX(-3px);
+  }
+  45% {
+    transform: translateX(2px) scaleX(1.5);
+  }
+  70% {
+    transform: translateX(-1px) translateY(1px);
+  }
+}
+html[data-chaos="on"] .rail-tick {
+  animation: rail-jitter 0.9s steps(1, end) infinite;
+}
+html[data-chaos="on"] .rail-tick:nth-child(2n) {
+  animation-duration: 0.7s;
+  animation-delay: -0.3s;
+}
+html[data-chaos="on"] .rail-tick:nth-child(3n) {
+  animation-duration: 1.15s;
+  animation-delay: -0.55s;
+}
+html[data-chaos="on"] .rail-line {
+  background: repeating-linear-gradient(to bottom, var(--signal) 0 3px, transparent 3px 7px);
+}
