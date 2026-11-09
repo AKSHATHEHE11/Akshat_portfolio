@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 220" width="1280" height="220" role="img" aria-label="Palette: bone, paper, ink, charcoal, smoke, lime, orange">
+  <rect width="1280" height="220" fill="#f2eee7"/>
+  <g font-family="'IBM Plex Mono','Courier New',monospace" letter-spacing="1.2">
+    <g transform="translate(56 30)">
+      <rect width="148" height="104" rx="4" fill="#f2eee7" stroke="#111" stroke-opacity="0.25"/>
+      <text y="128" font-size="13" font-weight="700" fill="#111">BONE</text>
+      <text y="147" font-size="12" fill="#111">#F2EEE7</text>
+      <text y="165" font-size="12" fill="#66635b">page</text>
+    </g>
+    <g transform="translate(222 30)">
+      <rect width="148" height="104" rx="4" fill="#f8f7f3" stroke="#111" stroke-opacity="0.25"/>
+      <text y="128" font-size="13" font-weight="700" fill="#111">PAPER</text>
+      <text y="147" font-size="12" fill="#111">#F8F7F3</text>
+      <text y="165" font-size="12" fill="#66635b">surfaces</text>
+    </g>
+    <g transform="translate(388 30)">
+      <rect width="148" height="104" rx="4" fill="#111111"/>
+      <text y="128" font-size="13" font-weight="700" fill="#111">INK</text>
+      <text y="147" font-size="12" fill="#111">#111111</text>
+      <text y="165" font-size="12" fill="#66635b">type</text>
+    </g>
+    <g transform="translate(554 30)">
+      <rect width="148" height="104" rx="4" fill="#2a2926"/>
+      <text y="128" font-size="13" font-weight="700" fill="#111">CHARCOAL</text>
+      <text y="147" font-size="12" fill="#111">#2A2926</text>
+      <text y="165" font-size="12" fill="#66635b">depth</text>
+    </g>
+    <g transform="translate(720 30)">
+      <rect width="148" height="104" rx="4" fill="#66635b"/>
+      <text y="128" font-size="13" font-weight="700" fill="#111">SMOKE</text>
+      <text y="147" font-size="12" fill="#111">#66635B</text>
+      <text y="165" font-size="12" fill="#66635b">muted text</text>
+    </g>
+    <g transform="translate(886 30)">
+      <rect width="148" height="104" rx="4" fill="#d8ff00"/>
+      <text x="14" y="88" font-size="11" fill="#111">FILLS ONLY</text>
+      <text y="128" font-size="13" font-weight="700" fill="#111">LIME</text>
+      <text y="147" font-size="12" fill="#111">#D8FF00</text>
+      <text y="165" font-size="12" fill="#66635b">highlight</text>
+    </g>
+    <g transform="translate(1052 30)">
+      <rect width="172" height="104" rx="4" fill="#ff5a1f"/>
+      <text x="14" y="88" font-size="11" fill="#111">INK ON ORANGE</text>
+      <text y="128" font-size="13" font-weight="700" fill="#111">ORANGE</text>
+      <text y="147" font-size="12" fill="#111">#FF5A1F</text>
+      <text y="165" font-size="12" fill="#66635b">signal</text>
+    </g>
+  </g>
+</svg>
