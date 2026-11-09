@@ -437,12 +437,40 @@ html[data-chaos="on"] .rw-steam {
 }
 
 /* ── landscape ──────────────────────────────────────────────────────────── */
+/* The journey re-tints these every scroll frame. Registered as non-inherited, a change restyles
+   only the element that reads it — inherited, it cascaded into hundreds of landscape SVG shapes
+   per frame and made the journey scroll janky. */
+@property --sky-top {
+  syntax: "<color>";
+  inherits: false;
+  initial-value: #a7c9df;
+}
+@property --sky-bot {
+  syntax: "<color>";
+  inherits: false;
+  initial-value: #f6e7c8;
+}
+@property --tint {
+  syntax: "<color>";
+  inherits: false;
+  initial-value: #ffffff;
+}
+@property --sun {
+  syntax: "<color>";
+  inherits: false;
+  initial-value: #fff1c8;
+}
 .rw-land {
   position: absolute;
   inset: 0;
   overflow: hidden;
   container-type: size;
   background: linear-gradient(to bottom, var(--sky-top, #a7c9df) 0%, var(--sky-bot, #f6e7c8) 58%);
+  /* scenery only: hit-testing hundreds of SVG shapes after every scroll step finds nothing anyway */
+  pointer-events: none;
+  /* Pinned here so the departure zoom's per-frame --zoom never cascades into the ~2,000 scenery
+     nodes below: their style stays equal, so the recalc stops at this element. */
+  --zoom: 1;
 }
 .rw-sun {
   position: absolute;
