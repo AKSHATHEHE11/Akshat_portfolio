@@ -441,10 +441,11 @@ export function createEngine(layer: HTMLElement, coarse: boolean): Engine {
           : f.side === "bottom"
             ? (vh - f.oy + 40) * out + ((vh - f.oy - peek) * t1 + t2) * pres
             : 0;
-      // a tab tucked at the bottom sits level, so the strip that shows is one clean line
+      // a tab tucked at the bottom sits level and stops bobbing, so the strip that shows is one clean line
       const level = f.side === "bottom" ? t1 * pres : 0;
       const r = (Math.sin(f.clock * f.f2 + f.p) * 1.5 + out * (f.side === "left" || f.side === "bottom" ? -18 : 18)) * (1 - level) - f.rot * level;
-      f.el.style.transform = `translate3d(${(f.x * pres + ex).toFixed(1)}px,${(f.y * pres + ey).toFixed(1)}px,0) rotate(${r.toFixed(2)}deg) scale(${f.s.toFixed(3)})`;
+      const y = f.y * pres * (1 - level) + ey;
+      f.el.style.transform = `translate3d(${(f.x * pres + ex).toFixed(1)}px,${y.toFixed(1)}px,0) rotate(${r.toFixed(2)}deg) scale(${f.s.toFixed(3)})`;
       const shown = pres > 0.002;
       if (shown !== f.shown) {
         f.shown = shown;
@@ -506,7 +507,7 @@ export function createEngine(layer: HTMLElement, coarse: boolean): Engine {
       if (vis && (Math.abs(b.width - t.w) > 0.5 || Math.abs(b.height - t.h) > 0.5)) measureType(t, b);
     }
     if (fragsDirty) readFrags();
-    readTuck(now, vw, vh);
+    if (amp > 0.01 || checkAll) readTuck(now, vw, vh); // parked (boot hold, end of exit): nothing to decide
     if (hover && amp > 0.95) {
       for (const m of movers.values()) {
         if (!m.esc) continue;
@@ -708,6 +709,7 @@ export function createEngine(layer: HTMLElement, coarse: boolean): Engine {
         };
         const free = () => {
           f.hold = false;
+          f.chkAt = -1e9; // re-check at once: it may have been pulled out over content
         };
         el.addEventListener("pointerenter", hold);
         el.addEventListener("pointerleave", free);
