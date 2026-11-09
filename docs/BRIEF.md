@@ -150,11 +150,46 @@ Tailwind: `z-[60]` etc.
   shake or auto-rotation. CSS animations are already collapsed globally.
 - **Performance**: animate `transform`/`opacity` (and `clip-path`, `filter` sparingly). No layout
   properties in loops. Pause canvas/WebGL loops when off-screen (`useOnScreen` from `@/lib/hooks`,
-  R3F `frameloop="demand"` or `<Canvas frameloop={visible ? "always" : "never"}>`). Cap DPR
-  (`dpr={[1, 1.75]}`), lower on `coarse` devices. Lazy-load heavy client components with
-  `next/dynamic(() => import(...), { ssr: false })` inside a client component.
+  R3F `frameloop="demand"` or `<Canvas frameloop={visible ? "always" : "never"}>`). Cap DPR at
+  `1.5` (`1.25` on `coarse` devices). Lazy-load heavy client components with
+  `next/dynamic(() => import(...), { ssr: false })` inside a client component. The rules in §5b are mandatory.
 - Shared pointer: `import { pointer } from "@/lib/pointer"` — read `x, y, nx, ny, vx, vy, speed` inside your
   own rAF/ticker/useFrame. Never add another global mousemove listener for position tracking.
+
+## 5b. Performance rules — each one caused real lag on this site
+
+Measured on Akshat's laptop (i5 + Intel UHD graphics, 1.25× display). The orchestrator profiles every
+page after you (`scripts/perf.mjs` on a production build); the target is zero long tasks (>50ms) while
+idle, moving the pointer and scrolling.
+
+1. **Variable-font axes never animate through decimals.** Every distinct `wdth`/`wght` value is a new font
+   instance the browser builds and shapes. Quantise: CSS `font-variation-settings: "wdth" round(var(--w), 2)`,
+   or in JS `Math.round()` and write only when the value changes. (This was the worst lag on the site.)
+2. **No layout reads in per-frame code.** `getBoundingClientRect()`, `offset*`, `client*`, `scrollY`,
+   `getComputedStyle()` inside rAF / the GSAP ticker / `useFrame` / scroll handlers force a full layout
+   every frame. Measure on resize (ResizeObserver) or in ScrollTrigger `onRefresh` and cache; in R3F read
+   `state.size`; take the scroll position from Lenis (`useLenis((l) => l.scroll)`).
+3. **Per-frame CSS variables go on the element that reads them.** A variable written every frame on an
+   ancestor restyles its whole subtree — on an SVG scene that is thousands of nodes. Register it
+   non-inherited (`@property --x { syntax: "<number>"; inherits: false; initial-value: 0; }`) and set it
+   where it is read, or pin it on the heavy subtree's root (`--x: 0`) so the restyle stops there.
+4. **Moving things get their own layer; heavy things never resize.** Anything that moves every frame and is
+   expensive to paint (patterned or drop-shadowed SVG, huge type) gets `will-change: transform` so the
+   compositor moves it. Never animate width/height/top/left of a box holding heavy SVG: resizing an
+   `<svg>` re-lays out every shape inside it. Off-screen heavy items get `display: none` —
+   `visibility: hidden` is still laid out.
+5. **Text that changes per frame**: update the existing Text node's `.data`, and only when the string changes
+   (`textContent` replaces the node).
+6. **React never renders per frame.** Per-frame values live in refs and are written to the DOM directly.
+   Memoise heavy static subtrees (big SVG art) whose parent re-renders on state changes (`memo` + stable
+   props via `useMemo`/`useRef`).
+7. **Animated backgrounds move by `transform`**, never `background-position` (that repaints the whole area).
+8. **ScrollTrigger refresh is global.** `Providers` refreshes every trigger when `#main`'s height settles —
+   don't add your own ResizeObserver → `ScrollTrigger.refresh()` (it doubles every refresh). Cache pin/panel
+   geometry in `onRefresh`.
+9. **Filters**: no animated `filter`/`backdrop-filter` on large areas; a drop-shadowed thing that moves must
+   sit inside a composited layer (rule 4).
+10. **One WebGL canvas running per page**, DPR ≤ 1.5 (≤ 1.25 coarse), `frameloop="never"` off-screen.
 
 ## 6. System state, Chaos Mode, theme
 
@@ -175,7 +210,13 @@ chaos layer understands:
 - `data-chaos-escape` on a small element → it dodges the cursor once in a while
 
 Event bus (`emit`/`on` from lib/system): `"boot:replay"`, `"chaos:burst"` {x,y}, `"restart"`,
-`"toast"` {text}, `"console:key"` {key}. Add new events to this list if you introduce one.
+`"toast"` {text}, `"console:key"` {key}, `"shortcuts:open"` (opens the keyboard-shortcuts sheet). Add new
+events to this list if you introduce one.
+
+**Keys and swipes that belong to your widget.** In a world, ←/→ switch worlds and a horizontal swipe does
+the same on touch. Both already skip text fields, ARIA widgets (`slider`, `tablist`, `radiogroup`,
+`listbox`, `menu`, `grid`…), canvases and `[data-cursor="drag"]`. Anything else that uses arrow keys gets
+`data-arrows="local"`; anything that takes horizontal swipes gets `data-swipe="local"`.
 
 Theme: light (bone) by default; dark is supported through the semantic tokens.
 
@@ -192,7 +233,9 @@ background and its title. Rules: one element per name per page; the morph target
 rendered immediately (not behind `dynamic()`/Suspense) or the pair won't form.
 
 Fixed chrome that must not animate during page transitions gets `style={{ viewTransitionName: "site-nav" }}`
-(names available: `site-nav`, `site-hud`, `site-rail`, `site-cursor`, `world-shell`).
+(names in use: `site-nav`, `site-hud`, `site-rail`, `site-cursor`, `site-cursor-blend`, `site-grain`,
+`world-shell`). Never switch an element that carries a view-transition name to `display: none` while a
+navigation can run — its snapshot pair breaks and it flashes; fade it with opacity instead.
 
 ## 8. 3D
 
@@ -247,5 +290,14 @@ conveyed by motion or colour alone · hover-only content also reachable by focus
   paths. Lint warnings from compiler-era `react-hooks/*` rules are acceptable when the pattern is correct.
 - Mount points already exist as stub files with the right export names. Replace the stub's contents; keep
   the default export name and props signature.
-- Use component-scoped CSS (CSS Modules `*.module.css` or a CSS file imported by your component) for
-  styles Tailwind can't express. Don't add global selectors outside your feature's namespace.
+- Use component-scoped CSS for styles Tailwind can't express: CSS Modules (`*.module.css`, they work —
+  Tailwind's loader skips them) or a plain CSS file imported by your component with every class
+  namespaced (`fy-*`, `rw-*`, `cc-*` style). Don't add global selectors outside your namespace. In plain
+  CSS use the semantic variables: `--bg --fg --fg-muted --line --line-strong --surface --surface-2
+  --accent --accent-ink --signal --signal-ink` and layout `--margin --gutter --nav-h --frame-max`.
+- **See your work.** A dev server is running at http://localhost:3000 (it recompiles on save; a route's
+  first load can take 10–30s). Screenshot with `node scripts/shot.mjs /route <file>.png` plus
+  `--mobile`, `--android`, `--landscape`, `--tablet`, `--dark`, `--chaos`, `--full`, `--scroll=…`,
+  `--click=…`, `--hover=…` (serialized with a lock). Look at the images with the Read tool. Save
+  screenshots and every other scratch file in your own folder outside the repo (the orchestrator gives you
+  one), never inside the project.
