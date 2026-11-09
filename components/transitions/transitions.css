@@ -1,0 +1,254 @@
+/* ───────────────────────────────────────────────────────────────────────────
+   Page transitions — React <ViewTransition> classes (see components/transitions/Page.tsx)
+   Origin of the click is written to --vt-x / --vt-y (viewport) and --vt-doc-y (document)
+   by lib/transitions.ts so reveals grow from where the visitor clicked.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+::view-transition {
+  pointer-events: none;
+}
+
+/* The root holds layout chrome. It never animates; pages animate through <Page>. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+}
+
+/* Anchored chrome: give fixed UI a view-transition-name from this list and it holds still. */
+::view-transition-group(site-nav),
+::view-transition-group(site-hud),
+::view-transition-group(site-rail),
+::view-transition-group(site-cursor),
+::view-transition-group(world-shell) {
+  animation: none;
+  z-index: 100;
+}
+::view-transition-old(site-nav),
+::view-transition-old(site-hud),
+::view-transition-old(site-rail),
+::view-transition-old(site-cursor),
+::view-transition-old(world-shell) {
+  display: none;
+}
+::view-transition-new(site-nav),
+::view-transition-new(site-hud),
+::view-transition-new(site-rail),
+::view-transition-new(site-cursor),
+::view-transition-new(world-shell) {
+  animation: none;
+}
+
+/* ── nav-forward: old page recedes toward the click, new page irises open from it ── */
+::view-transition-old(.vt-out-forward) {
+  transform-origin: var(--vt-x) var(--vt-doc-y);
+  animation: vt-recede 720ms var(--ease-machine) both;
+}
+::view-transition-new(.vt-in-forward) {
+  animation: vt-iris 980ms var(--ease-out-expo) both;
+}
+
+/* ── nav-back / world-exit arrival: old page drops away, new page settles in ── */
+::view-transition-old(.vt-out-back) {
+  animation: vt-drop 520ms var(--ease-machine) both;
+}
+::view-transition-new(.vt-in-back) {
+  transform-origin: 50% 50vh;
+  animation: vt-settle 820ms var(--ease-out-expo) 140ms both;
+}
+
+/* ── world-enter: the portal morphs into the world's stage; the old page sinks behind it ── */
+::view-transition-old(.vt-out-world) {
+  transform-origin: var(--vt-x) var(--vt-doc-y);
+  animation: vt-recede 860ms var(--ease-machine) both;
+}
+::view-transition-new(.vt-in-world) {
+  animation: vt-fade 620ms var(--ease-out-quart) 380ms both;
+}
+::view-transition-group(.vt-morph),
+::view-transition-group(.vt-morph-text) {
+  z-index: 50;
+  animation-duration: 960ms;
+  animation-timing-function: var(--ease-out-expo);
+}
+::view-transition-image-pair(.vt-morph) {
+  overflow: clip;
+}
+::view-transition-old(.vt-morph),
+::view-transition-new(.vt-morph) {
+  block-size: 100%;
+  object-fit: cover;
+  animation-duration: 960ms;
+}
+::view-transition-old(.vt-morph-text),
+::view-transition-new(.vt-morph-text) {
+  animation-duration: 760ms;
+}
+
+/* ── world-exit: the world switches off like a CRT ── */
+::view-transition-old(.vt-out-world-exit) {
+  transform-origin: 50% var(--vt-doc-y);
+  animation: vt-crt-off 640ms var(--ease-machine) both;
+}
+
+/* ── world-next / world-prev: rail wipe between worlds ── */
+::view-transition-old(.vt-out-next) {
+  animation: vt-shove-left 780ms var(--ease-machine) both;
+}
+::view-transition-new(.vt-in-next) {
+  animation: vt-wipe-right 780ms var(--ease-machine) both;
+}
+::view-transition-old(.vt-out-prev) {
+  animation: vt-shove-right 780ms var(--ease-machine) both;
+}
+::view-transition-new(.vt-in-prev) {
+  animation: vt-wipe-left 780ms var(--ease-machine) both;
+}
+
+/* ── chaos: declared last so it overrides whatever kind it is combined with ── */
+::view-transition-old(.vt-out-chaos) {
+  animation: vt-glitch-out 440ms steps(6, end) both;
+}
+::view-transition-new(.vt-in-chaos) {
+  animation: vt-glitch-in 560ms steps(7, end) both;
+}
+
+@keyframes vt-recede {
+  to {
+    transform: scale(0.92);
+    opacity: 0.2;
+    filter: blur(8px) saturate(0.4);
+  }
+}
+@keyframes vt-iris {
+  from {
+    clip-path: circle(0 at var(--vt-x) var(--vt-y));
+  }
+  to {
+    clip-path: circle(150vmax at var(--vt-x) var(--vt-y));
+  }
+}
+@keyframes vt-drop {
+  to {
+    transform: translateY(5vh) scale(0.98);
+    opacity: 0;
+    filter: blur(6px);
+  }
+}
+@keyframes vt-settle {
+  from {
+    transform: scale(1.035);
+    opacity: 0;
+    filter: blur(10px);
+  }
+}
+@keyframes vt-fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes vt-crt-off {
+  0% {
+    transform: scale(1, 1);
+    filter: brightness(1);
+  }
+  55% {
+    transform: scale(1, 0.006);
+    filter: brightness(2.6);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0, 0.006);
+    filter: brightness(4);
+    opacity: 0;
+  }
+}
+@keyframes vt-shove-left {
+  to {
+    transform: translateX(-14%);
+    filter: brightness(0.35) blur(2px);
+  }
+}
+@keyframes vt-shove-right {
+  to {
+    transform: translateX(14%);
+    filter: brightness(0.35) blur(2px);
+  }
+}
+@keyframes vt-wipe-right {
+  from {
+    clip-path: inset(0 0 0 100%);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+@keyframes vt-wipe-left {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+@keyframes vt-glitch-out {
+  0% {
+    clip-path: inset(0);
+    transform: none;
+    filter: none;
+  }
+  20% {
+    clip-path: inset(12% 0 38% 0);
+    transform: translate(-2%, 1%) skewX(-6deg);
+    filter: hue-rotate(90deg) saturate(3);
+  }
+  40% {
+    clip-path: inset(52% 0 8% 0);
+    transform: translate(3%, -1%);
+    filter: invert(1);
+  }
+  60% {
+    clip-path: inset(0 0 72% 0);
+    transform: translate(-1%, 0) scaleY(1.05);
+    filter: contrast(2.5);
+  }
+  80% {
+    clip-path: inset(82% 0 0 0);
+    transform: translate(2%, 0);
+  }
+  100% {
+    clip-path: inset(50% 0 50% 0);
+    opacity: 0;
+  }
+}
+@keyframes vt-glitch-in {
+  0% {
+    clip-path: inset(0 0 100% 0);
+    transform: translateX(4%);
+    filter: invert(1) hue-rotate(180deg);
+  }
+  30% {
+    clip-path: inset(0 0 62% 0);
+    transform: translateX(-3%);
+  }
+  55% {
+    clip-path: inset(0 0 30% 0);
+    filter: hue-rotate(90deg) saturate(2);
+  }
+  80% {
+    clip-path: inset(0 0 7% 0);
+    transform: translateX(1%);
+  }
+  100% {
+    clip-path: inset(0);
+    transform: none;
+    filter: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
