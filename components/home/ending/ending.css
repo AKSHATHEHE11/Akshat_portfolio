@@ -1,0 +1,194 @@
+/* ── RESTART key: press and hold. --p (0..1) is the hold progress, written by RestartKey.tape-tsx ── */
+.tape-key {
+  --p: 0;
+  position: relative;
+  display: block;
+  width: 100%;
+  max-width: 23rem;
+  height: 4.25rem;
+  padding: 0;
+  border: 0;
+  border-radius: 0.625rem;
+  background: var(--fg);
+  color: var(--bg);
+  box-shadow:
+    inset 0 -3px 0 rgb(0 0 0 / 0.25),
+    0 1px 0 rgb(0 0 0 / 0.3),
+    0 10px 20px -10px rgb(0 0 0 / 0.45);
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  transition:
+    translate 120ms cubic-bezier(0.25, 1, 0.5, 1),
+    box-shadow 120ms cubic-bezier(0.25, 1, 0.5, 1);
+}
+.tape-key[data-holding="1"] {
+  translate: 0 2px;
+  box-shadow: inset 0 -1px 0 rgb(0 0 0 / 0.22);
+}
+.tape-face {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-inline: 1.25rem 0.875rem;
+  border-radius: inherit;
+  font-family: var(--font-plex), ui-monospace, monospace;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+/* the same face in orange, revealed left → right as you hold */
+.tape-fill {
+  background: var(--signal);
+  color: var(--signal-ink);
+  clip-path: inset(0 calc((1 - var(--p)) * 100%) 0 0);
+}
+.tape-dial {
+  position: relative;
+  display: grid;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex-shrink: 0;
+  place-items: center;
+}
+.tape-ring {
+  position: absolute;
+  inset: 0;
+  rotate: -90deg;
+}
+.tape-ring circle {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+}
+.tape-ring circle + circle {
+  stroke-dasharray: 100;
+  stroke-dashoffset: calc((1 - var(--p)) * 100);
+}
+.tape-ring circle:first-child {
+  opacity: 0.25;
+}
+.tape-spin {
+  rotate: calc(var(--p) * -360deg);
+}
+
+/* ── VHS rewind overlay ── */
+.tape-vhs {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  overflow: hidden;
+  pointer-events: none;
+  color: #f4f1ea;
+}
+.tape-tint {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(120% 90% at 50% 50%, rgb(10 8 6 / 0.05), rgb(10 8 6 / 0.55)),
+    linear-gradient(180deg, rgb(40 30 90 / 0.16), rgb(90 30 0 / 0.16));
+}
+.tape-scan {
+  position: absolute;
+  inset: -3px 0;
+  background: repeating-linear-gradient(180deg, rgb(0 0 0 / 0.3) 0 1px, transparent 1px 3px);
+  animation: tape-roll 0.18s steps(3) infinite;
+}
+@keyframes tape-roll {
+  to {
+    transform: translateY(3px);
+  }
+}
+.tape-band {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 16vh;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='60'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9 0.08' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E"),
+    linear-gradient(180deg, transparent, rgb(255 255 255 / 0.18) 40%, rgb(255 255 255 / 0.34) 52%, rgb(255 255 255 / 0.1) 62%, transparent);
+  background-size: 240px 60px, 100% 100%;
+  mix-blend-mode: screen;
+  animation: tape-band 0.42s linear infinite;
+}
+@keyframes tape-band {
+  from {
+    transform: translateY(105vh);
+  }
+  to {
+    transform: translateY(-20vh);
+  }
+}
+.tape-osd {
+  position: absolute;
+  left: clamp(1.25rem, 6vw, 5rem);
+  top: calc(var(--nav-h) + clamp(1rem, 4vh, 3rem));
+  display: flex;
+  align-items: center;
+  gap: 0.35em;
+  font-family: var(--font-vt323), var(--font-plex), monospace;
+  font-size: clamp(2.25rem, 1.4rem + 3.4vw, 4.5rem);
+  line-height: 1;
+  letter-spacing: 0.04em;
+  text-shadow:
+    2px 0 0 rgb(255 40 80 / 0.7),
+    -2px 0 0 rgb(40 200 255 / 0.7),
+    0 0 18px rgb(255 255 255 / 0.35);
+  animation: tape-jitter 0.16s steps(2) infinite;
+}
+.tape-osd svg {
+  width: 1.1em;
+  height: 0.55em;
+  filter: drop-shadow(2px 0 0 rgb(255 40 80 / 0.7)) drop-shadow(-2px 0 0 rgb(40 200 255 / 0.7));
+}
+.tape-counter {
+  position: absolute;
+  right: clamp(1.25rem, 6vw, 5rem);
+  bottom: clamp(1.5rem, 8vh, 5rem);
+  display: flex;
+  align-items: baseline;
+  gap: 0.6em;
+  font-family: var(--font-vt323), var(--font-plex), monospace;
+  font-size: clamp(2rem, 1.2rem + 3vw, 4rem);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  text-shadow:
+    2px 0 0 rgb(255 40 80 / 0.7),
+    -2px 0 0 rgb(40 200 255 / 0.7);
+}
+.tape-counter small {
+  font-size: 0.5em;
+}
+@keyframes tape-jitter {
+  50% {
+    transform: translateX(2px);
+  }
+}
+/* chaos: the tape inverts the picture now and then */
+.tape-invert {
+  position: absolute;
+  inset: 0;
+  background: #fff;
+  mix-blend-mode: difference;
+  opacity: 0;
+  animation: tape-invert 0.7s steps(1) infinite;
+}
+@keyframes tape-invert {
+  0%,
+  18%,
+  32%,
+  100% {
+    opacity: 0;
+  }
+  20%,
+  30% {
+    opacity: 1;
+  }
+}

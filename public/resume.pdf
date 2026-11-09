@@ -1,0 +1,56 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 4 0 R /F2 5 0 R /F3 6 0 R >> >> /Contents 7 0 R >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>
+endobj
+6 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Courier /Encoding /WinAnsiEncoding >>
+endobj
+7 0 obj
+<< /Length 860 >>
+stream
+1 0.353 0.122 rg 64 765.89 12 12 re f
+0.067 0.067 0.067 rg 0.067 0.067 0.067 RG
+BT /F3 8 Tf 86 768.39 Td (AKSHAT/OS 26.11  \267  RESUME.PDF  \267  PLACEHOLDER) Tj ET
+BT /F2 30 Tf 64 701.89 Td (Akshat Agrawal) Tj ET
+BT /F1 30 Tf 64 665.89 Td (R\351sum\351 \(placeholder\)) Tj ET
+1.4 w 64 641.89 m 531.28 641.89 l S
+BT /F1 12 Tf 64 603.89 Td (The real one is coming.) Tj ET
+BT /F1 12 Tf 64 585.89 Td (This placeholder keeps the download link honest until it lands.) Tj ET
+BT /F1 12 Tf 64 567.89 Td (Until then, the portfolio is the r\351sum\351: every project opens into its own world.) Tj ET
+BT /F3 9 Tf 64 523.89 Td (DIGITAL BUILDER / DESIGN ENGINEER / EXPERIMENTER) Tj ET
+BT /F3 9 Tf 64 507.89 Td (NEW DELHI  \267  HELLO@AKSHAT.EXAMPLE) Tj ET
+0.6 w 64 94.00 m 531.28 94.00 l S
+BT /F3 7.5 Tf 64 78.00 Td (AKSHAT/OS 26.11  \267  SAME LINK, REAL FILE SOON) Tj ET
+endstream
+endobj
+8 0 obj
+<< /Title <FEFF0041006B00730068006100740020004100670072006100770061006C002020140020005200E900730075006D00E9002000280070006C0061006300650068006F006C0064006500720029> /Author <FEFF0041006B00730068006100740020004100670072006100770061006C> /Subject <FEFF0050006C0061006300650068006F006C0064006500720020201400200074006800650020007200650061006C0020007200E900730075006D00E900200069007300200063006F006D0069006E0067> /Creator (scripts/make-resume.mjs) /Producer (AKSHAT/OS) /CreationDate (D:20261109000000Z) >>
+endobj
+xref
+0 9
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000267 00000 n 
+0000000364 00000 n 
+0000000466 00000 n 
+0000000561 00000 n 
+0000001472 00000 n 
+trailer
+<< /Size 9 /Root 1 0 R /Info 8 0 R >>
+startxref
+1989
+%%EOF
