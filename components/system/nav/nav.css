@@ -1,0 +1,186 @@
+/* ───────────────────────────────────────────────────────────────────────────
+   Navigation console — components/system/Nav.tsx. Namespace: .sys-nav, .sys-panel, .sys-*
+   ─────────────────────────────────────────────────────────────────────────── */
+
+/* Console palette. Components read --n-* so one switch (world / panel) recolours everything. */
+.sys-nav,
+.sys-panel {
+  --n-fg: var(--fg);
+  --n-dim: var(--fg-muted);
+  --n-index: var(--signal);
+  --n-accent: var(--accent);
+  --n-accent-ink: var(--accent-ink);
+  --n-line: var(--line);
+  --n-surface: color-mix(in oklab, var(--bg) 86%, transparent);
+  --n-ease: var(--ease-out-expo, cubic-bezier(0.16, 1, 0.3, 1));
+}
+
+/* Inside a project world: the world shell sets --world-* on <html>. */
+.sys-nav[data-mode="world"] {
+  --n-fg: var(--world-fg, var(--fg));
+  --n-dim: color-mix(in oklab, var(--world-fg, var(--fg)) 62%, transparent);
+  --n-index: var(--world-accent, var(--signal));
+  --n-accent: var(--world-accent, var(--accent));
+  --n-accent-ink: var(--world-bg, var(--accent-ink));
+  --n-line: color-mix(in oklab, var(--world-fg, var(--fg)) 20%, transparent);
+  --n-surface: color-mix(in oklab, var(--world-bg, var(--bg)) 86%, transparent);
+}
+
+/* Transparent bar over whatever the page starts with (useBackdropTone measures it). */
+.sys-nav[data-mode="site"][data-tone="dark"]:not([data-scrolled="true"]) {
+  --n-fg: var(--color-bone, #f2eee7);
+  --n-dim: rgb(242 238 231 / 0.62);
+  --n-line: rgb(242 238 231 / 0.18);
+}
+.sys-nav[data-mode="site"][data-tone="light"]:not([data-scrolled="true"]) {
+  --n-fg: var(--color-ink, #111111);
+  --n-dim: var(--color-smoke, #66635b);
+  --n-line: rgb(17 17 17 / 0.14);
+}
+
+/* The menu panel is always the dark device face, whatever the theme or world. */
+.sys-panel {
+  --n-fg: var(--color-bone, #f2eee7);
+  --n-dim: rgb(242 238 231 / 0.58);
+  --n-line: rgb(242 238 231 / 0.13);
+}
+
+/* ── the bar ──────────────────────────────────────────────────────────────── */
+.sys-nav {
+  position: fixed;
+  z-index: 60;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: calc(var(--nav-h) + var(--safe-top));
+  padding-top: var(--safe-top);
+  color: var(--n-fg);
+  border: 1px solid transparent;
+  border-radius: 0;
+  transition:
+    top 0.6s var(--n-ease),
+    left 0.6s var(--n-ease),
+    right 0.6s var(--n-ease),
+    height 0.5s var(--n-ease),
+    border-radius 0.6s var(--n-ease),
+    rotate 0.6s var(--n-ease),
+    border-color 0.4s ease,
+    background-color 0.4s ease,
+    box-shadow 0.6s ease,
+    backdrop-filter 0.4s ease;
+}
+
+.sys-nav__row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  height: 100%;
+  max-width: var(--frame-max);
+  margin-inline: auto;
+  padding-inline: calc(max(var(--margin), var(--safe-left)) - 1px) calc(max(var(--margin), var(--safe-right)) - 1px);
+  transition: padding 0.6s var(--n-ease);
+}
+
+/* Scrolled: a floating console condenses around the controls. The bar's inset and the row's padding
+   move together, so the controls themselves never shift — only the device forms around them. */
+.sys-nav[data-scrolled="true"] {
+  --n-inset: max(6px, calc(var(--margin) - 14px), calc((100% - var(--frame-max)) / 2 + var(--margin) - 14px));
+  top: calc(0.625rem + var(--safe-top));
+  left: max(var(--n-inset), var(--safe-left));
+  right: max(var(--n-inset), var(--safe-right));
+  height: 3.5rem;
+  padding-top: 0;
+  border-radius: 12px;
+  border-color: var(--n-line);
+  background-color: var(--n-surface);
+  /* lives on the root on purpose: a view-transition-named element is a backdrop root, so a blur
+     on any child would only see the header itself. Unprefixed only: Lightning CSS merges a
+     -webkit- twin into ONE declaration (keeping the last-written form) and emits the prefix itself. */
+  backdrop-filter: blur(16px) saturate(1.4);
+  box-shadow:
+    0 24px 48px -30px rgb(17 17 17 / 0.5),
+    0 1px 0 0 rgb(255 255 255 / 0.06) inset;
+}
+.sys-nav[data-scrolled="true"] .sys-nav__row {
+  padding-inline: min(calc(var(--margin) - 7px), 13px);
+}
+.sys-nav[data-scrolled="true"]:is(:hover, :focus-within) {
+  height: 4rem;
+}
+
+/* Toggle labels fold away in the condensed bar and unfold when you reach for it. */
+.sys-collapse {
+  display: grid;
+  grid-template-columns: 1fr;
+  opacity: 1;
+  transition:
+    grid-template-columns 0.5s var(--n-ease),
+    margin 0.5s var(--n-ease),
+    opacity 0.3s ease;
+}
+.sys-collapse > span {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.sys-nav[data-scrolled="true"]:not(:hover, :focus-within) .sys-collapse {
+  grid-template-columns: 0fr;
+  margin: 0;
+  opacity: 0;
+}
+/* Below 1280px the switches speak for themselves (labels stay in aria-label/title). */
+@media (max-width: 1279.98px) {
+  .sys-nav .sys-collapse {
+    display: none;
+  }
+}
+
+/* Chaos: the console is bolted on slightly crooked. */
+html[data-chaos="on"] .sys-nav[data-scrolled="true"] {
+  rotate: -0.6deg;
+}
+
+/* ── sound meter ─────────────────────────────────────────────────────────── */
+.sys-eq {
+  transform-origin: 50% 100%;
+  animation: sys-eq 0.78s ease-in-out infinite alternate;
+}
+.sys-eq:nth-child(3) {
+  animation-duration: 0.56s;
+  animation-delay: -0.3s;
+}
+.sys-eq:nth-child(4) {
+  animation-duration: 0.92s;
+  animation-delay: -0.5s;
+}
+.sys-eq:nth-child(5) {
+  animation-duration: 0.66s;
+  animation-delay: -0.15s;
+}
+@keyframes sys-eq {
+  from {
+    transform: scaleY(0.22);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+/* ── lights: the new theme floods out of the switch ──────────────────────── */
+html.sys-lights body {
+  transition: none !important;
+}
+html.sys-lights::view-transition-old(root) {
+  animation: none;
+}
+html.sys-lights::view-transition-new(root) {
+  animation: sys-lights 0.8s var(--ease-out-expo, cubic-bezier(0.16, 1, 0.3, 1)) both;
+}
+@keyframes sys-lights {
+  from {
+    clip-path: circle(0 at var(--sys-lx, 50%) var(--sys-ly, 50%));
+  }
+  to {
+    clip-path: circle(150vmax at var(--sys-lx, 50%) var(--sys-ly, 50%));
+  }
+}
