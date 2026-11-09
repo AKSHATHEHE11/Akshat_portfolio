@@ -57,7 +57,7 @@ export function LookPanel({
 
   const stage = (
     <div
-      className={cn("relative", wide ? "absolute bottom-36 left-[24%] right-[5%] top-[calc(var(--nav-h)+1.5rem)]" : "aspect-[1/1.02] w-full")}
+      className={cn("relative", wide ? "absolute bottom-36 will-change-transform left-[24%] right-[5%] top-[calc(var(--nav-h)+1.5rem)]" : "aspect-[1/1.02] w-full")}
       data-skew
     >
       {image ? (
@@ -71,7 +71,7 @@ export function LookPanel({
             <div
               key={`${item.productId}-${i}`}
               data-depth={wide ? s.depth : undefined}
-              className="absolute aspect-[240/280]"
+              className={cn("absolute aspect-[240/280]", wide && "will-change-transform")}
               style={{ left: `${s.left}%`, top: `${s.top}%`, width: `${s.w}%`, rotate: `${s.rot}deg`, zIndex: i === 1 && look.items.length === 3 ? 0 : i + 1 }}
             >
               <Garment
@@ -136,7 +136,7 @@ export function LookPanel({
         className={cn(
           "fy-outline",
           "pointer-events-none absolute whitespace-nowrap font-display font-black uppercase leading-none",
-          wide ? "-left-[2%] bottom-[6%] text-[min(26vh,15vw)]" : "-left-[4%] top-[38%] text-[26vw]",
+          wide ? "-left-[2%] bottom-[6%] text-[min(26vh,15vw)] will-change-transform" : "-left-[4%] top-[38%] text-[26vw]",
         )}
         style={{ "--stroke": `color-mix(in oklab, ${ink} 38%, transparent)`, fontVariationSettings: '"wdth" 125' } as CSSProperties}
       >

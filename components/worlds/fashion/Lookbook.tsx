@@ -43,14 +43,18 @@ export function Lookbook({ scene, gallery }: { scene: FashionScene; gallery?: st
         const distance = () => Math.max(0, el.scrollWidth - window.innerWidth);
         let settle: ReturnType<typeof setTimeout> | undefined;
         let shown = -1;
+        // panel centres along the (untransformed) track, measured on refresh: reading rects here would
+        // force a layout on every scroll frame. On screen a centre sits at mid + the track's x.
+        let mid: number[] = [];
+        const measure = () => (mid = panels.map((p) => p.offsetLeft + p.offsetWidth / 2));
 
         const place = () => {
           const vw = window.innerWidth;
+          const x = gsap.getProperty(el, "x") as number;
           let best = 0;
           let bestD = Infinity;
-          panels.forEach((p, i) => {
-            const r = p.getBoundingClientRect();
-            const c = (r.left + r.width / 2 - vw / 2) / vw;
+          mid.forEach((m, i) => {
+            const c = (m + x - vw / 2) / vw;
             if (Math.abs(c) < bestD) {
               bestD = Math.abs(c);
               best = i;
@@ -77,6 +81,10 @@ export function Lookbook({ scene, gallery }: { scene: FashionScene; gallery?: st
               scrub: 0.9,
               invalidateOnRefresh: true,
               anticipatePin: 1,
+              onRefresh: () => {
+                measure();
+                place();
+              },
               onUpdate: (self) => {
                 setBar(self.progress);
                 const v = clamp(self.getVelocity() / -240, -9, 9) * (chaos ? -1 : 1);
@@ -87,6 +95,7 @@ export function Lookbook({ scene, gallery }: { scene: FashionScene; gallery?: st
             },
           },
         );
+        measure();
         place();
 
         // keyboard: focusing a credit inside the moving track scrolls the page to that spread
@@ -140,7 +149,7 @@ export function Lookbook({ scene, gallery }: { scene: FashionScene; gallery?: st
               <h2 id="fy-look" data-chaos-type className="font-serif text-[clamp(5rem,11vw,12rem)] italic leading-[0.8] tracking-[-0.03em]">
                 {lookbook.title}
               </h2>
-              <p data-depth="0.35" aria-hidden className="font-display text-[clamp(4rem,9vw,10rem)] font-black uppercase leading-[0.8] tracking-[-0.04em]" style={{ fontVariationSettings: '"wdth" 125' }}>
+              <p data-depth="0.35" aria-hidden className="will-change-transform font-display text-[clamp(4rem,9vw,10rem)] font-black uppercase leading-[0.8] tracking-[-0.04em]" style={{ fontVariationSettings: '"wdth" 125' }}>
                 {season}
               </p>
               <div className="space-y-6">
