@@ -52,8 +52,10 @@ export default function Grain() {
   useEffect(() => {
     const el = ref.current;
     if (!el || reduced || typeof el.animate !== "function") return;
+    // transform, not background-position: the layer is oversized by one tile on every side and only
+    // moves, so the compositor shifts it without repainting a full-screen layer ten times a second.
     const a = el.animate(
-      JUMPS.map(([x, y]) => ({ backgroundPosition: `${x}px ${y}px`, easing: "steps(1, end)" })),
+      JUMPS.map(([x, y]) => ({ transform: `translate3d(${x}px, ${y}px, 0)`, easing: "steps(1, end)" })),
       { duration: 1000, iterations: Infinity },
     );
     anim.current = a;
@@ -71,8 +73,8 @@ export default function Grain() {
     <div
       ref={ref}
       aria-hidden
-      className="pointer-events-none fixed inset-0 z-[95] opacity-[0.05] [contain:strict] print:hidden dark:opacity-[0.08] chaos:opacity-[0.13]"
-      style={{ viewTransitionName: "site-grain", backgroundSize: `${TILE}px ${TILE}px` }}
+      className="pointer-events-none fixed z-[95] opacity-[0.05] will-change-transform [contain:strict] print:hidden dark:opacity-[0.08] chaos:opacity-[0.13]"
+      style={{ viewTransitionName: "site-grain", inset: -TILE, backgroundSize: `${TILE}px ${TILE}px` }}
     />
   );
 }
