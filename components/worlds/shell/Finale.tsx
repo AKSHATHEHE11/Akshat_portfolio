@@ -106,7 +106,8 @@ export function Finale({
                       data-finale-title
                       data-chaos-type
                       className="display text-[clamp(2.5rem,11vw,5rem)] sm:text-display-m"
-                      style={{ fontVariationSettings: '"wdth" var(--w, 100)' } as CSSProperties}
+                      // round(): the scrub passes decimals; whole steps keep the font instances cached
+                      style={{ fontVariationSettings: '"wdth" round(var(--w, 100), 2)' } as CSSProperties}
                     >
                       {next.title}
                     </h2>
