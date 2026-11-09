@@ -28,10 +28,16 @@ export function Scramble({
 
   const { contextSafe } = useGSAP(
     () => {
-      if (!ref.current || reduced || trigger === "hover") return;
-      gsap.to(ref.current, { duration, scrambleText: { text, chars, speed: 0.6, revealDelay: 0.1 }, ease: "none" });
+      const el = ref.current;
+      if (!el) return;
+      // revertOnUpdate may have restored the previous text: always land on the current one
+      if (reduced || trigger === "hover") {
+        el.textContent = text;
+        return;
+      }
+      gsap.to(el, { duration, scrambleText: { text, chars, speed: 0.6, revealDelay: 0.1 }, ease: "none" });
     },
-    { dependencies: [text, reduced, trigger], scope: ref },
+    { dependencies: [text, reduced, trigger], scope: ref, revertOnUpdate: true },
   );
 
   const onEnter = contextSafe(() => {

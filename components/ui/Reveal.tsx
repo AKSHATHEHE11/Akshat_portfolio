@@ -59,7 +59,7 @@ export function Reveal({
       });
       return () => split.revert();
     },
-    { dependencies: [reduced, type, delay, scroll], scope: ref },
+    { dependencies: [reduced, type, delay, scroll], scope: ref, revertOnUpdate: true },
   );
 
   return (

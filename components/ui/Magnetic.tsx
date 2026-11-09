@@ -46,7 +46,7 @@ export function Magnetic({
         o.removeEventListener("pointerleave", leave);
       };
     },
-    { dependencies: [coarse, reduced, strength] },
+    { dependencies: [coarse, reduced, strength], revertOnUpdate: true },
   );
 
   return (
