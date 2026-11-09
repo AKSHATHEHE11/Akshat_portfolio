@@ -1,0 +1,380 @@
+/* ── Selected worlds (namespace: wd-) ─────────────────────────────────────── */
+
+/* pinned desktop frame: nav clearance, the run of portals, the rail */
+.wd-pinned {
+  --rail: 5.75rem;
+  --bezel: 10px;
+  --chin: 30px;
+  --info: 8.25rem;
+  /* the global HUD reads along the bottom edge: keep the rail above it */
+  --hud: 2.25rem;
+  /* height-led, but capped by width so a tall, narrow window never gets a monitor wider than itself */
+  --stage-h: clamp(
+    15rem,
+    min(calc(100svh - var(--nav-h) - var(--hud) - var(--rail) - var(--info) - var(--chin) - 2 * var(--bezel) - 3rem), 46vw),
+    40rem
+  );
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100svh;
+  padding-top: var(--nav-h);
+  padding-bottom: var(--hud);
+  overflow: clip;
+  border-top: 1px solid var(--line);
+  background: var(--bg);
+}
+.wd-stage-area {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  align-items: center;
+}
+.wd-track {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  gap: clamp(1.5rem, 3.2vw, 4rem);
+  padding-inline: var(--margin);
+  will-change: transform;
+}
+.wd-panel {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-self: stretch;
+  padding: 0 clamp(1rem, 3vw, 3rem) calc(var(--info) + var(--chin) * 0.5) 0;
+}
+
+/* ── portal ── */
+.wd-portal {
+  position: relative;
+  display: block;
+  flex: none;
+  width: 100%;
+  color: var(--fg);
+  -webkit-tap-highlight-color: transparent;
+}
+.wd-portal[data-variant="track"] {
+  width: calc(var(--stage-h) * 4 / 3 + 2 * var(--bezel));
+}
+.wd-portal:focus-visible {
+  outline-offset: 8px;
+  border-radius: 24px;
+}
+.wd-bezel {
+  position: relative;
+  padding: var(--bezel, 10px) var(--bezel, 10px) 0;
+  border-radius: 22px;
+  background: #161615;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.08),
+    inset 0 -2px 0 rgb(0 0 0 / 0.5),
+    0 40px 70px -42px rgb(17 17 17 / 0.6);
+  transition:
+    transform 0.6s var(--ease-out-expo),
+    box-shadow 0.6s var(--ease-out-expo);
+}
+[data-theme="dark"] .wd-bezel {
+  background: #262522;
+}
+.wd-portal[data-hot] .wd-bezel {
+  transform: translateY(-6px);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.08),
+    inset 0 -2px 0 rgb(0 0 0 / 0.5),
+    0 56px 80px -44px rgb(17 17 17 / 0.7);
+}
+.wd-screen {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  isolation: isolate;
+  container-type: inline-size;
+  border-radius: 12px;
+}
+.wd-preview {
+  position: absolute;
+  inset: 0;
+  transition: transform 0.9s var(--ease-out-expo);
+}
+.wd-portal[data-hot] .wd-preview {
+  transform: scale(1.045);
+}
+.wd-scan {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(to bottom, rgb(0 0 0 / 0.16) 0 1px, transparent 1px 3px),
+    radial-gradient(130% 100% at 50% 50%, transparent 58%, rgb(0 0 0 / 0.42));
+  opacity: 0.65;
+  transition: opacity 0.5s;
+}
+.wd-portal[data-hot] .wd-scan {
+  opacity: 0.2;
+}
+.wd-corners {
+  z-index: 2;
+  color: var(--p-fg);
+  opacity: 0.5;
+  transition:
+    transform 0.6s var(--ease-out-expo),
+    opacity 0.3s;
+}
+.wd-portal[data-hot] .wd-corners {
+  transform: scale(0.965);
+  opacity: 1;
+}
+.wd-env {
+  position: absolute;
+  left: 38px;
+  top: 17px;
+  z-index: 2;
+  color: var(--p-fg);
+  opacity: 0.85;
+}
+.wd-chin {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: var(--chin, 30px);
+  padding-inline: 8px 10px;
+  color: #9a978f;
+}
+.wd-grille {
+  width: 52px;
+  height: 9px;
+  background-image: radial-gradient(circle, rgb(242 238 231 / 0.3) 1.1px, transparent 1.4px);
+  background-size: 5px 4.5px;
+}
+
+/* label strip under the monitor */
+.wd-info {
+  display: grid;
+  gap: 0.7rem;
+  padding: 1.1rem 0.25rem 0;
+}
+.wd-title-wrap {
+  position: relative;
+  min-width: 0;
+  font-size: clamp(1.85rem, 1.1rem + 1.8vw, 3.1rem);
+}
+.wd-marker {
+  position: absolute;
+  left: -0.08em;
+  right: -0.12em;
+  bottom: 0.02em;
+  height: 0.4em;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  transition: transform 0.55s var(--ease-out-expo);
+}
+.wd-portal[data-hot] .wd-marker {
+  transform: scaleX(1);
+}
+.wd-title {
+  position: relative;
+  overflow: hidden;
+  font-family: var(--font-display);
+  font-size: 1em;
+  font-weight: 800;
+  line-height: 0.98;
+  letter-spacing: -0.04em;
+  /* ellipsis needs overflow: keep descenders inside the box */
+  padding-bottom: 0.1em;
+  margin-bottom: -0.1em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.wd-go {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 999px;
+  background: var(--fg);
+  color: var(--bg);
+  transition:
+    rotate 0.5s var(--ease-out-expo),
+    background-color 0.3s,
+    color 0.3s;
+}
+.wd-portal[data-hot] .wd-go {
+  rotate: 45deg;
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+/* lime asterisk: needs an ink edge to exist on bone */
+.wd-asterisk {
+  display: inline-block;
+  margin-left: 0.04em;
+  font-family: var(--font-display);
+  font-style: normal;
+  font-weight: 800;
+  line-height: 0;
+  color: var(--color-lime);
+  -webkit-text-stroke: 0.03em var(--color-ink);
+  paint-order: stroke fill;
+  translate: 0 -0.12em;
+}
+
+/* ── rail ── */
+.wd-rail {
+  position: relative;
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 2rem;
+  height: var(--rail);
+  padding-inline: var(--margin);
+}
+.wd-line {
+  position: relative;
+  flex: 1;
+  height: 100%;
+}
+.wd-line::before {
+  /* sleepers */
+  content: "";
+  position: absolute;
+  inset: calc(50% - 5px) 0 auto;
+  height: 10px;
+  background-image: linear-gradient(to right, var(--fg) 1.5px, transparent 1.5px);
+  background-size: 12px 100%;
+  opacity: 0.22;
+}
+.wd-line::after {
+  content: "";
+  position: absolute;
+  inset: calc(50% - 0.75px) 0 auto;
+  height: 1.5px;
+  background: var(--fg);
+  opacity: 0.55;
+}
+.wd-fill {
+  position: absolute;
+  inset: calc(50% - 1.5px) 0 auto;
+  z-index: 1;
+  height: 3px;
+  background: var(--fg);
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+}
+.wd-stop {
+  position: absolute;
+  top: calc(50% - 5px);
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  translate: -50% 0;
+  color: var(--fg);
+}
+.wd-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--bg);
+  box-shadow: inset 0 0 0 1.5px var(--fg);
+  transition: background-color 0.3s;
+}
+.wd-chip {
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: var(--text-micro);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  line-height: 1.3;
+  transition:
+    background-color 0.3s,
+    color 0.3s;
+}
+.wd-stop-name {
+  margin-top: -3px;
+  color: var(--fg-muted);
+  white-space: nowrap;
+}
+.wd-stop:hover .wd-chip {
+  background: var(--surface-2);
+}
+.wd-stop[data-active] .wd-dot {
+  background: var(--accent);
+}
+.wd-stop[data-active] .wd-chip {
+  background: var(--accent);
+  color: var(--accent-ink);
+  box-shadow: inset 0 0 0 1px var(--color-ink);
+}
+.wd-stop[data-active] .wd-stop-name {
+  color: var(--fg);
+}
+.wd-train {
+  position: absolute;
+  left: 0;
+  bottom: calc(50% + 1px);
+  z-index: 3;
+  translate: -50% 0;
+  pointer-events: none;
+}
+
+/* ── chaos: monitors knocked askew and twitching, screens tearing ── */
+[data-chaos="on"] .wd-portal {
+  rotate: var(--tilt);
+  animation: wd-jitter 1.9s steps(3) infinite;
+  animation-delay: var(--jit);
+}
+[data-chaos="on"] .wd-preview {
+  animation: wd-tear 3.3s steps(1, end) infinite;
+  animation-delay: var(--jit);
+}
+@keyframes wd-jitter {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  25% {
+    translate: -2px 1px;
+  }
+  50% {
+    translate: 2px -2px;
+  }
+  75% {
+    translate: 1px 2px;
+  }
+}
+@keyframes wd-tear {
+  0%,
+  84%,
+  100% {
+    clip-path: none;
+    translate: 0 0;
+    filter: none;
+  }
+  86% {
+    clip-path: inset(14% 0 56% 0);
+    translate: -6% 0;
+    filter: hue-rotate(90deg) saturate(2.5);
+  }
+  89% {
+    clip-path: inset(46% 0 24% 0);
+    translate: 5% 0;
+    filter: invert(1);
+  }
+  92% {
+    clip-path: inset(0 0 78% 0);
+    translate: -3% 0;
+  }
+  95% {
+    clip-path: none;
+    translate: 2% 0;
+    filter: contrast(2.2);
+  }
+}
