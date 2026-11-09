@@ -43,7 +43,16 @@ export function Headline({ lines }: { lines: readonly string[] }) {
     const flat = letters.flat();
     const base = flat.map(() => REST);
     const cur = flat.map(() => REST);
-    const set = (el: HTMLElement, w: number) => (el.style.fontVariationSettings = `"wdth" ${w.toFixed(2)}`);
+    // Whole wdth units only (1 unit ≈ 0.6% width — invisible). Every distinct variation value makes
+    // the browser build a new font instance and re-shape the text; continuously changing decimals
+    // never hit its font cache, so integer steps are what keep the kinetic headline at 60fps.
+    const shown = new WeakMap<HTMLElement, number>();
+    const set = (el: HTMLElement, w: number) => {
+      const v = Math.round(w);
+      if (shown.get(el) === v) return;
+      shown.set(el, v);
+      el.style.fontVariationSettings = `"wdth" ${v}`;
+    };
     let fs = 100;
     let busy = false;
     let settled = false;
@@ -87,12 +96,16 @@ export function Headline({ lines }: { lines: readonly string[] }) {
     const io = new IntersectionObserver(([e]) => (visible = e.isIntersecting));
     io.observe(h1);
 
+    // Letter positions are re-measured every 3rd frame, not every frame: each measurement forces a
+    // layout of the whole page, and the letters only drift a few px between measurements.
+    let frame = 0;
+    let rects: DOMRect[] = [];
     const tick = (time: number) => {
       if (busy || !visible || reduced) return;
       const wild = chaosRef.current;
       energy += (clamp(pointer.inside ? pointer.speed / 38 : 0) - energy) * 0.12;
       if (!wild && energy < 0.003 && settled) return;
-      const rects = flat.map((el) => el.getBoundingClientRect());
+      if (frame++ % 3 === 0 || rects.length !== flat.length) rects = flat.map((el) => el.getBoundingClientRect());
       const amp = energy * (wild ? 50 : 20);
       let moved = false;
       let i = 0;
@@ -109,7 +122,8 @@ export function Headline({ lines }: { lines: readonly string[] }) {
           let target = base[j] + amp * (w[k] - mean) * 2.4;
           if (wild) target += Math.sin(time * 2.6 + j * 0.62) * 11;
           const next = cur[j] + (clamp(target, MIN, MAX) - cur[j]) * 0.2;
-          if (Math.abs(next - cur[j]) > 0.02) {
+          // below ~0.06 wdth the change is invisible but still costs a text re-layout
+          if (Math.abs(next - cur[j]) > 0.06) {
             cur[j] = next;
             set(el, next);
             moved = true;

@@ -33,6 +33,11 @@
 .hero-row {
   position: relative;
   display: block;
+  /* A layout boundary: the kinetic headline changes per-letter wdth every frame, and without
+     containment each change re-laid out the whole page (~6ms a frame). The row's box never changes
+     size (one 0.86em line), so containing size + layout keeps the work inside the row. */
+  height: 0.86em;
+  contain: size layout style;
 }
 .hero-mask {
   display: block;
