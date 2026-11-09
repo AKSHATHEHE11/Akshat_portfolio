@@ -40,17 +40,32 @@ export function useBackdropTone(ref: RefObject<HTMLElement | null>) {
   useEffect(() => {
     const nav = ref.current;
     if (!nav || world) return;
+    // Sampling (hit-testing + computed styles) forces layout, so it runs at most every 150ms and only
+    // near the top of the page, where the bar is transparent. The scroll position is read in the
+    // scroll event (start of frame, layout clean) instead of inside the rAF after other writes.
     let raf = 0;
+    let trailing = 0;
+    let lastAt = 0;
+    let scrollY = window.scrollY;
     const probe = () => {
       raf = 0;
-      if (window.scrollY > 120) return;
+      lastAt = performance.now();
+      if (scrollY > 120) return;
       const y = nav.getBoundingClientRect().height / 2;
       const w = window.innerWidth;
       const vote = toneAt(nav, w * 0.12, y) + toneAt(nav, w * 0.5, y) + toneAt(nav, w * 0.88, y);
       nav.dataset.tone = vote > 0 ? "dark" : "light";
     };
-    const schedule = () => {
+    const run = () => {
       if (!raf) raf = requestAnimationFrame(probe);
+    };
+    const schedule = () => {
+      scrollY = window.scrollY;
+      if (scrollY > 120 && nav.dataset.tone) return; // below the hero the condensed bar has its own surface
+      const wait = 150 - (performance.now() - lastAt);
+      window.clearTimeout(trailing);
+      if (wait > 0) trailing = window.setTimeout(run, wait);
+      else run();
     };
     schedule();
     const late = window.setTimeout(schedule, 900); // after the page transition / intros settle
@@ -58,6 +73,7 @@ export function useBackdropTone(ref: RefObject<HTMLElement | null>) {
     window.addEventListener("resize", schedule);
     return () => {
       cancelAnimationFrame(raf);
+      window.clearTimeout(trailing);
       window.clearTimeout(late);
       window.removeEventListener("scroll", schedule);
       window.removeEventListener("resize", schedule);
