@@ -55,6 +55,8 @@ export function trackPointer() {
   window.addEventListener("pointermove", move, { passive: true });
   window.addEventListener("pointerdown", down, { passive: true });
   window.addEventListener("pointerup", up, { passive: true });
+  // a touch that turns into a scroll ends in pointercancel, never pointerup
+  window.addEventListener("pointercancel", up, { passive: true });
   document.documentElement.addEventListener("pointerleave", leave);
   raf = requestAnimationFrame(loop);
 
@@ -64,6 +66,7 @@ export function trackPointer() {
     window.removeEventListener("pointermove", move);
     window.removeEventListener("pointerdown", down);
     window.removeEventListener("pointerup", up);
+    window.removeEventListener("pointercancel", up);
     document.documentElement.removeEventListener("pointerleave", leave);
   };
 }
