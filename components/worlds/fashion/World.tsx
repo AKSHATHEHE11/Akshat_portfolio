@@ -2,9 +2,8 @@
 // Fybr8 — denim commerce as an editorial lookbook you can buy from.
 // cover (identity + cloth) → spread (story) → lookbook (sideways) → store (#preview) →
 // fitting-room notes (#process) → swatch book (decisions) → care label (tech) → price tags (outcome).
-import { useEffect, useRef, useSyncExternalStore, type CSSProperties, type ReactNode } from "react";
+import { useSyncExternalStore, type CSSProperties, type ReactNode } from "react";
 import { createPortal } from "react-dom";
-import { ScrollTrigger } from "@/lib/gsap";
 import "./fashion.css";
 import type { WorldProps } from "../types";
 import { CareLabel } from "./CareLabel";
@@ -23,32 +22,8 @@ import { Story } from "./Story";
 
 export default function FashionWorld({ project }: WorldProps<FashionScene>) {
   const { color, scene } = project;
-  const root = useRef<HTMLDivElement>(null);
-
-  // Every trigger below the store (process notes, price-tag count-ups) is measured once. Fonts landing,
-  // a filter, the fit-finder tab or a revealed decision all change the page height under them, so
-  // re-measure whenever the world's height settles on a new value.
-  useEffect(() => {
-    const el = root.current;
-    if (!el) return;
-    let alive = true;
-    let last = el.offsetHeight;
-    let t: ReturnType<typeof setTimeout> | undefined;
-    void document.fonts?.ready.then(() => alive && ScrollTrigger.refresh());
-    const ro = new ResizeObserver(() => {
-      const h = el.offsetHeight;
-      if (Math.abs(h - last) < 2) return;
-      last = h;
-      clearTimeout(t);
-      t = setTimeout(() => ScrollTrigger.refresh(), 220);
-    });
-    ro.observe(el);
-    return () => {
-      alive = false;
-      clearTimeout(t);
-      ro.disconnect();
-    };
-  }, []);
+  // Fonts landing, a filter, the fit-finder tab or a revealed decision change the page height under
+  // the triggers below the store: Providers re-measures every ScrollTrigger when #main's height settles.
 
   // the world keeps its own palette whatever the site theme is: the site's semantic tokens are
   // re-pointed here too, so shared UI (Button, focus, selection) speaks Fybr8 inside the world
@@ -73,7 +48,7 @@ export default function FashionWorld({ project }: WorldProps<FashionScene>) {
 
   return (
     <StoreProvider scene={scene}>
-      <div ref={root} className="relative overflow-x-clip pb-28" style={palette}>
+      <div className="relative overflow-x-clip pb-28" style={palette}>
         <Cover project={project} />
         <Story project={project} />
         <Lookbook scene={scene} gallery={project.gallery} />

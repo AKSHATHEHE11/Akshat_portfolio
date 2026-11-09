@@ -60,5 +60,29 @@ function ScrollSync() {
     return () => cancelAnimationFrame(id);
   }, [pathname, lenis]);
 
+  // Lazy content (canvases, dynamic imports, fonts) changes page height after mount; re-measure every
+  // ScrollTrigger once the height settles. Pin spacers settle on the second pass, so this can't loop.
+  useEffect(() => {
+    const main = document.getElementById("main");
+    if (!main) return;
+    let last = main.offsetHeight;
+    let timer = 0;
+    const ro = new ResizeObserver(() => {
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => {
+        const h = main.offsetHeight;
+        if (Math.abs(h - last) < 2) return;
+        last = h;
+        ScrollTrigger.refresh();
+        last = main.offsetHeight;
+      }, 220);
+    });
+    ro.observe(main);
+    return () => {
+      ro.disconnect();
+      window.clearTimeout(timer);
+    };
+  }, []);
+
   return null;
 }
