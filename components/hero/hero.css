@@ -1,0 +1,320 @@
+/* Hero — styles Tailwind can't express. Plain CSS, every selector under the hero- namespace
+   (CSS Modules are not wired in this project's Turbopack config). Tokens only (app/globals.css). */
+
+.hero-scene {
+  /* distance from the section top to the content row (fixed nav + breathing room) */
+  --hero-top: calc(var(--nav-h) + clamp(0.75rem, 3vh, 2.25rem));
+  /* from the content column's right edge to the viewport edge: the console canvas bleeds into it */
+  --bleed: calc(var(--margin) + max(0px, (100vw - var(--frame-max)) / 2));
+  padding-top: var(--hero-top);
+}
+
+/* Entrance pre-state. Only when motion is allowed, and only until the entrance takes over
+   (Hero.tsx flips data-intro to "run"), so nothing flashes between SSR paint and hydration. */
+@media (prefers-reduced-motion: no-preference) {
+  .hero-scene[data-intro="pending"] [data-line-inner] {
+    transform: translateY(112%);
+  }
+  .hero-scene[data-intro="pending"] [data-fade],
+  .hero-scene[data-intro="pending"] [data-module],
+  .hero-scene[data-intro="pending"] [data-console-fallback],
+  .hero-scene[data-intro="pending"] .hero-squiggle {
+    opacity: 0;
+  }
+}
+
+/* ── headline ── */
+.hero-headline {
+  /* fills the column (a size container) at the resting width; capped by height on short screens */
+  font-size: min(15.2cqi, 13.6svh);
+  line-height: 0.86;
+  margin: 0;
+}
+.hero-row {
+  position: relative;
+  display: block;
+}
+.hero-mask {
+  display: block;
+  overflow-x: visible;
+  overflow-y: clip;
+}
+.hero-line {
+  display: inline-block;
+  white-space: nowrap;
+}
+.hero-word,
+.hero-ch {
+  display: inline-block;
+}
+/* resting widths (JS then justifies each line to the column) */
+.hero-ch {
+  font-variation-settings: "wdth" 84;
+}
+.hero-accent .hero-ch {
+  font-variation-settings: "wdth" 100;
+}
+.hero-accent {
+  color: var(--signal);
+  font-style: italic;
+  padding-right: 0.06em; /* the italic overhang stays inside the line box */
+}
+/* the accent row hugs its word, so the squiggle is sized to the word (whatever the data says) */
+.hero-row--accent {
+  width: fit-content;
+}
+.hero-squiggle {
+  position: absolute;
+  left: 8%;
+  top: calc(100% - 0.1em);
+  width: 90%;
+  height: auto;
+  color: var(--signal);
+  overflow: visible;
+  pointer-events: none;
+}
+
+/* ── console hit areas: at least 44×44 under a finger, whatever size the projected part is ── */
+.hero-hit::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: max(100%, 44px);
+  height: max(100%, 44px);
+  translate: -50% -50%;
+  border-radius: inherit;
+}
+
+/* ── patch-bay modules ── */
+.hero-mod {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: 1fr;
+  align-content: start;
+  gap: 0.75rem;
+  min-height: 7.25rem;
+  padding: 1rem 1rem 1.6rem;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: color-mix(in oklab, var(--surface) 72%, transparent);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.5),
+    0 1px 0 rgb(0 0 0 / 0.04);
+  color: var(--fg);
+  transition:
+    color var(--dur-hover) var(--ease-out-quart),
+    border-color var(--dur-hover) var(--ease-out-quart);
+}
+@media (min-width: 64rem) {
+  .hero-mod {
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    gap: 0.9rem;
+    padding: 1rem 1.6rem 1rem 1rem;
+  }
+}
+[data-theme="dark"] .hero-mod {
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.06);
+}
+/* four corner screws */
+.hero-mod::after {
+  content: "";
+  position: absolute;
+  inset: 6px;
+  pointer-events: none;
+  opacity: 0.4;
+  --screw: radial-gradient(circle, currentColor 0 1.4px, transparent 2px);
+  background:
+    var(--screw) top left / 6px 6px no-repeat,
+    var(--screw) top right / 6px 6px no-repeat,
+    var(--screw) bottom left / 6px 6px no-repeat,
+    var(--screw) bottom right / 6px 6px no-repeat;
+}
+.hero-mod__fill {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(to top, var(--signal) 35%, color-mix(in oklab, var(--signal) 72%, #ffd2bd));
+  transform: scaleY(0);
+  transform-origin: bottom;
+  transition: transform 460ms var(--ease-out-expo);
+}
+.hero-mod:hover,
+.hero-mod:focus-visible {
+  color: var(--signal-ink);
+  border-color: transparent;
+}
+.hero-mod:hover .hero-mod__fill,
+.hero-mod:focus-visible .hero-mod__fill {
+  transform: scaleY(1);
+}
+.hero-mod__copy {
+  color: var(--fg-muted);
+  transition: color var(--dur-hover) var(--ease-out-quart);
+}
+.hero-mod:hover .hero-mod__copy,
+.hero-mod:focus-visible .hero-mod__copy {
+  color: var(--signal-ink);
+}
+.hero-mod__glyph {
+  width: clamp(2.75rem, 1.9rem + 1.6vw, 3.75rem);
+  height: auto;
+  overflow: visible;
+}
+.hero-mod__led {
+  width: 7px;
+  height: 7px;
+  flex: none;
+  border-radius: 50%;
+  background: color-mix(in oklab, currentColor 22%, transparent);
+  transition:
+    background-color var(--dur-hover),
+    box-shadow var(--dur-hover);
+}
+.hero-mod:hover .hero-mod__led,
+.hero-mod:focus-visible .hero-mod__led {
+  background: var(--color-lime, #d8ff00);
+  box-shadow:
+    0 0 0 1.5px var(--signal-ink),
+    0 0 10px var(--color-lime, #d8ff00);
+}
+.hero-mod__jack {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  border: 1.5px solid currentColor;
+  background: radial-gradient(circle, currentColor 0 2.5px, transparent 3px);
+  opacity: 0.35;
+  transition: opacity var(--dur-hover);
+}
+.hero-mod:hover .hero-mod__jack,
+.hero-mod:focus-visible .hero-mod__jack {
+  opacity: 0.9;
+}
+
+.hero-terrain {
+  position: relative;
+  min-height: 7.25rem;
+  overflow: hidden;
+  border-radius: 10px;
+  background: var(--color-ink, #111111);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.06);
+}
+
+/* glyph micro-animations: only while the module is hovered/focused */
+.hero-g-draw {
+  stroke-dasharray: 100;
+}
+.hero-g-handle {
+  transform-origin: 13px 44px;
+}
+.hero-g-lt,
+.hero-g-gt,
+.hero-g-back,
+.hero-g-caret {
+  transform-box: fill-box;
+}
+.hero-g-caret {
+  opacity: 0;
+}
+.hero-g-liquid {
+  fill: var(--signal);
+  transition: fill var(--dur-hover);
+}
+.hero-g-bubble {
+  fill: var(--color-bone, #f2eee7);
+  stroke: none;
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.hero-mod:hover .hero-g-liquid,
+.hero-mod:focus-visible .hero-g-liquid {
+  fill: var(--signal-ink);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .hero-mod:hover .hero-g-draw,
+  .hero-mod:focus-visible .hero-g-draw {
+    animation: hero-k-draw 1.6s var(--ease-out-quart) infinite;
+  }
+  .hero-mod:hover .hero-g-handle,
+  .hero-mod:focus-visible .hero-g-handle {
+    animation: hero-k-swing 1.6s var(--ease-machine) infinite alternate;
+  }
+  .hero-mod:hover .hero-g-lt,
+  .hero-mod:focus-visible .hero-g-lt {
+    animation: hero-k-nudge 0.9s var(--ease-snap) infinite alternate;
+    --dx: -2.5px;
+  }
+  .hero-mod:hover .hero-g-gt,
+  .hero-mod:focus-visible .hero-g-gt {
+    animation: hero-k-nudge 0.9s var(--ease-snap) infinite alternate;
+    --dx: 2.5px;
+  }
+  .hero-mod:hover .hero-g-back,
+  .hero-mod:focus-visible .hero-g-back {
+    animation: hero-k-nudge 1.4s var(--ease-machine) infinite alternate;
+    --dx: 3px;
+  }
+  .hero-mod:hover .hero-g-caret,
+  .hero-mod:focus-visible .hero-g-caret {
+    animation: hero-k-blink 0.9s steps(1, end) infinite;
+  }
+  .hero-mod:hover .hero-g-bubble,
+  .hero-mod:focus-visible .hero-g-bubble {
+    animation: hero-k-bubble 1.5s var(--ease-out-quart) infinite;
+  }
+  .hero-mod:hover .hero-g-bubble:nth-of-type(2),
+  .hero-mod:focus-visible .hero-g-bubble:nth-of-type(2) {
+    animation-delay: 0.45s;
+  }
+  .hero-mod:hover .hero-g-bubble:nth-of-type(3),
+  .hero-mod:focus-visible .hero-g-bubble:nth-of-type(3) {
+    animation-delay: 0.9s;
+  }
+}
+
+@keyframes hero-k-blink {
+  50% {
+    opacity: 1;
+  }
+}
+@keyframes hero-k-draw {
+  0% {
+    stroke-dashoffset: 100;
+  }
+  60%,
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes hero-k-swing {
+  to {
+    transform: rotate(-24deg);
+  }
+}
+@keyframes hero-k-nudge {
+  to {
+    transform: translateX(var(--dx));
+  }
+}
+@keyframes hero-k-bubble {
+  0% {
+    opacity: 0;
+    transform: translateY(0) scale(0.6);
+  }
+  25% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-26px) scale(1.15);
+  }
+}
