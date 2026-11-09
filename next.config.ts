@@ -7,7 +7,10 @@ const nextConfig: NextConfig = {
   // unmount-on-navigate is both simpler and safer. Page transitions use React <ViewTransition>.
   turbopack: {
     rules: {
+      // Tailwind compiles plain stylesheets. *.module.css is excluded on purpose: `as: "*.css"` would
+      // otherwise re-type CSS Modules as global CSS, leaving every `styles.x` undefined.
       "*.css": {
+        condition: { not: { path: /\.module\.css$/ } },
         loaders: ["@tailwindcss/turbopack"],
         as: "*.css",
       },
