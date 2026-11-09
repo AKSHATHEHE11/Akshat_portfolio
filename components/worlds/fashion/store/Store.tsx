@@ -6,6 +6,8 @@ import { Ruler } from "lucide-react";
 import { SPRING } from "@/lib/motion";
 import { play } from "@/lib/sound";
 import { cn } from "@/lib/utils";
+import { Garment } from "../Garment";
+import type { Product } from "../scene";
 import { useStore, type Filter, type Tab } from "./context";
 import { FitFinder } from "./FitFinder";
 import { ProductTile } from "./ProductTile";
@@ -29,6 +31,7 @@ export function Store({ title }: { title: string }) {
   // or 4 (denim) pieces close every row
   const promoAt = state.filter === "all" || state.filter === "denim" ? Math.min(2, shown.length) : -1;
   const fitLine = scene.coverLines.find((l) => l.target === "fit")?.text ?? "Find your fit";
+  const pair = products.find((p) => p.fitId);
 
   const setTab = (tab: Tab) => {
     play("click");
@@ -142,7 +145,7 @@ export function Store({ title }: { title: string }) {
                       <ProductTile product={p} />
                     </motion.li>
                   );
-                  return i === promoAt - 1 ? [tile, <FitPromo key="fit-promo" line={fitLine} onOpen={() => go("fit")} />] : [tile];
+                  return i === promoAt - 1 ? [tile, <FitPromo key="fit-promo" line={fitLine} pair={pair} onOpen={() => go("fit")} />] : [tile];
                 })}
               </AnimatePresence>
             </ul>
@@ -159,7 +162,7 @@ export function Store({ title }: { title: string }) {
   );
 }
 
-function FitPromo({ line, onOpen }: { line: string; onOpen: () => void }) {
+function FitPromo({ line, pair, onOpen }: { line: string; pair?: Product; onOpen: () => void }) {
   return (
     <motion.li
       layout
@@ -176,6 +179,12 @@ function FitPromo({ line, onOpen }: { line: string; onOpen: () => void }) {
         className="group/promo relative flex h-full min-h-52 w-full flex-col justify-between overflow-hidden bg-(--fy-accent) p-4 text-left text-(--fy-fg) lg:p-7"
       >
         <span className="max-w-[16ch] font-serif text-[clamp(1.75rem,1.1rem+2vw,2.6rem)] italic leading-[0.95] lg:text-[clamp(2.6rem,0.8rem+3vw,4.6rem)]">{line}.</span>
+        {/* desktop: a pair of the house jeans with the tape across its waist — the fit finder in one picture */}
+        {pair ? (
+          <span aria-hidden className="absolute right-[9%] top-[calc(46%-1.25rem)] hidden w-[44%] rotate-[5deg] transition-[rotate] duration-700 ease-out-expo group-hover/promo:rotate-[2deg] lg:block">
+            <Garment kind={pair.kind} colour={pair.colours[0].hex} leg={pair.leg} still className="w-full drop-shadow-[0_24px_20px_rgb(20_22_28/0.3)]" />
+          </span>
+        ) : null}
         <span aria-hidden className="absolute -inset-x-4 top-[46%] h-9 -rotate-[8deg] border-y border-(--fy-fg) bg-(--fy-accent) transition-[rotate] duration-700 ease-out-expo group-hover/promo:-rotate-[4deg] lg:h-14">
           <span
             className="absolute inset-0"

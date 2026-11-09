@@ -20,7 +20,9 @@ export function ClothRolled() {
           top: "max(5.62cqh, 50cqh - 54.55cqw)",
           width: u(80, 65.09),
           height: u(7.64, 6.21),
-          background: "repeating-linear-gradient(180deg, rgb(255 255 255 / .1) 0 6.8%, rgb(0 0 0 / .3) 6.8% 13.7%), var(--fy-house)",
+          // selvedge edges (2% each side, as in the shader) over the rolled ripples
+          background:
+            "linear-gradient(90deg, #e6dfcf 0 2%, transparent 2% 98%, #e6dfcf 98%), repeating-linear-gradient(180deg, rgb(255 255 255 / .1) 0 6.8%, rgb(0 0 0 / .3) 6.8% 13.7%), var(--fy-house)",
         }}
       />
       <span

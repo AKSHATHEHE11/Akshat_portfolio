@@ -78,10 +78,12 @@ export function pinked(aspect = 0.8, teeth = 12, depth = 2.6) {
   return `polygon(${pts.join(",")})`;
 }
 
-/** Split "−22%" / "4.8%" / "41 s" into prefix, number, suffix and decimals for count-ups. */
+/**
+ * Split "−22%" / "4.8%" / "41 s" into prefix, number, suffix and decimals for count-ups.
+ * Null (shown as written, no count-up) for anything else: "1,240", "₹1,20,000", "24/7".
+ */
 export function splitValue(value: string) {
-  const m = value.match(/^(\D*?)(\d+(?:[.,]\d+)?)(.*)$/);
+  const m = value.match(/^(\D*?)(\d+(?:\.\d+)?)(\D*)$/);
   if (!m) return null;
-  const num = m[2].replace(",", ".");
-  return { prefix: m[1], value: parseFloat(num), suffix: m[3], decimals: num.split(".")[1]?.length ?? 0 };
+  return { prefix: m[1], value: parseFloat(m[2]), suffix: m[3], decimals: m[2].split(".")[1]?.length ?? 0 };
 }
