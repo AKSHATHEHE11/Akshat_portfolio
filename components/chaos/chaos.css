@@ -1,0 +1,80 @@
+/* ───────────────────────────────────────────────────────────────────────────
+   Chaos Mode — page-wide hooks. Ships only inside the lazily loaded chaos chunk,
+   and every rule is scoped to html[data-chaos="on"], so the calm site never matches any of it.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+/* Colour shift.
+   Light: the paper runs hotter; lime fills turn signal-orange and the orange deepens a notch so it
+   keeps its contrast on the warmer ground (lime as *text* on paper would fail AA, so no straight swap).
+   Muted text darkens to stay AA. Dark: lime and orange swap outright — both read on near-black. */
+html[data-chaos="on"] {
+  --bg: #f4e7d1;
+  --surface: #fbf3e6;
+  --surface-2: #eadbc2;
+  --fg-muted: #5d574d;
+  --line: rgb(17 17 17 / 0.2);
+  --accent: #ff5a1f;
+  --accent-ink: #111111;
+  --signal: #f0450a;
+  --signal-ink: #111111;
+  scrollbar-color: #ff5a1f transparent;
+}
+html[data-chaos="on"][data-theme="dark"] {
+  --bg: #120e0a;
+  --fg: #f5ebda;
+  --fg-muted: #ada293;
+  --line: rgb(245 235 218 / 0.16);
+  --surface: #1c1712;
+  --surface-2: #272019;
+  --accent: #ff5a1f;
+  --accent-ink: #111111;
+  --signal: #d8ff00;
+  --signal-ink: #111111;
+  scrollbar-color: #d8ff00 transparent;
+}
+
+/* selection inverts */
+html[data-chaos="on"] ::selection {
+  background: #111111;
+  color: #d8ff00;
+}
+html[data-chaos="on"][data-theme="dark"] ::selection {
+  background: #d8ff00;
+  color: #111111;
+}
+
+/* Device screens are always dark: their phosphor turns from orange to lime. */
+html[data-chaos="on"] .crt {
+  color: #d8ff00;
+  text-shadow:
+    0 0 6px rgb(216 255 0 / 0.7),
+    0 0 18px rgb(216 255 0 / 0.35);
+}
+
+/* Power surge (~450ms): the engine drives the SVG filter #cx-surge (RGB split + shake). */
+html[data-chaos="on"][data-cx-surge] {
+  filter: url(#cx-surge);
+}
+
+/* Occasional heading glitch — toggled for 120ms by the engine. */
+html[data-chaos="on"] .cx-glitch {
+  animation: cx-glitch 120ms steps(1, end) both;
+}
+@keyframes cx-glitch {
+  0% {
+    clip-path: inset(6% 0 46% 0);
+    filter: drop-shadow(-4px 0 0 #ff5a1f) drop-shadow(4px 0 0 #d8ff00);
+  }
+  33% {
+    clip-path: inset(44% 0 4% 0);
+    filter: drop-shadow(5px 0 0 #ff5a1f) drop-shadow(-3px 0 0 #d8ff00);
+  }
+  66% {
+    clip-path: inset(0);
+    filter: drop-shadow(-2px 0 0 #ff5a1f) drop-shadow(2px 0 0 #d8ff00);
+  }
+  100% {
+    clip-path: none;
+    filter: none;
+  }
+}
