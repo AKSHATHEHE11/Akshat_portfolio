@@ -1,7 +1,23 @@
 import type { Project } from "@/lib/types";
-import type { FashionScene } from "@/components/worlds/fashion/scene";
+import type { FashionScene, FitSize, SizeStock } from "@/components/worlds/fashion/scene";
 
 // DUMMY project content — realistic shape, replace with real details later.
+
+const WAISTS = [28, 29, 30, 31, 32, 33, 34, 36];
+const TOPS = ["XS", "S", "M", "L", "XL"];
+
+/** stock per size, in the order of WAISTS / TOPS */
+const sized = (labels: (string | number)[], stock: number[]): SizeStock[] =>
+  labels.map((l, i) => ({ label: String(l), stock: stock[i] ?? 0 }));
+
+/** Garment measurements graded from the size-30 thigh: +¼ in thigh per inch of waist. */
+const grade = (thigh30: number): FitSize[] =>
+  WAISTS.map((w) => ({ label: String(w), waist: w + 1, thigh: thigh30 + (w - 30) * 0.25 }));
+
+const RINSE = { name: "Rinse", hex: "#1f2a44" };
+const STONE = { name: "Mid stone", hex: "#5b7699" };
+const BLACK = { name: "Black", hex: "#1c1c20", weft: "#3c3c42" };
+
 export const fybr8: Project<FashionScene> = {
   id: "03",
   slug: "fybr8",
@@ -15,28 +31,29 @@ export const fybr8: Project<FashionScene> = {
   role: ["Art direction", "Frontend", "Commerce UX"],
   technologies: [
     { name: "Next.js", group: "frontend", why: "Static lookbook pages with live inventory islands." },
-    { name: "GSAP", group: "motion", why: "Horizontal lookbook and fabric reveals." },
+    { name: "GSAP", group: "motion", why: "The sideways lookbook, the fabric reveals, the bag toss." },
     { name: "Three.js", group: "motion", why: "A cloth you can actually tug on the product page." },
     { name: "Shopify Storefront API", group: "backend", why: "Inventory and checkout stay with the merchant." },
     { name: "Vercel", group: "cloud", why: "Edge-cached product pages for drop days." },
+    { name: "Figma", group: "design", why: "Every garment drawn as a flat from real fabric scans." },
   ],
   color: { bg: "#e9e6df", fg: "#14161c", accent: "#c8f03c" },
   environment: "fashion",
   metrics: [
     { label: "Conversion on drop day", value: "4.8%", note: "category average ~1.9%" },
-    { label: "Returns for fit", value: "−22%" },
+    { label: "Returns for fit", value: "−22%", note: "first two drops" },
     { label: "Time to checkout", value: "41 s", note: "median" },
   ],
   challenge:
     "Denim is bought with your hands. Most stores flatten it into identical white-background thumbnails, then wonder why returns are high.",
   solution:
-    "Fabric-first product pages: weight, weave and stretch shown as interactive texture, a fit guide that uses your own jeans as reference, and editorial layouts that still check out in three taps.",
+    "Product pages that lead with the cloth: weight, weave and stretch you can poke at, a fit finder that uses your own jeans as the ruler, and editorial layouts that still check out in three taps.",
   outcome: "Drop days sold through in hours, and fewer pairs came back for fit.",
   process: [
     { title: "Fabric before photos", body: "Started from swatches, not screens. Every product page leads with weight, weave and stretch." },
     { title: "Fit by comparison", body: "Measure a pair you already love; the store tells you which Fybr8 fit matches it." },
-    { title: "Editorial, but fast", body: "Oversized type and horizontal lookbooks — with the add-to-bag never more than one tap away." },
-    { title: "Drop-day hardening", body: "Edge caching and queue-free checkout for the ten minutes that matter." },
+    { title: "Editorial, but fast", body: "Oversized type and a sideways lookbook — with add-to-bag never more than one tap away." },
+    { title: "Drop-day hardening", body: "Edge caching and a queue-free checkout for the ten minutes that matter." },
   ],
   decisions: [
     {
@@ -46,7 +63,7 @@ export const fybr8: Project<FashionScene> = {
         { label: "Fabric first", note: "Tactile, specific, and it answers the real question." },
       ],
       chosen: 1,
-      why: "People asked 'how heavy is it?' far more than 'how does it look on him?'.",
+      why: "People asked “how heavy is it?” far more than “how does it look on him?”.",
     },
     {
       question: "Size chart or fit comparison?",
@@ -57,10 +74,356 @@ export const fybr8: Project<FashionScene> = {
       chosen: 1,
       why: "Nobody knows their inseam. Everyone knows their favourite jeans.",
     },
+    {
+      question: "Account before checkout, or after?",
+      options: [
+        { label: "Account first", note: "Good for the CRM. Bad for a drop that lasts ten minutes." },
+        { label: "Pay, then claim", note: "Guest checkout; the receipt turns into an account with one tap." },
+      ],
+      chosen: 1,
+      why: "Every extra field on drop day cost pairs. Accounts can wait for the receipt.",
+    },
   ],
   links: [
     { label: "Shop the drop", href: "#preview" },
     { label: "Read the process", href: "#process" },
   ],
-  scene: {},
+  scene: {
+    issue: "Issue 07",
+    season: "AW25",
+    coverLines: [
+      { lead: "14.5 oz", text: "Selvedge you can almost feel through the glass", target: "preview" },
+      { lead: "Fit", text: "Your favourite jeans are the size chart", target: "fit" },
+      { lead: "Six looks", text: "One fabric, read sideways", target: "lookbook" },
+      { lead: "−22%", text: "Fewer pairs sent back for fit", target: "outcome" },
+    ],
+    rack: ["field-overshirt", "heavy-tee", "wide-02"],
+    barcode: "8904123450078",
+    marquee: ["Fabric first", "Fit second", "Checkout in three taps"],
+    lookbook: {
+      title: "Lookbook",
+      line: "Six looks. Eight pieces. Mostly denim.",
+      looks: [
+        {
+          id: "l01",
+          title: "Lime on rinse",
+          note: "The jacket from the cover. It is louder in person.",
+          backdrop: "#1f2a44",
+          word: "RINSE",
+          items: [
+            { productId: "field-overshirt", colour: 0 },
+            { productId: "heavy-tee", colour: 1 },
+            { productId: "wide-02", colour: 0 },
+          ],
+        },
+        {
+          id: "l02",
+          title: "All indigo",
+          note: "Denim on denim, washes mismatched on purpose.",
+          backdrop: "#d8d2c4",
+          word: "INDIGO",
+          items: [
+            { productId: "trucker-03", colour: 0 },
+            { productId: "pocket-tee", colour: 0 },
+            { productId: "straight-04", colour: 0 },
+          ],
+        },
+        {
+          id: "l03",
+          title: "Ecru season",
+          note: "Ecru shows every drop of chai. Wear it anyway.",
+          backdrop: "#2a2927",
+          word: "ECRU",
+          items: [
+            { productId: "trucker-03", colour: 2 },
+            { productId: "heavy-tee", colour: 0 },
+            { productId: "wide-02", colour: 1 },
+          ],
+        },
+        {
+          id: "l04",
+          title: "Night shift",
+          note: "Everything black except the backdrop.",
+          backdrop: "#c8f03c",
+          word: "NIGHT",
+          items: [
+            { productId: "field-overshirt", colour: 1 },
+            { productId: "heavy-tee", colour: 1 },
+            { productId: "cargo-05", colour: 0 },
+          ],
+        },
+        {
+          id: "l05",
+          title: "Clay & stone",
+          note: "Two earth tones and a tee that refuses to pick a side.",
+          backdrop: "#ece5d6",
+          word: "CLAY",
+          items: [
+            { productId: "field-overshirt", colour: 2 },
+            { productId: "pocket-tee", colour: 1 },
+            { productId: "straight-04", colour: 0 },
+          ],
+        },
+        {
+          id: "l06",
+          title: "Drop 07 uniform",
+          note: "What the studio wore on drop day. Nobody planned it.",
+          // deep stone: mid stone (#5b7699) only reached 4.1:1 under paper text
+          backdrop: "#435a7a",
+          word: "UNIFORM",
+          items: [
+            { productId: "heavy-tee", colour: 2 },
+            { productId: "taper-01", colour: 0 },
+          ],
+        },
+      ],
+    },
+    store: {
+      currency: "INR",
+      locale: "en-IN",
+      freeShippingOver: 3000,
+      shippingFee: 149,
+      perks: ["Free shipping over ₹3,000", "Free fit exchanges"],
+    },
+    products: [
+      {
+        id: "trucker-03",
+        sku: "FY-J03-RN",
+        name: "Trucker 03",
+        kind: "denim-jacket",
+        category: "jackets",
+        price: 5990,
+        colours: [RINSE, STONE, { name: "Ecru", hex: "#e2d8c3", weft: "#f1ece0" }],
+        sizes: sized(TOPS, [2, 6, 9, 4, 0]),
+        fabric: {
+          oz: 13.5,
+          weave: "twill-3x1",
+          weaveName: "3×1 right-hand twill",
+          stretch: 0,
+          composition: "100% cotton, selvedge",
+          hand: "Stiff for a week, yours for a decade.",
+        },
+        note: "The type III trucker, cut a little boxier and a little shorter. Copper shanks, pleated front.",
+        badge: "Selvedge",
+      },
+      {
+        id: "field-overshirt",
+        sku: "FY-J07-LM",
+        name: "Field Overshirt",
+        kind: "jacket",
+        category: "jackets",
+        price: 4790,
+        colours: [
+          { name: "Lime", hex: "#c8f03c" },
+          { name: "Ink", hex: "#1d2130" },
+          { name: "Clay", hex: "#b4643f" },
+        ],
+        sizes: sized(TOPS, [3, 7, 0, 5, 2]),
+        fabric: {
+          oz: 10,
+          weave: "canvas",
+          weaveName: "Plain-weave duck canvas",
+          stretch: 0,
+          composition: "100% cotton duck",
+          hand: "Dry and papery. Softens at the elbows first.",
+        },
+        note: "Four patch pockets, horn buttons, a hem that sits at the hip. Worn open over everything.",
+        badge: "Drop 07",
+      },
+      {
+        id: "heavy-tee",
+        sku: "FY-T01-BN",
+        name: "Heavy Tee",
+        kind: "tee",
+        category: "tees",
+        price: 1490,
+        colours: [
+          { name: "Bone", hex: "#ece5d6" },
+          { name: "Ink", hex: "#1b1d24" },
+          { name: "Lime", hex: "#c8f03c" },
+        ],
+        sizes: sized(TOPS, [8, 14, 20, 11, 6]),
+        fabric: {
+          oz: 7.2,
+          weave: "jersey",
+          weaveName: "Single jersey, 240 gsm",
+          stretch: 12,
+          composition: "100% combed cotton",
+          hand: "Holds its shape through the fortieth wash.",
+        },
+        note: "A dense, boxy tee with a tight 2.5 cm collar. Shoulders dropped an inch.",
+      },
+      {
+        id: "pocket-tee",
+        sku: "FY-T02-ID",
+        name: "Pocket Tee",
+        kind: "tee",
+        category: "tees",
+        price: 1290,
+        pocket: true,
+        colours: [
+          { name: "Indigo dip", hex: "#33456b" },
+          { name: "Bone", hex: "#ece5d6" },
+          { name: "Rust", hex: "#a24b2a" },
+        ],
+        sizes: sized(TOPS, [0, 5, 7, 3, 1]),
+        fabric: {
+          oz: 6,
+          weave: "jersey",
+          weaveName: "Slub jersey, 200 gsm",
+          stretch: 14,
+          composition: "100% cotton, slub yarn",
+          hand: "Uneven yarn on purpose. It fades like denim.",
+        },
+        note: "Indigo-dipped by hand in batches of forty. No two pockets fade the same way.",
+        badge: "Hand-dyed",
+      },
+      {
+        id: "wide-02",
+        sku: "FY-D02-RN",
+        name: "Wide 02",
+        kind: "trousers",
+        category: "denim",
+        price: 4290,
+        leg: 1,
+        fitId: "wide-02",
+        colours: [RINSE, { name: "Ecru", hex: "#e4d9c2", weft: "#f2ede1" }, BLACK],
+        sizes: sized(WAISTS, [1, 3, 5, 4, 6, 2, 3, 0]),
+        fabric: {
+          oz: 14.5,
+          weave: "twill-3x1",
+          weaveName: "3×1 right-hand twill, selvedge",
+          stretch: 0,
+          composition: "100% cotton",
+          hand: "Heavy drape. Stands up on its own for the first month.",
+        },
+        note: "High rise, wide leg, raw hem left long so you can cut it where you like.",
+        badge: "Selvedge",
+      },
+      {
+        id: "straight-04",
+        sku: "FY-D04-MS",
+        name: "Straight 04",
+        kind: "trousers",
+        category: "denim",
+        price: 3990,
+        leg: 0.55,
+        fitId: "straight-04",
+        colours: [STONE, RINSE],
+        sizes: sized(WAISTS, [2, 4, 7, 6, 8, 3, 5, 2]),
+        fabric: {
+          oz: 12.5,
+          weave: "twill-3x1",
+          weaveName: "3×1 right-hand twill",
+          stretch: 2,
+          composition: "98% cotton, 2% elastane",
+          hand: "Looks rigid, forgives two percent.",
+        },
+        note: "Mid rise, straight from the knee down. The pair to measure everything else against.",
+      },
+      {
+        id: "taper-01",
+        sku: "FY-D01-RW",
+        name: "Taper 01",
+        kind: "trousers",
+        category: "denim",
+        price: 3790,
+        leg: 0.12,
+        fitId: "taper-01",
+        colours: [{ name: "Raw", hex: "#182238" }, BLACK],
+        sizes: sized(WAISTS, [3, 4, 6, 0, 5, 2, 2, 1]),
+        fabric: {
+          oz: 11.5,
+          weave: "twill-2x1",
+          weaveName: "2×1 left-hand twill",
+          stretch: 4,
+          composition: "96% cotton, 4% elastane",
+          hand: "Left-hand twill: softer handle, fades in streaks.",
+        },
+        note: "Roomy at the top, narrow at the ankle. Sits on a shoe without stacking.",
+        badge: "Restocked",
+      },
+      {
+        id: "cargo-05",
+        sku: "FY-D05-BK",
+        name: "Cargo 05",
+        kind: "cargo",
+        category: "denim",
+        price: 4590,
+        leg: 0.72,
+        fitId: "cargo-05",
+        colours: [BLACK, { name: "Olive", hex: "#4f5634", weft: "#8a8b70" }, RINSE],
+        sizes: sized(WAISTS, [0, 2, 4, 3, 5, 1, 2, 1]),
+        fabric: {
+          oz: 13,
+          weave: "twill-3x1",
+          weaveName: "3×1 twill, garment-dyed",
+          stretch: 1,
+          composition: "99% cotton, 1% elastane",
+          hand: "Garment-dyed, so the seams go pale before anything else.",
+        },
+        note: "Straight-wide cargo with bellows pockets that lie flat until you fill them.",
+      },
+    ],
+    fits: [
+      {
+        id: "taper-01",
+        name: "Taper 01",
+        productId: "taper-01",
+        inseam: 31,
+        leg: 0.12,
+        note: "Narrow below the knee. If your favourite pair stacks, this one won't.",
+        sizes: grade(11.25),
+      },
+      {
+        id: "straight-04",
+        name: "Straight 04",
+        productId: "straight-04",
+        inseam: 32,
+        leg: 0.55,
+        note: "The middle of everything. Most people land here.",
+        sizes: grade(12.25),
+      },
+      {
+        id: "cargo-05",
+        name: "Cargo 05",
+        productId: "cargo-05",
+        inseam: 32,
+        leg: 0.72,
+        note: "Straight-wide with room in the thigh for the pockets to work.",
+        sizes: grade(12.75),
+      },
+      {
+        id: "wide-02",
+        name: "Wide 02",
+        productId: "wide-02",
+        inseam: 33,
+        leg: 1,
+        note: "Cut long and wide. Hem it to your shoe, not to a chart.",
+        sizes: grade(13.75),
+      },
+    ],
+    fitGuide: {
+      waist: "Button it, lay it flat, measure edge to edge, then double it.",
+      inseam: "Crotch seam to hem, along the inside of the leg.",
+      thigh: "One leg flat, one inch below the crotch, edge to edge.",
+    },
+    checkout: {
+      address: "C-14, Hauz Khas, New Delhi 110016",
+      payment: "Card ending 4821",
+      delivery: "Arrives Thursday",
+      orderPrefix: "FY",
+      medianSeconds: 41,
+    },
+    swatchbook: [
+      { a: { name: "Light wash", hex: "#8aa2c4" }, b: { name: "Raw", hex: "#1b2540" } },
+      { a: { name: "Black", hex: "#222226", weft: "#4a4a50" }, b: { name: "Rinse", hex: "#25335a" } },
+      { a: { name: "Ecru", hex: "#ddd2bb", weft: "#f0ebdf" }, b: { name: "Mid stone", hex: "#5b7699" } },
+    ],
+    label: {
+      header: ["FYBR8", "AW25 · DROP 07"],
+      composition: ["SHELL 96% TYPESCRIPT", "LINING 4% GLSL"],
+      footer: ["WOVEN IN AHMEDABAD", "WASH DARK WITH DARK", "RN 0412-25"],
+    },
+  },
 };
