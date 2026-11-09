@@ -1,0 +1,1531 @@
+/* ───────────────────────────────────────────────────────────────────────────
+   Work index. ONE set of DOM nodes, five layouts. The board's data-mode decides
+   where each atom (.wk-idx .wk-title .wk-cat .wk-chip .wk-plate) sits; GSAP Flip flies them between
+   layouts. Mode-only extras (.wk-tags .wk-year .wk-perm .wk-size .wk-status .wk-more) stay hidden
+   unless a mode turns them on. Never put a CSS transition on transform here:
+   Flip, Draggable and the intro own transform/translate.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+.wk-root {
+  --ink: #111111;
+  --bone: #f2eee7;
+  --lime: #d8ff00;
+  --e-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --e-snap: cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 100svh;
+  padding-top: calc(var(--nav-h) + clamp(1.5rem, 4vw, 3.75rem));
+}
+
+/* ── intro: plays once the system has booted, replays after RESTART. Keyed on <html data-booted>,
+      which the preflight script sets before first paint — a reload of a booted session animates
+      from frame one instead of flashing the server render. [data-intro] = the client is alive, so
+      the page may wait behind the boot screen (without JS nothing is ever hidden). ── */
+html[data-booted="0"] .wk-root[data-intro] :is([data-in], .wk-item) {
+  opacity: 0;
+}
+html[data-booted="1"] .wk-root [data-in="rise"] {
+  animation: wk-in-rise 1.05s var(--e-out) both;
+  animation-delay: var(--d, 0ms);
+}
+html[data-booted="1"] .wk-root [data-in="blob"] {
+  transform-origin: 0 50%;
+  animation: wk-in-blob 0.85s cubic-bezier(0.7, 0, 0.2, 1) both;
+  animation-delay: var(--d, 0ms);
+}
+html[data-booted="1"] .wk-root [data-in="draw"] {
+  animation: wk-in-draw 0.7s ease-in-out both;
+  animation-delay: var(--d, 0ms);
+}
+html[data-booted="1"] .wk-root [data-in="fade"] {
+  animation: wk-in-fade 0.9s var(--e-out) both;
+  animation-delay: var(--d, 0ms);
+}
+html[data-booted="1"] .wk-root [data-in="key"] {
+  animation: wk-in-key 0.6s var(--e-snap) both;
+  animation-delay: calc(var(--i, 0) * 45ms + 420ms);
+}
+html[data-booted="1"] .wk-root .wk-item {
+  animation: wk-in-fade 0.95s var(--e-out) both;
+  animation-delay: calc(var(--i, 0) * 60ms + 520ms);
+}
+/* the global rule shortens durations but keeps delays (which hold the from-state): show end states */
+@media (prefers-reduced-motion: reduce) {
+  .wk-root :is([data-in], .wk-item) {
+    animation: none !important;
+  }
+}
+@keyframes wk-in-rise {
+  from {
+    translate: 0 108%;
+  }
+}
+@keyframes wk-in-blob {
+  from {
+    scale: 0 1;
+  }
+}
+@keyframes wk-in-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+}
+@keyframes wk-in-fade {
+  from {
+    opacity: 0;
+    translate: 0 1.1rem;
+  }
+}
+@keyframes wk-in-key {
+  from {
+    opacity: 0;
+    scale: 0.9;
+  }
+}
+
+/* ── header ── */
+.wk-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.75rem 3rem;
+}
+.wk-h1 {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: 0.2em;
+  font-family: var(--font-archivo);
+  font-weight: 860;
+  font-size: clamp(3.3rem, 0.8rem + 5.9vw, 7.4rem);
+  line-height: 0.9;
+  letter-spacing: -0.055em;
+  font-variation-settings: "wdth" 92;
+  text-wrap: nowrap;
+}
+.wk-mask {
+  display: inline-block;
+  overflow: clip;
+  padding: 0.08em 0.04em 0.12em;
+  margin: -0.08em -0.04em -0.12em;
+}
+.wk-word {
+  display: inline-block;
+}
+html[data-chaos="on"] .wk-mask {
+  overflow: visible;
+}
+.wk-works {
+  position: relative;
+  display: inline-flex;
+  isolation: isolate;
+  padding: 0.05em 0.2em 0.12em 0.1em;
+  color: var(--ink);
+  font-style: italic;
+  font-weight: 820;
+  letter-spacing: -0.045em;
+}
+.wk-blob {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  fill: var(--lime);
+  rotate: -1.6deg;
+}
+.wk-arrow {
+  width: 0.62em;
+  height: 0.3em;
+  margin-left: 0.08em;
+  overflow: visible;
+  color: var(--fg);
+}
+.wk-arrow path {
+  stroke-dasharray: 1;
+}
+.wk-aside {
+  display: flex;
+  align-items: stretch;
+  gap: clamp(1.25rem, 2.4vw, 2.5rem);
+  padding-bottom: 0.35rem;
+}
+.wk-note {
+  margin: 0;
+  max-width: 17.5rem;
+  align-self: center;
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+@media (min-width: 48rem) {
+  .wk-note {
+    padding-left: clamp(1.25rem, 2.4vw, 2.5rem);
+    border-left: 1px solid var(--line-strong);
+  }
+}
+.wk-count {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding-left: clamp(1.25rem, 2.4vw, 2.5rem);
+  border-left: 1px solid var(--line-strong);
+}
+.wk-count-num {
+  font-family: var(--font-archivo);
+  font-weight: 800;
+  font-size: clamp(2.3rem, 1.6rem + 1.7vw, 3.3rem);
+  line-height: 1;
+  letter-spacing: -0.045em;
+  font-variant-numeric: tabular-nums;
+}
+.wk-count-label {
+  font-family: var(--font-plex);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  line-height: 1.55;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.wk-dots {
+  position: absolute;
+  top: -0.7rem;
+  right: 0;
+  display: flex;
+  gap: 4px;
+}
+.wk-dots i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: color-mix(in oklab, var(--fg) 22%, transparent);
+  animation: wk-dot 1.5s steps(1, end) infinite;
+}
+.wk-dots i:nth-child(2) {
+  animation-delay: 0.5s;
+}
+.wk-dots i:nth-child(3) {
+  animation-delay: 1s;
+}
+@keyframes wk-dot {
+  0% {
+    background: var(--lime);
+    box-shadow: 0 0 0 1px color-mix(in oklab, var(--fg) 30%, transparent);
+  }
+  33% {
+    background: color-mix(in oklab, var(--fg) 22%, transparent);
+    box-shadow: none;
+  }
+}
+
+/* ── mode console: a strip of keycaps ── */
+.wk-console {
+  margin-top: clamp(1.75rem, 3.5vw, 3rem);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem 1.5rem;
+  padding: 0.45rem;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface-2);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.45),
+    inset 0 -2px 0 rgb(0 0 0 / 0.05);
+}
+.wk-keys {
+  display: flex;
+  flex: 1 1 26rem;
+  gap: 0.4rem;
+}
+.wk-key {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  height: 3.3rem;
+  display: flex;
+  align-items: flex-end;
+  padding: 0 0.6rem 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--surface);
+  color: var(--fg);
+  font-family: var(--font-plex);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  box-shadow:
+    inset 0 -3px 0 rgb(0 0 0 / 0.16),
+    0 1px 0 rgb(0 0 0 / 0.22),
+    0 8px 14px -9px rgb(0 0 0 / 0.4);
+  transition:
+    translate 0.12s,
+    box-shadow 0.12s,
+    background-color 0.24s;
+}
+.wk-key:hover {
+  background: color-mix(in oklab, var(--surface) 82%, var(--lime));
+}
+.wk-key:active,
+.wk-key[data-on] {
+  translate: 0 2px;
+  box-shadow:
+    inset 0 -1px 0 rgb(0 0 0 / 0.2),
+    0 0 0 transparent;
+}
+.wk-key[data-on] {
+  background: var(--lime);
+  border-color: color-mix(in oklab, var(--lime) 55%, var(--ink));
+  color: var(--ink);
+}
+.wk-key-num {
+  position: absolute;
+  top: 0.45rem;
+  left: 0.6rem;
+  font-size: 0.625rem;
+  opacity: 0.55;
+}
+.wk-key-led {
+  position: absolute;
+  top: 0.55rem;
+  right: 0.6rem;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: color-mix(in oklab, var(--fg) 18%, transparent);
+}
+.wk-key[data-on] .wk-key-led {
+  background: #1fc25b;
+  box-shadow: 0 0 7px #1fc25b;
+}
+.wk-tools {
+  display: flex;
+  flex: 0 1 auto;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  min-height: 2.25rem;
+  padding-right: 0.35rem;
+  font-family: var(--font-plex);
+  font-size: 0.6875rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--fg-muted);
+}
+.wk-tools:empty {
+  display: none;
+}
+@media (max-width: 39.99rem) {
+  .wk-key-text {
+    display: none;
+  }
+  .wk-tools {
+    flex-basis: 100%;
+    justify-content: space-between;
+    padding: 0 0.25rem 0.15rem;
+  }
+}
+@media (min-width: 40rem) {
+  .wk-key-short {
+    display: none;
+  }
+}
+
+/* ── board, shared ── */
+.wk-board {
+  position: relative;
+  margin-top: clamp(1rem, 2vw, 1.5rem);
+  margin-bottom: clamp(3rem, 7vw, 6rem);
+}
+.wk-scroller {
+  position: relative;
+}
+.wk-track {
+  position: relative;
+}
+.wk-items {
+  position: relative;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.wk-item {
+  position: relative;
+  --motif-play: paused;
+}
+.wk-item[hidden] {
+  display: none;
+}
+.wk-item:hover,
+.wk-item:focus-within {
+  --motif-play: running;
+}
+.wk-plate {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: color-mix(in oklab, var(--surface) 55%, transparent);
+  transition:
+    border-color 0.24s,
+    background-color 0.35s,
+    box-shadow 0.3s;
+}
+.wk-item:hover .wk-plate {
+  border-color: var(--line-strong);
+}
+.wk-link {
+  position: relative;
+  display: grid;
+  color: inherit;
+  -webkit-tap-highlight-color: transparent;
+  outline-offset: 4px;
+  transition: color 0.3s;
+}
+.wk-link:focus-visible {
+  border-radius: 10px;
+}
+
+/* atoms */
+.wk-idx {
+  display: block;
+  font-family: var(--font-archivo);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+.wk-title {
+  display: block;
+  justify-self: start;
+  max-width: 100%;
+  font-family: var(--font-archivo);
+  font-weight: 800;
+  line-height: 0.95;
+  letter-spacing: -0.035em;
+  white-space: nowrap;
+  background: linear-gradient(var(--lime), var(--lime)) 0 88% / 0% 0.3em no-repeat;
+  transition: background-size 0.55s var(--e-out);
+}
+.wk-item:hover .wk-title,
+.wk-link:focus-visible .wk-title {
+  background-size: 100% 0.3em;
+}
+.wk-cat,
+.wk-year,
+.wk-perm,
+.wk-size,
+.wk-status,
+.wk-tag,
+.wk-enter {
+  font-family: var(--font-plex);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  line-height: 1.3;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+.wk-cat {
+  display: block;
+}
+.wk-chip {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  border-radius: 6px;
+  background: var(--p-bg);
+}
+
+/* extras: off unless a mode turns them on */
+.wk-tags,
+.wk-year,
+.wk-perm,
+.wk-size,
+.wk-status,
+.wk-more {
+  display: none;
+}
+.wk-tag {
+  white-space: nowrap;
+}
+.wk-tagline {
+  display: block;
+  font-family: var(--font-instrument);
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  line-height: 1.12;
+  text-wrap: pretty;
+}
+.wk-enter {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  height: 2.75rem;
+  padding: 0 1.15rem;
+  border-radius: 999px;
+  background: var(--lime);
+  color: var(--ink);
+  font-weight: 600;
+}
+
+/* ═════════ LIST ═════════ */
+.wk-board[data-mode="list"] .wk-items {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.wk-board[data-mode="list"] .wk-link {
+  grid-template-columns: 3rem minmax(0, 1fr) 5.75rem;
+  grid-template-areas:
+    "idx title chip"
+    "idx cat   chip"
+    "idx more  more";
+  align-items: center;
+  column-gap: 0.9rem;
+  row-gap: 0.3rem;
+  padding: 0.85rem 0.7rem 0.95rem 0;
+}
+.wk-board[data-mode="list"] .wk-idx {
+  grid-area: idx;
+  align-self: stretch;
+  display: flex;
+  justify-content: center;
+  padding-top: 0.15rem;
+  border-right: 1px solid var(--line);
+  color: var(--fg-muted);
+  font-size: 1.4rem;
+}
+.wk-board[data-mode="list"] .wk-title {
+  grid-area: title;
+  align-self: end;
+  font-size: clamp(1.3rem, 0.95rem + 1.25vw, 2.15rem);
+}
+.wk-board[data-mode="list"] .wk-cat {
+  grid-area: cat;
+  align-self: start;
+  color: var(--fg-muted);
+}
+.wk-board[data-mode="list"] .wk-chip {
+  grid-area: chip;
+  width: 100%;
+  height: 3.4rem;
+}
+.wk-board[data-mode="list"] .wk-more {
+  grid-area: more;
+  display: block;
+  margin-top: 0.3rem;
+}
+.wk-board[data-mode="list"] .wk-tagline {
+  font-size: 1.05rem;
+  color: var(--fg-muted);
+}
+.wk-board[data-mode="list"] .wk-enter {
+  display: none;
+}
+.wk-board[data-mode="list"] .wk-tags {
+  grid-area: tags;
+  gap: 0.45rem;
+}
+.wk-board[data-mode="list"] .wk-tag {
+  padding: 0.5rem 0.85rem;
+  border: 1px solid color-mix(in oklab, var(--fg) 28%, transparent);
+  border-radius: 999px;
+}
+.wk-board[data-mode="list"] .wk-year {
+  grid-area: year;
+  justify-self: end;
+  color: var(--fg-muted);
+}
+
+@media (min-width: 48rem) {
+  .wk-board[data-mode="list"] .wk-link {
+    grid-template-columns: clamp(4.5rem, 7vw, 7.5rem) minmax(0, 1fr) clamp(3.25rem, 4.5vw, 4.75rem) clamp(9.5rem, 15vw, 15.5rem);
+    grid-template-areas:
+      "idx title year chip"
+      "idx cat   year chip";
+    column-gap: clamp(1rem, 2vw, 2.25rem);
+    row-gap: 0.4rem;
+    min-height: 5.75rem;
+    padding: 0.7rem 0.7rem 0.7rem 0;
+  }
+  .wk-board[data-mode="list"] .wk-idx {
+    align-items: center;
+    padding-top: 0;
+    font-size: clamp(2rem, 1.1rem + 1.9vw, 3.25rem);
+  }
+  .wk-board[data-mode="list"] .wk-chip {
+    height: 4.3rem;
+  }
+  .wk-board[data-mode="list"] .wk-year {
+    display: block;
+  }
+  .wk-board[data-mode="list"] .wk-more {
+    display: none;
+  }
+}
+@media (min-width: 64rem) {
+  /* one column set shared by every row (subgrid): the tag column is as wide as the widest set and
+     starts at the same x on every row, like a ledger. The featured row opts out with its own grid. */
+  .wk-board[data-mode="list"] .wk-items {
+    display: grid;
+    grid-template-columns:
+      clamp(4.5rem, 7vw, 7.5rem) minmax(0, 1fr) auto clamp(3.25rem, 4.5vw, 4.75rem)
+      clamp(9.5rem, 15vw, 15.5rem);
+    column-gap: clamp(1rem, 2vw, 2.25rem);
+    row-gap: 0.5rem;
+  }
+  .wk-board[data-mode="list"] .wk-item,
+  .wk-board[data-mode="list"] .wk-link {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: subgrid;
+  }
+  .wk-board[data-mode="list"] .wk-link {
+    grid-template-areas:
+      "idx title tags year chip"
+      "idx cat   tags year chip";
+  }
+  .wk-board[data-mode="list"] .wk-tags {
+    display: flex;
+  }
+}
+/* touch: no hover to expand, so every row carries its tagline */
+@media (hover: none) and (min-width: 48rem) {
+  .wk-board[data-mode="list"] .wk-link {
+    grid-template-areas:
+      "idx title year chip"
+      "idx cat   year chip"
+      "idx more  more more";
+  }
+  .wk-board[data-mode="list"] .wk-more {
+    display: block;
+  }
+}
+@media (hover: none) and (min-width: 64rem) {
+  .wk-board[data-mode="list"] .wk-link {
+    grid-template-areas:
+      "idx title tags year chip"
+      "idx cat   tags year chip"
+      "idx more  more more more";
+  }
+}
+
+/* the featured strip: hovered / focused row unfolds (mouse, wide screens) */
+@media (min-width: 64rem) and (hover: hover) and (pointer: fine) {
+  .wk-board[data-mode="list"] .wk-item[data-active] {
+    --motif-play: running;
+  }
+  .wk-board[data-mode="list"] .wk-item[data-active] .wk-plate {
+    border-color: var(--fg);
+    background: var(--fg);
+  }
+  .wk-board[data-mode="list"] .wk-item[data-active] .wk-link {
+    color: var(--bg);
+    grid-template-columns: clamp(4.5rem, 7vw, 7.5rem) minmax(0, 0.92fr) minmax(0, 1.08fr);
+    grid-template-rows: auto auto 1fr auto;
+    grid-template-areas:
+      "idx title chip"
+      "idx cat   chip"
+      "idx more  chip"
+      "idx tags  chip";
+    align-items: start;
+    row-gap: 0.55rem;
+    min-height: clamp(20rem, 24vw, 25rem);
+    padding: 1.15rem 1.15rem 1.15rem 0;
+  }
+  .wk-board[data-mode="list"] .wk-item[data-active] .wk-idx {
+    align-items: flex-start;
+    padding-top: 0.3rem;
+    border-color: color-mix(in oklab, var(--bg) 16%, transparent);
+    color: var(--lime);
+  }
+  .wk-board[data-mode="list"] .wk-item[data-active] .wk-title {
+    font-size: clamp(2.6rem, 1.3rem + 2.7vw, 4.6rem);
+    line-height: 0.9;
+    letter-spacing: -0.045em;
+    white-space: normal;
+    padding-top: 0.15rem;
+    /* the strip is already the emphasis; a lime band behind bone text only muddies it */
+    background: none;
+  }
+  .wk-board[data-mode="list"] .wk-item[data-active] .wk-cat,
+  .wk-board[data-mode="list"] .wk-item[data-active] .wk-year {
+    color: color-mix(in oklab, var(--bg) 68%, transparent);
+  }
+  .wk-board[data-mode="list"] .wk-item[data-active] .wk-year {
+    grid-area: cat;
+    justify-self: end;
+    padding-right: 1.5rem;
+  }
+  .wk-board[data-mode="list"] .wk-item[data-active] .wk-chip {
+    height: 100%;
+    min-height: 17.5rem;
+  }
+  .wk-board[data-mode="list"] .wk-item[data-active] .wk-more {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-end;
+    gap: 1.25rem;
+    height: 100%;
+    padding: 1rem 1.5rem 1.1rem 0;
+  }
+  .wk-board[data-mode="list"] .wk-item[data-active] .wk-tagline {
+    max-width: 19ch;
+    color: var(--bg);
+    font-size: clamp(1.45rem, 0.95rem + 1.05vw, 2.15rem);
+  }
+  .wk-board[data-mode="list"] .wk-item[data-active] .wk-enter {
+    display: inline-flex;
+  }
+  .wk-board[data-mode="list"] .wk-item[data-active] .wk-tags {
+    align-self: end;
+  }
+  .wk-board[data-mode="list"] .wk-item[data-active] .wk-tag {
+    border-color: color-mix(in oklab, var(--bg) 32%, transparent);
+  }
+  html[data-theme="dark"] .wk-board[data-mode="list"] .wk-item[data-active] .wk-idx {
+    color: var(--bg);
+    text-decoration: underline 0.14em var(--lime);
+    text-underline-offset: 0.14em;
+  }
+}
+
+/* ═════════ GRID: asymmetric editorial plates ═════════ */
+.wk-board[data-mode="grid"] .wk-items {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  align-items: start;
+  column-gap: var(--gutter);
+  row-gap: clamp(2.75rem, 6vw, 6rem);
+}
+.wk-board[data-mode="grid"] .wk-item {
+  grid-column: 1 / -1;
+  container-type: inline-size;
+}
+.wk-board[data-mode="grid"] .wk-plate {
+  border: 0;
+  border-top: 1px solid var(--line-strong);
+  border-radius: 0;
+  background: none;
+}
+.wk-board[data-mode="grid"] .wk-link {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    "idx   cat   year"
+    "chip  chip  chip"
+    "title title title"
+    "tags  tags  tags";
+  align-items: baseline;
+  column-gap: 1rem;
+  padding-top: 0.8rem;
+}
+.wk-board[data-mode="grid"] .wk-idx {
+  grid-area: idx;
+  font-family: var(--font-plex);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+}
+.wk-board[data-mode="grid"] .wk-idx::before {
+  content: "[";
+}
+.wk-board[data-mode="grid"] .wk-idx::after {
+  content: "]";
+}
+.wk-board[data-mode="grid"] .wk-cat {
+  grid-area: cat;
+  color: var(--fg-muted);
+}
+.wk-board[data-mode="grid"] .wk-year {
+  grid-area: year;
+  display: block;
+}
+.wk-board[data-mode="grid"] .wk-chip {
+  grid-area: chip;
+  width: 100%;
+  aspect-ratio: var(--ar, 4 / 3);
+  margin: 0.8rem 0 1rem;
+  border-radius: 4px;
+}
+.wk-board[data-mode="grid"] .wk-title {
+  grid-area: title;
+  font-size: clamp(2.2rem, 11.5cqi, 8rem);
+  font-weight: 860;
+  line-height: 0.84;
+  letter-spacing: -0.055em;
+  text-transform: uppercase;
+  font-variation-settings: "wdth" 88;
+}
+.wk-board[data-mode="grid"] .wk-tags {
+  grid-area: tags;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem 0;
+  margin-top: 0.85rem;
+  color: var(--fg-muted);
+}
+.wk-board[data-mode="grid"] .wk-tag + .wk-tag::before {
+  content: "·";
+  margin: 0 0.7em;
+}
+.wk-board[data-mode="grid"] .wk-more {
+  grid-area: chip;
+  z-index: 1;
+  display: block;
+  align-self: start;
+  justify-self: end;
+  margin: 1.6rem 0.8rem 0 0;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.wk-board[data-mode="grid"] .wk-tagline {
+  display: none;
+}
+.wk-board[data-mode="grid"] .wk-item:is(:hover, :focus-within) .wk-more {
+  opacity: 1;
+}
+@media (min-width: 48rem) {
+  .wk-board[data-mode="grid"] .wk-item:nth-child(odd) {
+    grid-column: 1 / span 7;
+  }
+  .wk-board[data-mode="grid"] .wk-item:nth-child(even) {
+    grid-column: 8 / span 5;
+    margin-top: clamp(3rem, 9vw, 8rem);
+  }
+}
+@media (min-width: 64rem) {
+  .wk-board[data-mode="grid"] .wk-item:nth-child(6n + 1) {
+    grid-column: 1 / span 7;
+    --ar: 16 / 11;
+    margin-top: 0;
+  }
+  .wk-board[data-mode="grid"] .wk-item:nth-child(6n + 2) {
+    grid-column: 9 / span 4;
+    --ar: 4 / 5;
+    margin-top: clamp(4rem, 11vw, 11rem);
+  }
+  .wk-board[data-mode="grid"] .wk-item:nth-child(6n + 3) {
+    grid-column: 2 / span 5;
+    --ar: 1 / 1;
+    margin-top: 0;
+  }
+  .wk-board[data-mode="grid"] .wk-item:nth-child(6n + 4) {
+    grid-column: 8 / span 5;
+    --ar: 4 / 3;
+    margin-top: clamp(3rem, 8vw, 8rem);
+  }
+  .wk-board[data-mode="grid"] .wk-item:nth-child(6n + 5) {
+    grid-column: 1 / span 4;
+    --ar: 3 / 4;
+    margin-top: clamp(2rem, 5vw, 5rem);
+  }
+  .wk-board[data-mode="grid"] .wk-item:nth-child(6n + 6) {
+    grid-column: 6 / span 7;
+    --ar: 16 / 10;
+    margin-top: 0;
+  }
+}
+
+/* ═════════ CHAOS: scattered windows you can throw ═════════ */
+.wk-board[data-mode="chaos"] .wk-items {
+  --w: clamp(10.25rem, 18vw, 18rem);
+  --h: clamp(11rem, 16.5vw, 17rem);
+  /* the desk is its own stacking context: Draggable's zIndexBoost (1000+) and the focused window
+     must never climb over the nav, HUD, sticky rail or cursor */
+  isolation: isolate;
+  height: clamp(36rem, 88svh, 54rem);
+  border: 1px dashed color-mix(in oklab, var(--fg) 25%, transparent);
+  border-radius: 12px;
+  background-image: radial-gradient(color-mix(in oklab, var(--fg) 22%, transparent) 1px, transparent 1.2px);
+  background-size: 22px 22px;
+}
+.wk-board[data-mode="chaos"] .wk-item {
+  position: absolute;
+  width: var(--w);
+  left: calc((100% - var(--w) - 1rem) * var(--mcx, 0.5) + 0.5rem);
+  top: calc((100% - var(--h) - 1rem) * var(--mcy, 0.5) + 0.5rem);
+}
+@media (min-width: 48rem) {
+  .wk-board[data-mode="chaos"] .wk-item {
+    left: calc((100% - var(--w) - 2rem) * var(--cx, 0.5) + 1rem);
+    top: calc((100% - var(--h) - 2rem) * var(--cy, 0.5) + 1rem);
+  }
+}
+.wk-board[data-mode="chaos"] .wk-item:focus-within {
+  z-index: 900;
+}
+.wk-board[data-mode="chaos"] .wk-plate {
+  border: 1.5px solid var(--fg);
+  border-radius: 8px;
+  background: linear-gradient(var(--fg) 0 2.5rem, var(--surface) 2.5rem);
+  box-shadow: 0 3px 0 var(--fg);
+}
+.wk-board[data-mode="chaos"] .wk-plate::after {
+  content: "";
+  position: absolute;
+  top: 1.05rem;
+  right: 0.75rem;
+  width: 34px;
+  height: 7px;
+  background:
+    radial-gradient(circle, var(--signal) 3px, transparent 3.5px) 0 0 / 12px 7px no-repeat,
+    radial-gradient(circle, var(--bg) 3px, transparent 3.5px) 12px 0 / 12px 7px no-repeat,
+    radial-gradient(circle, var(--bg) 3px, transparent 3.5px) 24px 0 / 12px 7px no-repeat;
+}
+.wk-board[data-mode="chaos"] .wk-item[data-dragging] .wk-plate {
+  box-shadow:
+    0 3px 0 var(--fg),
+    0 34px 60px -26px rgb(17 17 17 / 0.55);
+}
+/* idx and year get their own auto tracks; the long category spans the flexible one, so it can never
+   widen the first column and squeeze the title out of the title bar */
+.wk-board[data-mode="chaos"] .wk-link {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-rows: 2.5rem auto auto;
+  grid-template-areas:
+    "idx  title title"
+    "chip chip  chip"
+    "cat  cat   year";
+  align-items: center;
+  column-gap: 0.55rem;
+  padding: 0 0.7rem 0.65rem;
+  cursor: grab;
+}
+.wk-board[data-mode="chaos"] .wk-link:active {
+  cursor: grabbing;
+}
+.wk-board[data-mode="chaos"] .wk-idx {
+  grid-area: idx;
+  font-family: var(--font-plex);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--bg);
+  opacity: 0.7;
+}
+.wk-board[data-mode="chaos"] .wk-title {
+  grid-area: title;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding-right: 2.6rem;
+  color: var(--bg);
+  font-size: clamp(0.85rem, 0.7rem + 0.4vw, 1.05rem);
+  letter-spacing: -0.02em;
+  background: none;
+}
+.wk-board[data-mode="chaos"] .wk-chip {
+  grid-area: chip;
+  aspect-ratio: 16 / 10;
+  margin: 0.65rem 0 0.6rem;
+  border-radius: 4px;
+}
+.wk-board[data-mode="chaos"] .wk-cat {
+  grid-area: cat;
+  overflow: hidden;
+  font-size: 0.5625rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.wk-board[data-mode="chaos"] .wk-year {
+  grid-area: year;
+  display: block;
+  justify-self: end;
+  font-size: 0.5625rem;
+}
+
+/* ═════════ TIMELINE: stations on a line ═════════ */
+.wk-board[data-mode="timeline"] .wk-scroller {
+  --step: 9rem;
+  --cw: 12.5rem;
+  --pad: 5rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+  margin-inline: calc(var(--margin) * -1);
+  padding: 0 var(--margin) 0.75rem;
+  scroll-padding-inline: var(--margin);
+}
+@media (hover: none) {
+  .wk-board[data-mode="timeline"] .wk-scroller {
+    scroll-snap-type: x mandatory;
+  }
+  .wk-board[data-mode="timeline"] .wk-item {
+    scroll-snap-align: center;
+  }
+}
+@media (min-width: 48rem) {
+  .wk-board[data-mode="timeline"] .wk-scroller {
+    --step: clamp(11rem, 14vw, 15rem);
+    --cw: clamp(14.5rem, 17vw, 18rem);
+    --pad: 6.5rem;
+  }
+}
+.wk-board[data-mode="timeline"] .wk-scroller[data-flipping] {
+  overflow: visible;
+}
+.wk-board[data-mode="timeline"] .wk-track {
+  width: calc(var(--pad) * 2 + var(--span, 5) * var(--step) + var(--cw));
+  height: clamp(36rem, 72svh, 44rem);
+}
+.wk-board[data-mode="timeline"] .wk-items {
+  position: absolute;
+  inset: 0;
+}
+.wk-board[data-mode="timeline"] .wk-item {
+  position: absolute;
+  left: calc(var(--pad) + var(--tx, 0) * var(--step));
+  width: var(--cw);
+}
+.wk-board[data-mode="timeline"] .wk-item[data-side="0"] {
+  bottom: calc(50% + 2.4rem);
+}
+.wk-board[data-mode="timeline"] .wk-item[data-side="1"] {
+  top: calc(50% + 2.4rem);
+}
+/* stem from the card to its stop on the line */
+.wk-board[data-mode="timeline"] .wk-item::before,
+.wk-board[data-mode="timeline"] .wk-item::after {
+  content: "";
+  position: absolute;
+  left: 1.4rem;
+}
+.wk-board[data-mode="timeline"] .wk-item::before {
+  height: 2.4rem;
+  border-left: 1.5px dashed var(--fg);
+}
+.wk-board[data-mode="timeline"] .wk-item::after {
+  width: 0.85rem;
+  height: 0.85rem;
+  margin-left: calc(-0.425rem + 0.75px);
+  border: 2px solid var(--fg);
+  border-radius: 50%;
+  background: var(--p-ac);
+}
+.wk-board[data-mode="timeline"] .wk-item[data-side="0"]::before {
+  top: 100%;
+}
+.wk-board[data-mode="timeline"] .wk-item[data-side="0"]::after {
+  top: calc(100% + 2.4rem - 0.425rem);
+}
+.wk-board[data-mode="timeline"] .wk-item[data-side="1"]::before {
+  bottom: 100%;
+}
+.wk-board[data-mode="timeline"] .wk-item[data-side="1"]::after {
+  bottom: calc(100% + 2.4rem - 0.425rem);
+}
+.wk-board[data-mode="timeline"] .wk-plate {
+  border: 1.5px solid var(--fg);
+  border-radius: 8px;
+  background: var(--surface);
+}
+.wk-board[data-mode="timeline"] .wk-link {
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-areas:
+    "idx   year"
+    "chip  chip"
+    "title title"
+    "cat   cat";
+  align-items: center;
+  padding: 0.7rem;
+}
+.wk-board[data-mode="timeline"] .wk-idx {
+  grid-area: idx;
+  font-family: var(--font-plex);
+  font-size: 0.6875rem;
+  font-weight: 500;
+}
+.wk-board[data-mode="timeline"] .wk-year {
+  grid-area: year;
+  display: block;
+  justify-self: end;
+  color: var(--fg-muted);
+}
+.wk-board[data-mode="timeline"] .wk-chip {
+  grid-area: chip;
+  aspect-ratio: 2 / 1;
+  margin: 0.6rem 0 0.75rem;
+  border-radius: 4px;
+}
+.wk-board[data-mode="timeline"] .wk-title {
+  grid-area: title;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: clamp(1.15rem, 0.9rem + 0.7vw, 1.6rem);
+}
+.wk-board[data-mode="timeline"] .wk-cat {
+  grid-area: cat;
+  margin-top: 0.4rem;
+  color: var(--fg-muted);
+}
+
+.wk-axis {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.wk-rails {
+  position: absolute;
+  inset-inline: 0;
+  top: 50%;
+  height: 16px;
+  translate: 0 -50%;
+  background:
+    linear-gradient(var(--fg), var(--fg)) 0 3px / 100% 1.5px no-repeat,
+    linear-gradient(var(--fg), var(--fg)) 0 calc(100% - 3px) / 100% 1.5px no-repeat,
+    repeating-linear-gradient(90deg, color-mix(in oklab, var(--fg) 38%, transparent) 0 3px, transparent 3px 15px);
+}
+.wk-station {
+  position: absolute;
+  top: 50%;
+  left: calc(var(--pad) + var(--tx, 0) * var(--step) - 2.75rem);
+  translate: -50% -50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.wk-station::before {
+  content: "";
+  width: 2px;
+  height: 3.6rem;
+  margin-bottom: -1.8rem;
+  background: var(--fg);
+}
+.wk-station-board {
+  position: relative;
+  padding: 0.3rem 0.55rem;
+  border: 1.5px solid var(--ink);
+  border-radius: 3px;
+  background: var(--lime);
+  color: var(--ink);
+  font-family: var(--font-plex);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+}
+.wk-terminus {
+  position: absolute;
+  top: 50%;
+  right: 1rem;
+  translate: 0 -50%;
+  padding: 0.3rem 0.55rem;
+  border: 1.5px dashed var(--fg);
+  border-radius: 3px;
+  background: var(--bg);
+  font-family: var(--font-plex);
+  font-size: 0.6875rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+/* ═════════ SYSTEM: ls -la ═════════ */
+.wk-board[data-mode="system"] {
+  --cols: 2rem 0.7rem minmax(0, 1fr) auto;
+  border: 1.5px solid var(--fg);
+  border-radius: 10px;
+  background: var(--surface);
+  font-family: var(--font-plex);
+}
+@media (min-width: 48rem) {
+  .wk-board[data-mode="system"] {
+    --cols: 2rem 6.5rem 3.75rem 3.25rem 0.7rem minmax(0, 1fr) minmax(0, 1fr) 7.5rem;
+  }
+}
+@media (min-width: 64rem) {
+  .wk-board[data-mode="system"] {
+    --cols: 2.25rem 7rem 4rem 3.5rem 0.75rem minmax(0, 1.1fr) minmax(0, 1fr) 8rem;
+  }
+}
+.wk-term-bar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  height: 2.4rem;
+  padding: 0 0.9rem;
+  border-radius: 8px 8px 0 0;
+  background: var(--fg);
+  color: var(--bg);
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+}
+.wk-term-bar > :nth-child(2) {
+  flex: 1;
+  overflow: hidden;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  opacity: 0.75;
+}
+.wk-term-dots {
+  display: flex;
+  gap: 6px;
+}
+.wk-term-dots i {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--bg);
+}
+.wk-term-dots i:first-child {
+  background: var(--signal);
+}
+.wk-term-body {
+  padding: 1rem clamp(0.75rem, 2vw, 1.5rem) 0.4rem;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+}
+.wk-prompt {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: 0.6em;
+  cursor: text;
+}
+/* raw signal orange is ~3:1 on the light surface; mixed toward fg it passes AA in both themes */
+.wk-board[data-mode="system"] {
+  --sig-text: color-mix(in oklab, var(--signal) 66%, var(--fg));
+}
+.wk-prompt-path {
+  color: var(--sig-text);
+  font-weight: 600;
+}
+.wk-filter-wrap {
+  position: relative;
+  display: inline-flex;
+  flex: 1 1 8rem;
+  min-width: 8rem;
+}
+.wk-filter {
+  width: 100%;
+  padding: 0;
+  border: 0;
+  outline: none;
+  background: none;
+  color: var(--fg);
+  font: inherit;
+  caret-color: var(--signal);
+}
+.wk-filter-wrap:focus-within {
+  box-shadow: 0 1.5px 0 var(--signal);
+}
+.wk-caret {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 0.6em;
+  height: 1.15em;
+  translate: 0 -50%;
+  background: var(--fg);
+  animation: wk-blink 1.05s steps(1, end) infinite;
+  pointer-events: none;
+}
+.wk-filter-wrap:focus-within .wk-caret {
+  display: none;
+}
+@keyframes wk-blink {
+  50% {
+    opacity: 0;
+  }
+}
+.wk-total {
+  margin: 0.15rem 0 0.6rem;
+  color: var(--fg-muted);
+}
+.wk-cols,
+.wk-board[data-mode="system"] .wk-link {
+  display: grid;
+  grid-template-columns: var(--cols);
+  column-gap: clamp(0.6rem, 1.4vw, 1.25rem);
+  align-items: center;
+}
+.wk-cols {
+  display: none;
+  padding: 0 clamp(0.75rem, 2vw, 1.5rem) 0.35rem;
+  border-bottom: 1px dashed var(--line);
+  color: var(--fg-muted);
+  font-size: 0.625rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+@media (min-width: 48rem) {
+  .wk-cols {
+    display: grid;
+  }
+}
+.wk-board[data-mode="system"] .wk-items {
+  padding: 0.35rem clamp(0.4rem, 1.2vw, 1rem) 0.2rem;
+}
+.wk-board[data-mode="system"] .wk-plate {
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  transition: background-color 0.12s;
+}
+.wk-board[data-mode="system"] .wk-item:is(:hover, :focus-within) .wk-plate {
+  background: var(--lime);
+}
+.wk-board[data-mode="system"] .wk-item:is(:hover, :focus-within) .wk-link {
+  color: var(--ink);
+  transition: none;
+}
+.wk-board[data-mode="system"] .wk-link {
+  grid-template-areas: "idx chip title status" ". . cat cat";
+  min-height: 2.35rem;
+  padding: 0.35rem clamp(0.35rem, 0.8vw, 0.5rem);
+  row-gap: 0.1rem;
+}
+.wk-board[data-mode="system"] .wk-link:focus-visible {
+  outline-offset: 0;
+}
+@media (min-width: 48rem) {
+  .wk-board[data-mode="system"] .wk-link {
+    grid-template-areas: "idx perm size year chip title cat status";
+  }
+}
+.wk-board[data-mode="system"] .wk-idx {
+  grid-area: idx;
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-weight: 400;
+  letter-spacing: 0;
+  opacity: 0.6;
+}
+.wk-board[data-mode="system"] .wk-chip {
+  grid-area: chip;
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--fg) 30%, transparent);
+}
+.wk-board[data-mode="system"] .wk-chip > * {
+  opacity: 0;
+}
+.wk-board[data-mode="system"] .wk-title {
+  grid-area: title;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  line-height: 1.4;
+  background: none;
+}
+.wk-board[data-mode="system"] .wk-title::after {
+  content: "/";
+  color: var(--signal);
+}
+.wk-board[data-mode="system"] .wk-item:is(:hover, :focus-within) .wk-title::after {
+  color: inherit;
+}
+.wk-board[data-mode="system"] .wk-cat {
+  grid-area: cat;
+  overflow: hidden;
+  font-size: 0.75rem;
+  letter-spacing: 0;
+  text-overflow: ellipsis;
+  text-transform: none;
+  white-space: nowrap;
+  opacity: 0.7;
+}
+.wk-board[data-mode="system"] .wk-perm,
+.wk-board[data-mode="system"] .wk-size,
+.wk-board[data-mode="system"] .wk-year,
+.wk-board[data-mode="system"] .wk-status {
+  font-size: 0.75rem;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.wk-board[data-mode="system"] .wk-perm {
+  grid-area: perm;
+}
+.wk-board[data-mode="system"] .wk-size {
+  grid-area: size;
+  text-align: right;
+}
+.wk-board[data-mode="system"] .wk-year {
+  grid-area: year;
+}
+.wk-board[data-mode="system"] .wk-status {
+  grid-area: status;
+  display: block;
+  justify-self: end;
+}
+.wk-board[data-mode="system"] .wk-status::before {
+  content: "●";
+  margin-right: 0.45em;
+  font-size: 0.7em;
+  vertical-align: 0.15em;
+  color: var(--status, currentColor);
+}
+.wk-item[data-status="live"] {
+  --status: #1fc25b;
+}
+.wk-item[data-status="in progress"] {
+  --status: var(--signal);
+}
+.wk-board[data-mode="system"] .wk-item:is(:hover, :focus-within) .wk-status::before {
+  color: currentColor;
+}
+@media (min-width: 48rem) {
+  .wk-board[data-mode="system"] .wk-perm,
+  .wk-board[data-mode="system"] .wk-size,
+  .wk-board[data-mode="system"] .wk-year {
+    display: block;
+  }
+  .wk-board[data-mode="system"] .wk-cat {
+    opacity: 0.75;
+  }
+}
+.wk-term-foot {
+  padding: 0.5rem clamp(0.75rem, 2vw, 1.5rem) 1rem;
+  font-size: 0.8125rem;
+  color: var(--fg-muted);
+}
+.wk-term-error {
+  color: var(--sig-text);
+}
+
+/* ── chaos variant of the calm modes: a little tilt, a little glitch ── */
+html[data-chaos="on"] .wk-board[data-mode="list"] .wk-item,
+html[data-chaos="on"] .wk-board[data-mode="grid"] .wk-item {
+  rotate: var(--tilt, 0deg);
+  transition: rotate 0.6s var(--e-snap);
+}
+html[data-chaos="on"] .wk-board:not([data-mode="chaos"]) .wk-item:hover .wk-idx {
+  animation: wk-glitch 0.4s steps(2, end) 2;
+}
+@keyframes wk-glitch {
+  0% {
+    clip-path: inset(0 0 55% 0);
+    translate: -3px 0;
+  }
+  50% {
+    clip-path: inset(45% 0 0 0);
+    translate: 3px 0;
+  }
+}
+
+/* ── SCROLL THE RAIL: sticky footer, the train rides page progress ── */
+.wk-rail {
+  position: sticky;
+  bottom: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: clamp(0.9rem, 2vw, 2rem);
+  margin-top: auto;
+  padding: 1.1rem 0 calc(0.9rem + env(safe-area-inset-bottom));
+  background: linear-gradient(to top, var(--bg) 58%, transparent);
+  font-family: var(--font-plex);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+/* the HUD's readout line lives on the bottom edge here (md + fine pointer): ride above it */
+@media (min-width: 48rem) and (hover: hover) and (pointer: fine) {
+  .wk-rail {
+    padding-bottom: calc(2.25rem + env(safe-area-inset-bottom));
+  }
+}
+.wk-rail-label {
+  display: none;
+  white-space: nowrap;
+}
+@media (min-width: 48rem) {
+  .wk-rail-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.7rem;
+  }
+}
+.wk-rail-track {
+  position: relative;
+  flex: 1;
+  height: 2.25rem;
+  container-type: inline-size;
+}
+.wk-rail-track::before {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  top: 62%;
+  height: 8px;
+  translate: 0 -50%;
+  background:
+    linear-gradient(var(--fg), var(--fg)) 0 100% / 100% 1.5px no-repeat,
+    repeating-linear-gradient(90deg, var(--fg) 0 1.5px, transparent 1.5px 12px) 0 0 / 100% 6px no-repeat;
+  opacity: 0.85;
+}
+.wk-train {
+  position: absolute;
+  left: 0;
+  bottom: 0.32rem;
+  width: 4.6rem;
+  height: 1.75rem;
+  color: var(--fg);
+  translate: calc(var(--p, 0) * (100cqw - 4.6rem)) 0;
+}
+.wk-train svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.wk-wheel {
+  transform-box: fill-box;
+  transform-origin: center;
+  rotate: calc(var(--p, 0) * 2400deg);
+}
+.wk-speed {
+  position: absolute;
+  top: 18%;
+  right: calc(100% + 4px);
+  width: 2.4rem;
+  height: 52%;
+  transform-origin: 100% 50%;
+  scale: calc(0.12 + var(--v, 0) * 0.88) 1;
+  opacity: calc(0.25 + var(--v, 0) * 0.75);
+  background: repeating-linear-gradient(-62deg, var(--fg) 0 2.5px, transparent 2.5px 7px);
+}
+.wk-next-stop {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  white-space: nowrap;
+}
+.wk-next-stop b {
+  font-weight: 600;
+  background: linear-gradient(var(--lime), var(--lime)) 0 100% / 100% 0.35em no-repeat;
+  transition: background-size 0.4s var(--e-out);
+}
+.wk-next-stop:hover b,
+.wk-next-stop:focus-visible b {
+  background-size: 100% 100%;
+  color: var(--ink);
+}
+html[data-chaos="on"] .wk-train svg {
+  animation: wk-derail 1.8s steps(1, end) infinite;
+}
+@keyframes wk-derail {
+  0%,
+  86% {
+    rotate: 0deg;
+  }
+  88% {
+    rotate: -9deg;
+    translate: 0 -3px;
+  }
+  92% {
+    rotate: 5deg;
+  }
+}

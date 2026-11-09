@@ -1,0 +1,98 @@
+/* Code-drawn world previews. Loops sit paused until an ancestor sets --motif-play: running
+   (hover / active row / focused card), so a page of motifs costs nothing while idle.
+   Negative delays park each paused loop on a good-looking frame. */
+
+.mf-motif {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.mf-motif * {
+  animation-play-state: var(--motif-play, paused);
+}
+
+.mf-train {
+  animation: mf-ride 7s linear infinite;
+  animation-delay: -2.6s;
+}
+@keyframes mf-ride {
+  from {
+    transform: translateX(-34px);
+  }
+  to {
+    transform: translateX(170px);
+  }
+}
+
+.mf-wave {
+  animation: mf-wave 2.4s linear infinite;
+}
+@keyframes mf-wave {
+  to {
+    transform: translateX(-40px);
+  }
+}
+
+.mf-scan {
+  animation: mf-scan 3.8s cubic-bezier(0.7, 0, 0.2, 1) infinite alternate;
+  animation-delay: -1.4s;
+}
+@keyframes mf-scan {
+  from {
+    transform: translateX(22px);
+  }
+  to {
+    transform: translateX(118px);
+  }
+}
+
+.mf-spin {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: mf-spin 6s linear infinite;
+  animation-delay: -1.5s;
+}
+@keyframes mf-spin {
+  0%,
+  100% {
+    transform: scaleX(1);
+  }
+  50% {
+    transform: scaleX(-1);
+  }
+}
+
+.mf-bar {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: mf-eq 0.9s ease-in-out infinite alternate;
+}
+@keyframes mf-eq {
+  from {
+    transform: scaleY(0.3);
+  }
+}
+
+.mf-stitch {
+  animation: mf-sew 1.6s linear infinite;
+}
+@keyframes mf-sew {
+  to {
+    stroke-dashoffset: -10.8;
+  }
+}
+
+.mf-gauge {
+  stroke-dashoffset: 30;
+  animation: mf-gauge 2.6s cubic-bezier(0.16, 1, 0.3, 1) infinite alternate;
+  animation-delay: -2.59s;
+}
+@keyframes mf-gauge {
+  from {
+    stroke-dashoffset: 92;
+  }
+  to {
+    stroke-dashoffset: 30;
+  }
+}
