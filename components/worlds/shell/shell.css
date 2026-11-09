@@ -1,0 +1,326 @@
+/* World shell: a hardware console strip that takes on each world's palette (semantic tokens are
+   re-pointed by worldTokens() on the bar, so var(--bg)/var(--fg)/var(--accent) are the world's). */
+
+.ws-bar {
+  position: fixed;
+  inset-inline: 0.5rem;
+  bottom: max(0.5rem, env(safe-area-inset-bottom));
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  height: 60px;
+  padding: 0 0.45rem;
+  border: 1px solid color-mix(in oklab, var(--fg) 16%, transparent);
+  border-radius: 14px;
+  background: color-mix(in oklab, var(--bg) 86%, var(--fg));
+  color: var(--fg);
+  font-family: var(--font-plex);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  box-shadow:
+    inset 0 1px 0 color-mix(in oklab, var(--fg) 14%, transparent),
+    inset 0 -2px 0 rgb(0 0 0 / 0.18),
+    0 26px 50px -26px rgb(0 0 0 / 0.6);
+}
+@media (min-width: 48rem) {
+  .ws-bar {
+    inset-inline: 0.75rem;
+    bottom: max(0.75rem, env(safe-area-inset-bottom));
+    gap: 1rem;
+    height: 76px;
+    padding: 0 0.7rem;
+  }
+}
+
+/* scroll progress: the bar's top lip */
+.ws-progress-track {
+  position: absolute;
+  inset-inline: 14px;
+  top: -1px;
+  height: 2px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: color-mix(in oklab, var(--fg) 12%, transparent);
+}
+.ws-progress {
+  position: absolute;
+  inset: 0;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+}
+
+/* keycaps */
+.ws-cap {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.6rem;
+  height: 2.6rem;
+  padding: 0 0.55rem;
+  border: 1px solid color-mix(in oklab, var(--fg) 14%, transparent);
+  border-radius: 8px;
+  background: color-mix(in oklab, var(--bg) 72%, var(--fg));
+  color: var(--fg);
+  box-shadow:
+    inset 0 -3px 0 rgb(0 0 0 / 0.28),
+    inset 0 1px 0 color-mix(in oklab, var(--fg) 18%, transparent),
+    0 6px 10px -6px rgb(0 0 0 / 0.5);
+  transition:
+    translate 0.1s,
+    box-shadow 0.1s,
+    background-color 0.2s;
+}
+@media (min-width: 48rem) {
+  .ws-cap {
+    min-width: 3rem;
+    height: 3rem;
+  }
+}
+.ws-cap:hover {
+  background: color-mix(in oklab, var(--bg) 60%, var(--fg));
+}
+.ws-cap:active,
+.ws-cap[data-pressed] {
+  translate: 0 2px;
+  box-shadow:
+    inset 0 -1px 0 rgb(0 0 0 / 0.28),
+    0 0 0 transparent;
+}
+.ws-bar[data-done] .ws-cap[data-cap="next"] {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+.ws-bar[data-done] .ws-cap[data-cap="next"]::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border: 1px solid var(--accent);
+  border-radius: 11px;
+  animation: ws-ping 1.6s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+@keyframes ws-ping {
+  from {
+    opacity: 0.9;
+    scale: 0.9;
+  }
+  to {
+    opacity: 0;
+    scale: 1.25;
+  }
+}
+
+.ws-exit {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 0.65rem;
+  height: 100%;
+  padding-right: 0.75rem;
+  border-right: 1px solid color-mix(in oklab, var(--fg) 14%, transparent);
+}
+
+/* where am I (mobile): index + name */
+.ws-now {
+  display: flex;
+  flex: 1;
+  align-items: baseline;
+  gap: 0.6rem;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.ws-now b {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 600;
+}
+@media (min-width: 48rem) {
+  .ws-now {
+    display: none;
+  }
+}
+
+/* the rail of all worlds */
+.ws-rail {
+  display: none;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+@media (min-width: 48rem) {
+  .ws-rail {
+    display: flex;
+  }
+}
+.ws-rail > li {
+  display: flex;
+  align-items: center;
+}
+.ws-rail > li + li::before {
+  content: "·";
+  margin: 0 0.1rem;
+  opacity: 0.4;
+}
+.ws-stop {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  height: 2.2rem;
+  padding: 0 0.65rem;
+  border-radius: 999px;
+  color: color-mix(in oklab, var(--fg) 72%, transparent);
+  white-space: nowrap;
+  transition:
+    background-color 0.2s,
+    color 0.2s;
+}
+.ws-stop:hover,
+.ws-stop:focus-visible {
+  background: color-mix(in oklab, var(--fg) 10%, transparent);
+  color: var(--fg);
+}
+.ws-stop[aria-current] {
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 600;
+}
+.ws-stop[aria-current]::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: ws-led 1.8s ease-in-out infinite;
+}
+@keyframes ws-led {
+  50% {
+    opacity: 0.35;
+  }
+}
+/* names appear as room allows: md = indexes only, lg = + current name, ≥1440 = all names */
+.ws-stop-name {
+  display: none;
+}
+@media (min-width: 64rem) {
+  .ws-stop[aria-current] .ws-stop-name {
+    display: inline;
+  }
+}
+@media (min-width: 90rem) {
+  .ws-stop-name {
+    display: inline;
+  }
+}
+
+/* destination board that pops above a stop on hover/focus */
+.ws-peek {
+  position: absolute;
+  bottom: calc(100% + 20px);
+  left: 50%;
+  display: grid;
+  gap: 0.35rem;
+  min-width: 12rem;
+  padding: 0.65rem 0.75rem 0.7rem;
+  border-radius: 8px;
+  background: var(--peek-bg);
+  color: var(--peek-fg);
+  text-align: left;
+  pointer-events: none;
+  opacity: 0;
+  translate: -50% 6px;
+  box-shadow: 0 18px 36px -18px rgb(0 0 0 / 0.6);
+  transition:
+    opacity 0.2s,
+    translate 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.ws-peek::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  border: 7px solid transparent;
+  border-top-color: var(--peek-bg);
+  translate: -50% 0;
+}
+.ws-peek b {
+  font-family: var(--font-archivo);
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  text-transform: none;
+}
+.ws-peek i {
+  font-style: normal;
+  opacity: 0.75;
+}
+.ws-stop:hover .ws-peek,
+.ws-stop:focus-visible .ws-peek {
+  opacity: 1;
+  translate: -50% 0;
+}
+
+.ws-counter {
+  display: none;
+  flex: none;
+  align-items: center;
+  gap: 0.6rem;
+}
+@media (min-width: 64rem) {
+  .ws-counter {
+    display: flex;
+  }
+}
+.ws-lcd {
+  padding: 0.4rem 0.6rem;
+  border-radius: 5px;
+  /* near-black glass whatever the world: the accent digits stay legible on light worlds too */
+  background: color-mix(in oklab, var(--bg) 22%, #000);
+  color: var(--accent);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.08em;
+  box-shadow: inset 0 1px 3px rgb(0 0 0 / 0.55);
+}
+.ws-arrows {
+  display: flex;
+  flex: none;
+  gap: 0.4rem;
+}
+
+/* chaos: the strip jolts and flashes now and then — never long enough to miss a click */
+html[data-chaos="on"] .ws-bar {
+  animation: ws-jolt 3.4s steps(1, end) infinite;
+}
+html[data-chaos="on"] .ws-progress {
+  background: repeating-linear-gradient(90deg, var(--accent) 0 7px, transparent 7px 10px);
+}
+@keyframes ws-jolt {
+  0%,
+  90% {
+    translate: 0 0;
+    filter: none;
+  }
+  91% {
+    translate: 3px -2px;
+  }
+  93% {
+    translate: -4px 1px;
+    filter: invert(1);
+  }
+  95% {
+    translate: 0 0;
+    filter: none;
+  }
+}
