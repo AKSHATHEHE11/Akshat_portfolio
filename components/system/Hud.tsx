@@ -12,6 +12,13 @@ import { cn, pad } from "@/lib/utils";
 import { Toasts } from "./hud/Toasts";
 import { useWorldInfo } from "./nav/useWorldInfo";
 
+/** Update an element's text in place (keeps the existing Text node, so layout isn't rebuilt). */
+function setText(el: HTMLElement, value: string) {
+  const node = el.firstChild;
+  if (node && node.nodeType === Node.TEXT_NODE && !node.nextSibling) (node as Text).data = value;
+  else el.textContent = value;
+}
+
 const tz = profile.location.timezone;
 // Only ever written from the clock effect, never rendered — server/browser ICU differences can't mismatch.
 const clock = new Intl.DateTimeFormat("en-GB", { timeZone: tz, hour: "2-digit", minute: "2-digit", second: "2-digit", hourCycle: "h23" });
@@ -47,17 +54,23 @@ export default function Hud() {
     let lx = "";
     let ly = "";
     let lv = "";
+    // ~15 updates a second is plenty for a readout, and updating the existing text node's value
+    // (instead of textContent, which swaps the node) keeps each write from dirtying page layout.
+    let at = 0;
     const tick = () => {
+      const now = performance.now();
+      if (now - at < 66) return;
+      at = now;
       const nx = pad(Math.max(0, Math.round(pointer.x)), 4);
       const ny = pad(Math.max(0, Math.round(pointer.y)), 4);
       const v = Math.abs(lenis?.velocity ?? 0);
       const nv = v.toFixed(2).padStart(5, "0");
-      if (nx !== lx && x.current) x.current.textContent = lx = nx;
-      if (ny !== ly && y.current) y.current.textContent = ly = ny;
+      if (nx !== lx && x.current) setText(x.current, (lx = nx));
+      if (ny !== ly && y.current) setText(y.current, (ly = ny));
       if (nv !== lv) {
         lv = nv;
-        if (vel.current) vel.current.textContent = nv;
-        if (bar.current) bar.current.textContent = meter(v);
+        if (vel.current) setText(vel.current, nv);
+        if (bar.current) setText(bar.current, meter(v));
       }
     };
     gsap.ticker.add(tick);
@@ -67,7 +80,7 @@ export default function Hud() {
   useEffect(() => {
     if (!ready || coarse) return;
     const write = () => {
-      if (time.current) time.current.textContent = `${zone} ${clock.format(Date.now())}`;
+      if (time.current) setText(time.current, `${zone} ${clock.format(Date.now())}`);
     };
     write();
     const id = window.setInterval(write, 1000);
