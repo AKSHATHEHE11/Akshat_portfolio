@@ -24,6 +24,9 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
+  // Lets fixed bars use env(safe-area-inset-*) around notches and the home indicator.
+  // Pinch-zoom stays enabled on purpose (no maximumScale) — accessibility.
+  viewportFit: "cover",
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#f2eee7" },
     { media: "(prefers-color-scheme: dark)", color: "#0c0c0b" },

@@ -42,6 +42,37 @@ when unsure about an API, read `node_modules/next/dist/docs/`.
 8. **No placeholders that look unfinished** — no lorem ipsum, no grey boxes. Dummy content must look
    like real content.
 
+## 2b. Mobile-first — a hard requirement, not a later pass
+
+Most visitors will arrive on a phone, often from a link in a DM. A feature is **not done** until it is
+excellent on a phone. Design the phone version deliberately; don't just shrink the desktop.
+
+- **Test widths:** 360 (small Android), 390 (iPhone), 430 (large phone), 768/834 (tablet), and a
+  phone in landscape (844×390). No horizontal overflow at any of them (watch long words in display
+  type, wide canvases, absolutely positioned decorations and `100vw` + scrollbar).
+- **Touch targets** ≥ 44×44px (Button `sm` grows to 44px on touch; the `hit` utility enlarges the hit area
+  of small marks without changing their look). Keep ≥ 8px between adjacent targets.
+- **Nothing hover-only.** Every hover reveal also works on tap and on keyboard focus. Tailwind v4's
+  `hover:` only applies on hover-capable devices, so put the tap/focus state in the base styles. Use
+  the `fine:` / `coarse:` variants and `useCoarse()` to change interactions, not just styles.
+- **Native scrolling on touch.** Lenis leaves touch scrolling native. Don't scroll-jack phones: replace
+  pinned horizontal tracks with swipeable rows (Swiper or CSS scroll-snap) on coarse/narrow screens,
+  and keep pins short and optional. Draggable/physics areas need `touch-action` set so that a vertical
+  swipe still scrolls the page unless the visitor is clearly grabbing an object.
+- **Viewport units:** use `svh`/`dvh` (`min-h-svh`, `h-dvh`), never `100vh` (mobile browser bars).
+- **Safe areas:** fixed top/bottom UI uses `pt-safe` / `pb-safe` / `px-safe` (notches, home indicator).
+- **Readable type:** body ≥ 16px, labels ≥ 11px, display sizes use the fluid tokens. Long titles must wrap
+  or scale, never get cut off. Form fields stay ≥ 16px (prevents iOS zoom; enforced globally).
+- **Performance budget on phones:** DPR ≤ 1.5 for WebGL on coarse devices, about half the
+  particles/bodies/segments, no full-screen blur/backdrop-filter stacks, pause everything off-screen,
+  and lazy-load heavy chunks only when they come into view. A mid-range Android must stay smooth.
+  Offer a lighter static version where an effect can't run well.
+- **Orientation & keyboard:** layouts survive landscape; text inputs remain visible when the on-screen
+  keyboard opens (don't trap them under fixed bars).
+- **Chaos on phones:** fewer, bigger moves. Never cover navigation and never block scrolling.
+- **Accessibility is part of "easily accessible":** pinch-zoom stays enabled, everything works with
+  screen readers and keyboards (see §10), and reduced motion is respected.
+
 ## 3. Design tokens (app/globals.css) — use them, don't invent new values
 
 ### Colour (semantic Tailwind classes)

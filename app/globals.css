@@ -165,6 +165,12 @@
   --z-grain: 95;
   --z-cursor: 100;
 
+  /* notches / home indicator (non-zero because the viewport uses viewport-fit=cover) */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+
   /* page-transition origin, written by lib/transitions.ts on click */
   --vt-x: 50vw;
   --vt-y: 50vh;
@@ -188,6 +194,9 @@
   html {
     background: var(--bg);
     color: var(--fg);
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent; /* every control has its own pressed state instead */
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
@@ -228,6 +237,27 @@
   button:not(:disabled),
   [role="button"]:not([aria-disabled="true"]) {
     cursor: pointer;
+  }
+
+  /* no double-tap-zoom delay on controls */
+  a,
+  button,
+  [role="button"],
+  input,
+  label,
+  select,
+  summary,
+  textarea {
+    touch-action: manipulation;
+  }
+
+  /* iOS zooms the page when a focused field is under 16px — never let that happen */
+  @media (hover: none), (pointer: coarse) {
+    input,
+    select,
+    textarea {
+      font-size: max(16px, 1em);
+    }
   }
 
   /* Headings carry no default styling — every heading is art-directed where it is used. */
@@ -294,6 +324,32 @@
 
 @utility hairline {
   border-color: var(--line);
+}
+
+/* safe-area padding for fixed/edge UI: pt-safe on top bars, pb-safe on bottom bars */
+@utility pt-safe {
+  padding-top: max(0.75rem, var(--safe-top));
+}
+@utility pb-safe {
+  padding-bottom: max(0.75rem, var(--safe-bottom));
+}
+@utility px-safe {
+  padding-left: max(var(--margin), var(--safe-left));
+  padding-right: max(var(--margin), var(--safe-right));
+}
+
+/* minimum comfortable touch target (44×44) without changing the visual size */
+@utility hit {
+  position: relative;
+  &::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: max(100%, 44px);
+    height: max(100%, 44px);
+    transform: translate(-50%, -50%);
+  }
 }
 
 @utility no-scrollbar {

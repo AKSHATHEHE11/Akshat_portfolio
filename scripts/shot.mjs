@@ -1,6 +1,6 @@
 // Screenshot a route of a RUNNING server (does not start one).
 //   node scripts/shot.mjs /work/fybr8 out.png [--base=http://localhost:3000] [--w=1440] [--h=900]
-//        [--mobile] [--dark] [--chaos] [--full] [--scroll=1200] [--wait=1800] [--boot]
+//        [--mobile|--android|--landscape|--tablet] [--dark] [--chaos] [--full] [--scroll=1200] [--wait=1800] [--boot]
 //        [--click="css selector"] [--hover="css selector"] [--key=ArrowRight]
 // Uses the installed Chrome/Edge (playwright-core, no browser download). Boot sequence is skipped
 // unless --boot. Screenshots are serialized with a lock so parallel callers don't pile up browsers.
@@ -17,9 +17,11 @@ const opt = Object.fromEntries(
   }),
 );
 const base = opt.base ?? "http://localhost:3000";
-const mobile = !!opt.mobile;
-const w = Number(opt.w ?? (mobile ? 390 : 1440));
-const h = Number(opt.h ?? (mobile ? 844 : 900));
+// Device presets: --mobile (iPhone 390×844) --android (360×800) --landscape (844×390) --tablet (834×1112)
+const preset = opt.android ? [360, 800] : opt.landscape ? [844, 390] : opt.tablet ? [834, 1112] : opt.mobile ? [390, 844] : [1440, 900];
+const mobile = !!(opt.mobile || opt.android || opt.landscape || opt.tablet);
+const w = Number(opt.w ?? preset[0]);
+const h = Number(opt.h ?? preset[1]);
 
 const BROWSERS = [
   "C:/Program Files/Google/Chrome/Application/chrome.exe",

@@ -34,7 +34,7 @@ const variants: Record<Variant, { base: string; fill: string; hoverText: string 
 };
 
 const sizes: Record<Size, string> = {
-  sm: "h-9 px-4 text-[0.8125rem] gap-2",
+  sm: "h-9 coarse:h-11 px-4 text-[0.8125rem] gap-2",
   md: "h-12 px-6 text-[0.95rem] gap-3",
   lg: "h-14 px-8 text-[1.05rem] gap-3",
 };
