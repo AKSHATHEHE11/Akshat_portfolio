@@ -1,0 +1,202 @@
+/* ── Custom cursor (components/system/Cursor.tsx, moved by cursor/engine.ts) ─────────────────
+   Two fixed layers:
+     .cur-blend  white + mix-blend-mode: difference → dot, ring, I-beam, ripple read on any background
+     .cur-solid  normal blending → the accent disc (open / view / drag) and the chaos glyphs
+   Inside a world both layers take the world's accent instead of inverting.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+html.has-cursor,
+html.has-cursor * {
+  cursor: none !important;
+}
+/* Typing surfaces keep the native caret; the custom cursor hides over them (engine.ts → NATIVE). */
+html.has-cursor
+  :is(
+    textarea,
+    select,
+    iframe,
+    [contenteditable]:not([contenteditable="false"]),
+    [contenteditable]:not([contenteditable="false"]) *
+  ),
+html.has-cursor
+  input:not(
+    [type="checkbox"],
+    [type="radio"],
+    [type="range"],
+    [type="button"],
+    [type="submit"],
+    [type="reset"],
+    [type="color"],
+    [type="file"],
+    [type="image"]
+  ) {
+  cursor: auto !important;
+}
+
+.cur-layer {
+  contain: strict;
+  opacity: 0;
+}
+.cur-layer > * {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform: translate3d(-200px, -200px, 0);
+  will-change: transform;
+}
+.cur-blend {
+  color: #fff;
+  mix-blend-mode: difference;
+}
+
+.cur-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.cur-ring {
+  width: 32px;
+  height: 32px;
+  border: 1.25px solid currentColor;
+  border-radius: 16px;
+}
+.cur-beam {
+  width: 1.5px;
+  height: 24px;
+  background: currentColor;
+}
+.cur-beam::before,
+.cur-beam::after {
+  content: "";
+  position: absolute;
+  left: -3px;
+  width: 7.5px;
+  height: 1.5px;
+  background: currentColor;
+}
+.cur-beam::before {
+  top: 0;
+}
+.cur-beam::after {
+  bottom: 0;
+}
+.cur-ripple {
+  width: 40px;
+  height: 40px;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  opacity: 0;
+}
+
+/* ── disc: a lime keycap-dial that carries the label ── */
+.cur-disc {
+  display: grid;
+  place-items: center;
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  background-color: var(--accent);
+  color: var(--accent-ink);
+  box-shadow:
+    inset 0 -3px 0 rgb(0 0 0 / 0.14),
+    0 16px 32px -16px rgb(0 0 0 / 0.55);
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 10.5px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.cur-dial {
+  position: absolute;
+  inset: 3px;
+  width: calc(100% - 6px);
+  height: calc(100% - 6px);
+  opacity: 0.32;
+}
+.cur-label {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45em;
+  padding-left: 0.16em; /* optical centre for the tracked caps */
+  white-space: nowrap;
+}
+.cur-k {
+  display: none;
+}
+.cur-disc[data-kind="open"] .cur-k-open,
+.cur-disc[data-kind="view"] .cur-k-view,
+.cur-disc[data-kind="drag"] .cur-k-drag {
+  display: inline-block;
+}
+.cur-k-drag {
+  transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.cur-disc[data-down] .cur-k-l {
+  transform: translateX(-4px);
+}
+.cur-disc[data-down] .cur-k-r {
+  transform: translateX(4px);
+}
+
+/* ── chaos: a cycling glyph with a ghost trail, hue-shifting lime ↔ orange ── */
+.cur-glyph {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  color: #d8ff00;
+  font:
+    700 20px/1 system-ui,
+    "Segoe UI Symbol",
+    "Apple Symbols",
+    sans-serif;
+  text-shadow:
+    0 0 1px #111,
+    0 0 2px rgb(17 17 17 / 0.85);
+}
+.cur-ghost {
+  font-size: 17px;
+  opacity: 0;
+}
+html[data-chaos="on"] .cur-glyph {
+  animation: cur-hue 1.3s linear infinite;
+}
+html[data-chaos="on"] .cur-disc {
+  animation: cur-hue-fill 1.3s linear infinite;
+}
+@keyframes cur-hue {
+  50% {
+    color: #ff5a1f;
+  }
+}
+@keyframes cur-hue-fill {
+  50% {
+    background-color: #ff5a1f;
+  }
+}
+
+/* ── worlds: tint with the world's accent; a faint ink hairline keeps it legible on pale worlds ── */
+html[data-world]:not([data-world=""]) .cur-blend {
+  color: var(--world-accent, var(--accent));
+  mix-blend-mode: normal;
+}
+html[data-world]:not([data-world=""]) :is(.cur-dot, .cur-beam) {
+  box-shadow: 0 0 0 1px rgb(0 0 0 / 0.28);
+}
+html[data-world]:not([data-world=""]) .cur-ring {
+  box-shadow:
+    0 0 0 0.5px rgb(0 0 0 / 0.22),
+    inset 0 0 0 0.5px rgb(0 0 0 / 0.22);
+}
+html[data-world]:not([data-world=""]) .cur-disc {
+  background-color: var(--world-accent, var(--accent));
+}
+
+@media print {
+  .cur-layer {
+    display: none;
+  }
+}
