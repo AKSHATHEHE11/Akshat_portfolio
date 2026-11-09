@@ -2,10 +2,31 @@
    Page transitions — React <ViewTransition> classes (see components/transitions/Page.tsx)
    Origin of the click is written to --vt-x / --vt-y (viewport) and --vt-doc-y (document)
    by lib/transitions.ts so reveals grow from where the visitor clicked.
+
+   One language — retro hardware:
+     nav-forward   an aperture opens from the click, rimmed in phosphor orange; the old page recedes
+     nav-back      the old page drops away; the new one settles into focus
+     world-enter   the portal morphs into the world's stage, the page sinks, the world scans in
+     world-exit    the world switches off like a CRT: bloom → hot line → dot
+     world-next    rail wipe behind a signal-orange leading edge (→); world-prev mirrors it (←)
+     chaos         glitch slices — declared last so it overrides every kind
+
+   Page snapshots are as tall as the page. Viewport-relative effects on an OLD page are offset by
+   --vt-top (its scroll position at click time); NEW pages arrive scrolled to the top.
+   Layered effects live in the pseudo-tree only: a group can carry a background that is clipped a
+   few px wider than its image-pair (aperture rim, wipe edge, CRT line).
+   Animated properties: transform, opacity, clip-path, filter.
    ─────────────────────────────────────────────────────────────────────────── */
 
 ::view-transition {
   pointer-events: none;
+  --vt-top: calc(var(--vt-doc-y) - var(--vt-y));
+  --vt-mid: calc(var(--vt-doc-y) - var(--vt-y) + 50vh);
+  --vt-ease-machine: var(--ease-machine, cubic-bezier(0.7, 0, 0.2, 1));
+  --vt-ease-expo: var(--ease-out-expo, cubic-bezier(0.16, 1, 0.3, 1));
+  --vt-ease-quart: var(--ease-out-quart, cubic-bezier(0.25, 1, 0.5, 1));
+  /* slower start than expo so the aperture is seen opening, not just "there" */
+  --vt-ease-iris: cubic-bezier(0.55, 0, 0.1, 1);
 }
 
 /* The root holds layout chrome. It never animates; pages animate through <Page>. */
@@ -19,6 +40,8 @@
 ::view-transition-group(site-hud),
 ::view-transition-group(site-rail),
 ::view-transition-group(site-cursor),
+::view-transition-group(site-cursor-blend),
+::view-transition-group(site-grain),
 ::view-transition-group(world-shell) {
   animation: none;
   z-index: 100;
@@ -27,6 +50,8 @@
 ::view-transition-old(site-hud),
 ::view-transition-old(site-rail),
 ::view-transition-old(site-cursor),
+::view-transition-old(site-cursor-blend),
+::view-transition-old(site-grain),
 ::view-transition-old(world-shell) {
   display: none;
 }
@@ -34,44 +59,85 @@
 ::view-transition-new(site-hud),
 ::view-transition-new(site-rail),
 ::view-transition-new(site-cursor),
+::view-transition-new(site-cursor-blend),
+::view-transition-new(site-grain),
 ::view-transition-new(world-shell) {
   animation: none;
 }
+/* The cursor's white layer keeps inverting whatever passes beneath it (inside a world it is tinted). */
+::view-transition-group(site-cursor-blend) {
+  mix-blend-mode: difference;
+}
+:root[data-world]:not([data-world=""])::view-transition-group(site-cursor-blend) {
+  mix-blend-mode: normal;
+}
 
-/* ── nav-forward: old page recedes toward the click, new page irises open from it ── */
+/* ── nav-forward: an aperture opens from the click; the old page recedes into the dark ── */
 ::view-transition-old(.vt-out-forward) {
   transform-origin: var(--vt-x) var(--vt-doc-y);
-  animation: vt-recede 720ms var(--ease-machine) both;
+  animation: vt-recede 720ms var(--vt-ease-machine) both;
+}
+/* the group is filled with phosphor orange and clipped 7px wider than the page it carries → a rim */
+::view-transition-group(.vt-in-forward) {
+  background: var(--signal);
+  animation: vt-aperture 980ms var(--vt-ease-iris) both;
+}
+::view-transition-image-pair(.vt-in-forward) {
+  background: var(--bg);
+  animation: vt-iris 980ms var(--vt-ease-iris) both;
 }
 ::view-transition-new(.vt-in-forward) {
-  animation: vt-iris 980ms var(--ease-out-expo) both;
+  animation: vt-expose 760ms var(--vt-ease-quart) both;
 }
 
-/* ── nav-back / world-exit arrival: old page drops away, new page settles in ── */
+/* ── nav-back / world-exit arrival: old page drops away, new page settles into focus ── */
 ::view-transition-old(.vt-out-back) {
-  animation: vt-drop 520ms var(--ease-machine) both;
+  transform-origin: 50% var(--vt-mid);
+  animation: vt-drop 540ms var(--vt-ease-machine) both;
+}
+::view-transition-image-pair(.vt-in-back) {
+  background: var(--bg);
+  transform-origin: 50% 50vh;
+  animation: vt-settle 820ms var(--vt-ease-expo) 140ms both;
 }
 ::view-transition-new(.vt-in-back) {
-  transform-origin: 50% 50vh;
-  animation: vt-settle 820ms var(--ease-out-expo) 140ms both;
+  animation: vt-expose 820ms var(--vt-ease-quart) 140ms both;
 }
 
-/* ── world-enter: the portal morphs into the world's stage; the old page sinks behind it ── */
+/* ── world-enter: the portal morphs into the world's stage; the old page sinks behind it;
+      the world's UI scans in line by line under a phosphor line in the world's accent ── */
 ::view-transition-old(.vt-out-world) {
   transform-origin: var(--vt-x) var(--vt-doc-y);
-  animation: vt-recede 860ms var(--ease-machine) both;
+  animation: vt-sink 860ms var(--vt-ease-machine) both;
+}
+/* above its morphing stage (50), under its flying title (52). The group is clipped 2px deeper than the
+   image-pair it carries (a group's clip also clips its children), so its accent fill shows only as
+   the line under the scan. The pair is filled with the world's bg so transparent parts of the
+   snapshot never show the accent. */
+::view-transition-group(.vt-in-world) {
+  z-index: 51;
+  background: var(--world-accent, var(--signal));
+  animation: vt-scanline 680ms var(--vt-ease-quart) 360ms both;
+}
+::view-transition-image-pair(.vt-in-world) {
+  background: var(--world-bg, var(--bg));
+  animation: vt-scan 680ms var(--vt-ease-quart) 360ms both;
 }
 ::view-transition-new(.vt-in-world) {
-  animation: vt-fade 620ms var(--ease-out-quart) 380ms both;
+  animation: vt-phosphor 700ms var(--vt-ease-quart) 360ms both;
 }
 ::view-transition-group(.vt-morph),
 ::view-transition-group(.vt-morph-text) {
   z-index: 50;
   animation-duration: 960ms;
-  animation-timing-function: var(--ease-out-expo);
+  animation-timing-function: var(--vt-ease-expo);
+}
+::view-transition-group(.vt-morph-text) {
+  z-index: 52;
 }
 ::view-transition-image-pair(.vt-morph) {
   overflow: clip;
+  animation: vt-morph-soften 960ms var(--vt-ease-expo) both;
 }
 ::view-transition-old(.vt-morph),
 ::view-transition-new(.vt-morph) {
@@ -83,40 +149,97 @@
 ::view-transition-new(.vt-morph-text) {
   animation-duration: 760ms;
 }
-
-/* ── world-exit: the world switches off like a CRT ── */
-::view-transition-old(.vt-out-world-exit) {
-  transform-origin: 50% var(--vt-doc-y);
-  animation: vt-crt-off 640ms var(--ease-machine) both;
+/* A morph whose partner never formed (React skips an off-screen partner) leaves a lone half:
+   it dissolves / arrives with its page instead of hanging crisp above the transition. */
+::view-transition-old(.vt-morph):only-child,
+::view-transition-old(.vt-morph-text):only-child {
+  animation: vt-dissolve 480ms var(--vt-ease-machine) both;
+}
+::view-transition-new(.vt-morph):only-child,
+::view-transition-new(.vt-morph-text):only-child {
+  animation: vt-arrive 600ms var(--vt-ease-quart) 380ms both;
 }
 
-/* ── world-next / world-prev: rail wipe between worlds ── */
+/* ── world-exit: the world switches off like a CRT — it blooms white as it collapses onto the
+      centre line, hands over to a phosphor line, which shrinks to a dot and dies. Plays above the
+      page settling in behind it (and above a stage morphing back into its portal). ── */
+::view-transition-group(.vt-out-world-exit) {
+  z-index: 51;
+  /* the phosphor line waits behind the picture on the old screen's centre line. It is a gradient band,
+     not a clip, because a group's clip-path would also clip the collapsing picture inside it. */
+  background: linear-gradient(
+    transparent calc(var(--vt-mid) - 1.5px),
+    var(--signal) 0 calc(var(--vt-mid) + 1.5px),
+    transparent 0
+  );
+  animation: vt-crt-line 760ms linear both;
+}
+::view-transition-old(.vt-out-world-exit) {
+  /* only what was on screen collapses — the rest of the page stays out of the line */
+  clip-path: xywh(0 var(--vt-top) 100% 100vh);
+  transform-origin: 50% var(--vt-mid);
+  animation: vt-crt-off 760ms var(--vt-ease-machine) both;
+}
+
+/* ── world-next / world-prev: rail wipe. The arriving world slides in behind a signal-orange
+      leading edge; the departing one is shoved aside and dimmed. ── */
 ::view-transition-old(.vt-out-next) {
-  animation: vt-shove-left 780ms var(--ease-machine) both;
+  transform-origin: 50% var(--vt-mid);
+  animation: vt-shove-left 780ms var(--vt-ease-machine) both;
+}
+::view-transition-group(.vt-in-next) {
+  background: var(--signal);
+  animation: vt-edge-next 780ms var(--vt-ease-machine) both;
+}
+::view-transition-image-pair(.vt-in-next) {
+  background: var(--world-bg, var(--bg));
+  animation: vt-wipe-right 780ms var(--vt-ease-machine) both;
 }
 ::view-transition-new(.vt-in-next) {
-  animation: vt-wipe-right 780ms var(--ease-machine) both;
+  animation: vt-arrive-right 780ms var(--vt-ease-machine) both;
 }
 ::view-transition-old(.vt-out-prev) {
-  animation: vt-shove-right 780ms var(--ease-machine) both;
+  transform-origin: 50% var(--vt-mid);
+  animation: vt-shove-right 780ms var(--vt-ease-machine) both;
+}
+::view-transition-group(.vt-in-prev) {
+  background: var(--signal);
+  animation: vt-edge-prev 780ms var(--vt-ease-machine) both;
+}
+::view-transition-image-pair(.vt-in-prev) {
+  background: var(--world-bg, var(--bg));
+  animation: vt-wipe-left 780ms var(--vt-ease-machine) both;
 }
 ::view-transition-new(.vt-in-prev) {
-  animation: vt-wipe-left 780ms var(--ease-machine) both;
+  animation: vt-arrive-left 780ms var(--vt-ease-machine) both;
 }
 
 /* ── chaos: declared last so it overrides whatever kind it is combined with ── */
+::view-transition-group(.vt-in-chaos),
+::view-transition-group(.vt-out-chaos),
+::view-transition-image-pair(.vt-in-chaos),
+::view-transition-image-pair(.vt-out-chaos) {
+  background: none;
+  animation: none;
+}
 ::view-transition-old(.vt-out-chaos) {
-  animation: vt-glitch-out 440ms steps(6, end) both;
+  transform-origin: 50% var(--vt-mid);
+  animation: vt-glitch-out 520ms steps(1, end) both;
 }
 ::view-transition-new(.vt-in-chaos) {
-  animation: vt-glitch-in 560ms steps(7, end) both;
+  animation: vt-glitch-in 660ms steps(1, end) both;
+}
+/* even the portal morph misfires */
+:root:active-view-transition-type(chaos)::view-transition-image-pair(.vt-morph) {
+  animation: vt-morph-glitch 960ms steps(1, end) both;
 }
 
+/* ── keyframes ── */
 @keyframes vt-recede {
   to {
-    transform: scale(0.92);
+    transform: scale(0.9);
     opacity: 0.2;
-    filter: blur(8px) saturate(0.4);
+    filter: blur(8px) brightness(0.7) saturate(0.4);
   }
 }
 @keyframes vt-iris {
@@ -127,11 +250,25 @@
     clip-path: circle(150vmax at var(--vt-x) var(--vt-y));
   }
 }
+@keyframes vt-aperture {
+  from {
+    clip-path: circle(7px at var(--vt-x) var(--vt-y));
+  }
+  to {
+    clip-path: circle(calc(150vmax + 7px) at var(--vt-x) var(--vt-y));
+  }
+}
+/* brief over-exposure that decays — the fresh image is hot for a moment */
+@keyframes vt-expose {
+  from {
+    filter: brightness(1.45) saturate(1.25) contrast(1.06);
+  }
+}
 @keyframes vt-drop {
   to {
-    transform: translateY(5vh) scale(0.98);
+    transform: translateY(6vh) scale(0.97);
     opacity: 0;
-    filter: blur(6px);
+    filter: blur(6px) brightness(0.85);
   }
 }
 @keyframes vt-settle {
@@ -141,37 +278,95 @@
     filter: blur(10px);
   }
 }
-@keyframes vt-fade {
+@keyframes vt-sink {
+  to {
+    transform: scale(0.88);
+    opacity: 0.12;
+    filter: blur(10px) brightness(0.55) saturate(0.4);
+  }
+}
+/* raster scan: reveal the first screen top → bottom; the group's line rides the bottom edge */
+@keyframes vt-scan {
+  from {
+    clip-path: inset(0 0 100% 0);
+  }
+  to {
+    clip-path: inset(0 0 calc(100% - 100vh) 0);
+  }
+}
+@keyframes vt-scanline {
+  from {
+    clip-path: inset(0 0 calc(100% - 2px) 0);
+  }
+  to {
+    clip-path: inset(0 0 calc(100% - 100vh - 2px) 0);
+  }
+}
+@keyframes vt-phosphor {
+  from {
+    filter: brightness(1.8) saturate(1.4);
+  }
+}
+@keyframes vt-dissolve {
+  to {
+    opacity: 0;
+    filter: blur(8px);
+  }
+}
+@keyframes vt-arrive {
   from {
     opacity: 0;
+  }
+}
+/* hides the interpolation of two different snapshots mid-flight */
+@keyframes vt-morph-soften {
+  45% {
+    filter: blur(2px) brightness(1.06);
   }
 }
 @keyframes vt-crt-off {
   0% {
     transform: scale(1, 1);
-    filter: brightness(1);
+    filter: contrast(1) brightness(1);
+    opacity: 1;
+    animation-timing-function: cubic-bezier(0.55, 0, 0.85, 0.3);
   }
-  55% {
-    transform: scale(1, 0.006);
-    filter: brightness(2.6);
+  40% {
+    opacity: 1;
+  }
+  46%,
+  100% {
+    transform: scale(1.02, 0.003);
+    filter: contrast(0) brightness(2);
+    opacity: 0;
+  }
+}
+/* the old screen stays whole while its picture collapses; then the line left behind shrinks to a dot */
+@keyframes vt-crt-line {
+  0%,
+  46% {
+    clip-path: inset(var(--vt-top) 0 calc(100% - var(--vt-top) - 100vh) 0);
+    animation-timing-function: cubic-bezier(0.7, 0, 0.2, 1);
+  }
+  80% {
+    clip-path: inset(var(--vt-top) calc(50% - 3px) calc(100% - var(--vt-top) - 100vh) calc(50% - 3px));
     opacity: 1;
   }
   100% {
-    transform: scale(0, 0.006);
-    filter: brightness(4);
+    clip-path: inset(var(--vt-top) calc(50% - 3px) calc(100% - var(--vt-top) - 100vh) calc(50% - 3px));
     opacity: 0;
   }
 }
 @keyframes vt-shove-left {
   to {
-    transform: translateX(-14%);
-    filter: brightness(0.35) blur(2px);
+    transform: translateX(-16%) scale(0.96);
+    filter: brightness(0.3) blur(3px);
   }
 }
 @keyframes vt-shove-right {
   to {
-    transform: translateX(14%);
-    filter: brightness(0.35) blur(2px);
+    transform: translateX(16%) scale(0.96);
+    filter: brightness(0.3) blur(3px);
   }
 }
 @keyframes vt-wipe-right {
@@ -190,65 +385,152 @@
     clip-path: inset(0 0 0 0);
   }
 }
+/* the leading edge: always 6px ahead of the wipe */
+@keyframes vt-edge-next {
+  from {
+    clip-path: inset(0 0 0 calc(100% - 6px));
+  }
+  to {
+    clip-path: inset(0 0 0 -6px);
+  }
+}
+@keyframes vt-edge-prev {
+  from {
+    clip-path: inset(0 calc(100% - 6px) 0 0);
+  }
+  to {
+    clip-path: inset(0 -6px 0 0);
+  }
+}
+@keyframes vt-arrive-right {
+  from {
+    transform: translateX(8%);
+  }
+}
+@keyframes vt-arrive-left {
+  from {
+    transform: translateX(-8%);
+  }
+}
+/* glitch slices are placed in the visible viewport of the old page (--vt-top), not its whole height */
 @keyframes vt-glitch-out {
   0% {
-    clip-path: inset(0);
+    clip-path: xywh(0 var(--vt-top) 100% 100vh);
     transform: none;
     filter: none;
+    opacity: 1;
   }
-  20% {
-    clip-path: inset(12% 0 38% 0);
-    transform: translate(-2%, 1%) skewX(-6deg);
+  12% {
+    clip-path: xywh(0 calc(var(--vt-top) + 8vh) 100% 30vh);
+    transform: translateX(-3%) skewX(-8deg);
     filter: hue-rotate(90deg) saturate(3);
   }
-  40% {
-    clip-path: inset(52% 0 8% 0);
-    transform: translate(3%, -1%);
+  24% {
+    clip-path: xywh(0 calc(var(--vt-top) + 46vh) 100% 22vh);
+    transform: translateX(4%);
     filter: invert(1);
   }
-  60% {
-    clip-path: inset(0 0 72% 0);
-    transform: translate(-1%, 0) scaleY(1.05);
-    filter: contrast(2.5);
+  36% {
+    clip-path: xywh(0 var(--vt-top) 100% 26vh);
+    transform: translateX(-1.5%) scaleY(1.06);
+    filter: contrast(3) brightness(1.3);
   }
-  80% {
-    clip-path: inset(82% 0 0 0);
-    transform: translate(2%, 0);
+  48% {
+    clip-path: xywh(0 calc(var(--vt-top) + 66vh) 100% 28vh);
+    transform: translateX(2.5%) skewX(10deg);
+    filter: hue-rotate(-120deg) saturate(2);
+  }
+  60% {
+    clip-path: xywh(0 calc(var(--vt-top) + 22vh) 100% 18vh);
+    transform: translateX(-5%);
+    filter: invert(1) contrast(2);
+  }
+  72% {
+    clip-path: xywh(0 calc(var(--vt-top) + 80vh) 100% 12vh);
+    transform: translateX(1%);
+    filter: none;
+  }
+  86% {
+    clip-path: xywh(0 calc(var(--vt-top) + 48vh) 100% 3vh);
+    transform: scaleX(1.4);
+    opacity: 0.85;
   }
   100% {
-    clip-path: inset(50% 0 50% 0);
+    clip-path: xywh(0 var(--vt-mid) 100% 0);
+    transform: scaleX(1.4);
     opacity: 0;
   }
 }
 @keyframes vt-glitch-in {
   0% {
-    clip-path: inset(0 0 100% 0);
+    clip-path: xywh(0 0 100% 0);
     transform: translateX(4%);
     filter: invert(1) hue-rotate(180deg);
   }
-  30% {
-    clip-path: inset(0 0 62% 0);
+  14% {
+    clip-path: xywh(0 34vh 100% 14vh);
+    transform: translateX(-6%) skewX(12deg);
+    filter: hue-rotate(90deg) saturate(3);
+  }
+  28% {
+    clip-path: xywh(0 0 100% 38vh);
     transform: translateX(-3%);
+    filter: contrast(2.5);
   }
-  55% {
-    clip-path: inset(0 0 30% 0);
-    filter: hue-rotate(90deg) saturate(2);
+  42% {
+    clip-path: xywh(0 56vh 100% 30vh);
+    transform: translateX(2%);
+    filter: invert(1);
   }
-  80% {
-    clip-path: inset(0 0 7% 0);
-    transform: translateX(1%);
+  56% {
+    clip-path: xywh(0 0 100% 70vh);
+    transform: translateX(-1%) scaleY(1.03);
+    filter: hue-rotate(-90deg);
+  }
+  70% {
+    clip-path: xywh(0 12vh 100% 88vh);
+    transform: translateX(1.5%);
+    filter: saturate(2);
+  }
+  84% {
+    clip-path: xywh(0 0 100% 100vh);
+    transform: translateX(-0.5%);
+    filter: none;
   }
   100% {
     clip-path: inset(0);
     transform: none;
+    filter: none;
+  }
+}
+@keyframes vt-morph-glitch {
+  20% {
+    filter: invert(1);
+  }
+  35% {
+    filter: hue-rotate(120deg) saturate(3);
+  }
+  55% {
+    filter: contrast(2.4) brightness(1.3);
+  }
+  75% {
+    filter: hue-rotate(-90deg);
+  }
+  90% {
     filter: none;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   ::view-transition-group(*),
+  ::view-transition-image-pair(*),
   ::view-transition-old(*),
   ::view-transition-new(*) {
     animation: none !important;
+  }
+  /* layered paint (rims, edges, lines) only exists while animating */
+  ::view-transition-group(*),
+  ::view-transition-image-pair(*) {
+    background: none !important;
   }
 }
