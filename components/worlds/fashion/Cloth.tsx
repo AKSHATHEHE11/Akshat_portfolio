@@ -286,7 +286,7 @@ function ClothMesh({ chaos, booted, coarse, warp, weft, accent, ink, patch }: Om
     st.current.dropTo = booted ? 0 : 1;
   }, [booted]);
 
-  useFrame((_, delta) => {
+  useFrame((state, delta) => {
     const s = st.current;
     const u = material.uniforms;
     const dt = Math.min(delta, 1 / 30);
@@ -298,7 +298,9 @@ function ClothMesh({ chaos, booted, coarse, warp, weft, accent, ink, patch }: Om
     const fresh = pointer.x !== s.stale.x || pointer.y !== s.stale.y;
     const px = fresh ? pointer.x : s.press.x;
     const py = fresh ? pointer.y : s.press.y;
-    const rect = gl.domElement.getBoundingClientRect();
+    // R3F keeps the canvas box measured (on resize, and debounced on scroll): a rect read here would
+    // force a layout every frame
+    const rect = state.size;
     s.ndc.set(((px - rect.left) / rect.width) * 2 - 1, -((py - rect.top) / rect.height) * 2 + 1);
     s.ray.setFromCamera(s.ndc, camera);
     const got = s.ray.ray.intersectPlane(s.plane, s.hit) !== null;
@@ -369,7 +371,7 @@ export default function Cloth({ active, ...rest }: ClothProps) {
   return (
     <Canvas
       frameloop={active ? "always" : "never"}
-      dpr={coarse ? [1, 1.25] : [1, 1.75]}
+      dpr={coarse ? [1, 1.25] : [1, 1.5]}
       camera={{ position: [0, 0, 6.4], fov: 30 }}
       gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
       style={{ touchAction: "pan-y" }}
