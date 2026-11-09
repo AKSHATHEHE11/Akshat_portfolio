@@ -1,0 +1,155 @@
+/* ───────────────────────────────────────────────────────────────────────────
+   Boot sequence — components/system/Boot.tsx. Namespace: .sys-boot
+   Server-rendered and visible from the first paint, so a first visit never flashes the page.
+   Returning visitors: the preflight script sets html[data-booted="1"] before paint → hidden.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+.sys-boot {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  color: var(--signal);
+  cursor: progress;
+  /* If the client never comes alive, don't hold the page hostage. JS takes over via [data-live]. */
+  animation: sys-boot-failsafe 0.4s ease 12s forwards;
+}
+.sys-boot[data-live] {
+  animation: none;
+}
+html[data-booted="1"] .sys-boot {
+  display: none;
+}
+
+.sys-boot__screen {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: var(--color-ink, #111111);
+  transform-origin: 50% 50%;
+  will-change: transform;
+}
+
+/* scanlines */
+.sys-boot__screen::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background: repeating-linear-gradient(to bottom, rgb(255 255 255 / 0.045) 0 1px, transparent 1px 3px);
+}
+/* tube vignette */
+.sys-boot__screen::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background:
+    radial-gradient(120% 95% at 50% 45%, transparent 52%, rgb(0 0 0 / 0.78) 100%),
+    radial-gradient(60% 50% at 30% 30%, rgb(255 90 31 / 0.07), transparent 70%);
+}
+
+/* the slow refresh band rolling down the tube */
+.sys-boot__roll {
+  position: absolute;
+  inset-inline: 0;
+  top: -30%;
+  height: 30%;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(to bottom, transparent, rgb(255 90 31 / 0.06) 55%, transparent);
+  animation: sys-boot-roll 3.4s linear infinite;
+}
+
+.sys-boot__content {
+  position: relative;
+  z-index: 1;
+  animation: sys-boot-flicker 0.12s steps(2, end) infinite;
+}
+
+/* segmented progress: 24 blocks, filled ones lit */
+.sys-boot__bar {
+  --cells: 24;
+  position: relative;
+  display: block;
+  width: min(100%, 22rem);
+  height: 0.9em;
+  background: repeating-linear-gradient(
+    90deg,
+    color-mix(in oklab, var(--signal) 22%, transparent) 0 calc(100% / var(--cells) - 3px),
+    transparent calc(100% / var(--cells) - 3px) calc(100% / var(--cells))
+  );
+}
+.sys-boot__bar > span {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--signal) 0 calc(100% / var(--cells) - 3px),
+    transparent calc(100% / var(--cells) - 3px) calc(100% / var(--cells))
+  );
+  clip-path: inset(0 100% 0 0);
+}
+.sys-boot__bar {
+  filter: drop-shadow(0 0 5px color-mix(in oklab, var(--signal) 55%, transparent));
+}
+
+/* the screen brightens as it collapses into the scan line */
+.sys-boot__beam {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  opacity: 0;
+  pointer-events: none;
+  background: linear-gradient(to bottom, #fff6ea, #ffffff 50%, #fff6ea);
+}
+.sys-boot__line {
+  position: absolute;
+  inset-inline: 0;
+  top: 50%;
+  height: 2px;
+  margin-top: -1px;
+  opacity: 0;
+  visibility: hidden;
+  background: #ffffff;
+  box-shadow:
+    0 0 4px 1px #ffffff,
+    0 0 26px 6px color-mix(in oklab, var(--signal) 65%, transparent);
+}
+
+/* chaos: the tube has a loose connection */
+html[data-chaos="on"] .sys-boot__content {
+  animation: sys-boot-jitter 0.16s steps(2, end) infinite;
+  text-shadow:
+    2px 0 0 rgb(255 40 80 / 0.65),
+    -2px 0 0 rgb(0 220 255 / 0.5);
+}
+
+@keyframes sys-boot-failsafe {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+@keyframes sys-boot-roll {
+  to {
+    transform: translateY(433%);
+  }
+}
+@keyframes sys-boot-flicker {
+  50% {
+    opacity: 0.94;
+  }
+}
+@keyframes sys-boot-jitter {
+  0% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(-3px, 1px) skewX(-2deg);
+  }
+  100% {
+    transform: translate(2px, 0);
+  }
+}
