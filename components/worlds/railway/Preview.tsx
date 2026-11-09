@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useOnScreen } from "@/lib/hooks";
 import { play } from "@/lib/sound";
 import type { Project } from "@/lib/types";
@@ -18,6 +18,7 @@ export default function Preview({ project }: { project: Project<RailwayScene> })
   const frame = useRef<HTMLDivElement>(null);
   const onScreen = useOnScreen(frame);
   const [stop, setStop] = useState<{ item: SceneryItem; coach: string } | null>(null);
+  const items = useMemo(() => (stop ? [stop.item] : []), [stop]); // stable, so the memoised Landscape skips re-renders
   const [parcels, setParcels] = useState<{ code: string; n: number }[]>([]);
   const dropTimer = useRef(0);
   useEffect(() => () => window.clearTimeout(dropTimer.current), []);
@@ -51,7 +52,7 @@ export default function Preview({ project }: { project: Project<RailwayScene> })
         </div>
 
         <div ref={frame} className="rw-frame rw-frame-app">
-          <Landscape driveRef={driveRef} items={stop ? [stop.item] : []} active={onScreen} coach={stop?.coach ?? "B3"} />
+          <Landscape driveRef={driveRef} items={items} active={onScreen} coach={stop?.coach ?? "B3"} />
           <div className="rw-glass" aria-hidden />
           <SafarApp brand={project.title} scene={scene} driveRef={driveRef} onArrive={onArrive} onDepart={onDepart} onDelivered={onDelivered} />
           <div className="rw-gasket" aria-hidden />

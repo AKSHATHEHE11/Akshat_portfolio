@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useId, useRef, type RefObject } from "react";
+import { memo, useEffect, useId, useRef, type RefObject } from "react";
 import { gsap } from "@/lib/gsap";
 import { pointer } from "@/lib/pointer";
 import { useChaos, useCoarse, useReducedMotion } from "@/lib/hooks";
@@ -38,7 +38,8 @@ const LAYERS = [
   { key: "ground", cls: "rw-l-ground", speed: 1, depth: 26, tile: TILE.ground, Art: GroundArt },
 ] as const;
 const POLE_SPEED = 1.55;
-const COPIES = 6;
+/** tiles rendered per layer; only as many as the window can show are displayed (see measure) */
+const COPIES = 8;
 
 // Sky along the day. t: 0 morning (08:15) · .45 noon · .75 afternoon · 1 dusk (17:15)
 const STOPS = [0, 0.45, 0.75, 1];
@@ -53,7 +54,9 @@ function along(colors: string[], t: number) {
 }
 const wrap = (v: number, m: number) => (m ? -(((v % m) + m) % m) : 0);
 
-export function Landscape({
+/** Memoised: the journey re-renders on every arrival and departure, and re-rendering ~800 SVG
+ * scenery elements there was a ~90ms stall each time. Everything it draws per frame goes through refs. */
+export const Landscape = memo(function Landscape({
   driveRef,
   items = [],
   active,
@@ -74,6 +77,7 @@ export function Landscape({
   const poleEl = useRef<HTMLDivElement>(null);
   const itemEls = useRef<(HTMLDivElement | null)[]>([]);
   const sunEl = useRef<HTMLDivElement>(null);
+  const tintEl = useRef<HTMLDivElement>(null);
   const reduced = useReducedMotion();
   const coarse = useCoarse();
   const chaos = useChaos();
@@ -95,6 +99,15 @@ export function Landscape({
       // tiles overlap by 1px in CSS, so the repeat period is one pixel shorter than the tile
       LAYERS.forEach((L, i) => (tiles[i] = ((layerEls.current[i]?.clientHeight ?? 0) * L.tile.w) / L.tile.h - 1));
       poleTile = ((poleEl.current?.clientHeight ?? 0) * TILE.poles.w) / TILE.poles.h - 1;
+      // Tiles past the right edge are display:none. A resize re-lays out every shape of every shown
+      // tile (the departure zoom resizes the window each frame), so spare copies only cost time.
+      // A layer starts up to one period left of 0; the margin covers the parallax and the masts' skew.
+      const fit = (layer: HTMLElement | null, period: number) => {
+        const n = period > 0 ? Math.ceil((size.w + size.h * 0.25) / period) + 1 : COPIES;
+        Array.from(layer?.children ?? []).forEach((tile, k) => ((tile as SVGElement).style.display = k < n ? "" : "none"));
+      };
+      LAYERS.forEach((_, i) => fit(layerEls.current[i], tiles[i]));
+      fit(poleEl.current, poleTile);
       lastT = -1;
     };
     measure();
@@ -151,6 +164,8 @@ export function Landscape({
         const x = sign * (it.D - D.d) * W * (it.kind === "board" ? 1.1 : 1) - par * 26;
         if (it.kind === "platform") nearest = Math.min(nearest, Math.abs(x));
         const show = Math.abs(x) < (it.kind === "platform" ? pw : bw) + W / 2 + 8;
+        // display, not just visibility: a hidden platform is still laid out on every resize
+        e.style.display = show ? "" : "none";
         e.style.visibility = show ? "visible" : "hidden";
         if (show) e.style.transform = `translate3d(calc(-50% + ${x.toFixed(1)}px),0,0)`;
       });
@@ -168,7 +183,7 @@ export function Landscape({
         lastT = D.t;
         el.style.setProperty("--sky-top", along(SKY_TOP, D.t));
         el.style.setProperty("--sky-bot", along(SKY_BOT, D.t));
-        el.style.setProperty("--tint", along(TINT, D.t));
+        tintEl.current?.style.setProperty("--tint", along(TINT, D.t)); // non-inherited: set where it's read
         const s = sunEl.current;
         if (s) {
           s.style.setProperty("--sun", along(SUN, D.t));
@@ -235,7 +250,7 @@ export function Landscape({
           </svg>
         ))}
       </div>
-      <div className="rw-tint" />
+      <div ref={tintEl} className="rw-tint" />
     </div>
   );
-}
+});
