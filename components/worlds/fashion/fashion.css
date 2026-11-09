@@ -1,5 +1,5 @@
-/* Fybr8 world — styles Tailwind can't say neatly. Plain CSS (CSS Modules are not enabled in this
-   Turbopack setup), so every class is namespaced fy-*. Palette vars (--fy-*) live on the world root. */
+/* Fybr8 world — styles Tailwind can't say neatly. Plain CSS imported by the world, so every class is
+   namespaced fy-*. Palette vars (--fy-*) live on the world root. */
 
 /* fine paper tooth for editorial grounds */
 .fy-paper {
