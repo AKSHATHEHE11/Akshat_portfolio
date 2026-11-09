@@ -189,6 +189,13 @@ bio) · `data/projects/*.ts` (+ `index.ts`: `projects`, `summaries`, `featured`,
 Server pages pass data down as props where it is large (e.g. `summaries`). Small data modules may be
 imported directly by client components.
 
+### Real websites inside worlds
+When `project.live` exists, the world's screen (window, display, mirror…) renders
+`<LiveScreen live={project.live} title={project.title} />` from `components/worlds/LiveScreen.tsx`.
+The live site can replace or sit beside the mocked interactive preview. Rules are in `docs/LIVE-SITES.md`:
+own sites or written client permission only, never bypass a site's framing block (fallback modes
+"capture"/"link"), and the iframe loads only when the visitor presses Power on.
+
 ## 10. Accessibility checklist
 
 Semantic landmarks and a logical heading order (one `h1` per page) · real `<button>`/`<a>` · keyboard

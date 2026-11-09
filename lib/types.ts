@@ -37,6 +37,29 @@ export interface ProjectLink {
   href: string;
 }
 
+/**
+ * The project's real website, shown inside its world (components/worlds/LiveScreen.tsx).
+ * Legal rule of the house: only sites you own or have the client's written OK to show, and only
+ * through the site's own consent to be framed — never proxied, mirrored or header-stripped.
+ * See docs/LIVE-SITES.md.
+ */
+export interface LiveSite {
+  url: string;
+  /**
+   * "embed"   — runs the real site in a sandboxed iframe (the site must allow framing: run
+   *             `node scripts/check-embeds.mjs <url>` first)
+   * "capture" — auto-scrolling full-page capture (scripts/capture-site.mjs) + "open live site" link
+   * "link"    — a framed preview image (optional) + "open live site" link
+   */
+  mode: "embed" | "capture" | "link";
+  /** viewport the site is rendered at, scaled into the world's screen. Default "desktop". */
+  device?: "desktop" | "tablet" | "phone";
+  /** full-page capture image, e.g. "/projects/fybr8/desktop.jpg" (also the standby poster) */
+  capture?: string;
+  /** "own" = your own project · "client-approved" = you have the client's written OK */
+  permission: "own" | "client-approved";
+}
+
 export interface ProjectColor {
   /** world background — also the colour the portal morphs from */
   bg: string;
@@ -62,6 +85,8 @@ export interface Project<Scene = unknown> {
   technologies: Tech[];
   color: ProjectColor;
   environment: WorldType;
+  /** the real website, run inside the world's screen when present */
+  live?: LiveSite;
   /** optional real imagery — worlds must look complete without it */
   heroImage?: string;
   gallery?: string[];
