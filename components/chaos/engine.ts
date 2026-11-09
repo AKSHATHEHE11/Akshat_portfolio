@@ -28,13 +28,32 @@ const TUCK_AGE = 1500;
 /** …or once its drift has carried it this far (px) from where it was last checked */
 const TUCK_DRIFT = 14;
 
-/** Is there content anywhere in the stack at (x, y)? (Bare section backgrounds and overlays are not.) */
-function blocked(x: number, y: number) {
+/** A screen-space box: left, top, right, bottom. */
+interface Box {
+  l: number;
+  t: number;
+  r: number;
+  b: number;
+}
+const meets = (r: DOMRect, a: Box, pad = 0) => r.right + pad > a.l && r.left - pad < a.r && r.bottom + pad > a.t && r.top - pad < a.b;
+const hasText = (el: Element) => {
+  for (const n of el.childNodes) if (n.nodeType === Node.TEXT_NODE && n.nodeValue?.trim()) return true;
+  return false;
+};
+
+/**
+ * Is there content anywhere in the stack at (x, y)? (Bare section backgrounds and overlays are not.)
+ * The topmost element under the point also has its children checked against `area` (the fragment's
+ * box): a sample point that lands in the gap of a row still sees the short value at the row's end.
+ */
+function blocked(x: number, y: number, area: Box) {
+  let top = true;
   for (const el of document.elementsFromPoint(x, y)) {
     if (el === document.body || el === document.documentElement) break;
     if (el.closest("[data-chaos-layer]")) continue;
-    if (el.closest(CONTENT)) return true;
-    for (const n of el.childNodes) if (n.nodeType === Node.TEXT_NODE && n.nodeValue?.trim()) return true;
+    if (el.closest(CONTENT) || hasText(el)) return true;
+    if (top) for (const c of el.children) if ((c.matches(CONTENT) || hasText(c)) && meets(c.getBoundingClientRect(), area)) return true;
+    top = false;
   }
   return false;
 }
@@ -68,8 +87,7 @@ function chromeBoxes() {
   document.querySelectorAll<HTMLElement>(CHROME).forEach((root) => {
     if (root.closest("[data-chaos-layer]")) return;
     root.querySelectorAll<HTMLElement>("*").forEach((el) => {
-      const text = Array.from(el.childNodes).some((n) => n.nodeType === Node.TEXT_NODE && n.nodeValue?.trim());
-      if (!text && el.children.length) return; // a wrapper, not a mark
+      if (!hasText(el) && el.children.length) return; // a wrapper, not a mark
       const r = el.getBoundingClientRect();
       if (r.width && r.height && r.width * r.height < 40000) boxes.push(r);
     });
@@ -84,29 +102,23 @@ function chromeBoxes() {
  * (HUD corners, edge-to-edge type), so it leaves until there is room again. Nothing peeks out from
  * under the nav, and nothing peeks over a world's control bar (`bar`): those go straight to 2.
  *
- * Hit tests cost 0.2–1.7ms each on these pages (measured), so the cheap box lists are tried on every
- * point before any hit test, and the first hit ends the search.
+ * Hit tests cost 0.2–1.7ms each on these pages (measured), so the box lists (chrome, media) are
+ * tested first as exact overlaps, and the first hit ends the search.
  */
 function tuckLevel(side: Side, l: number, t: number, w: number, h: number, peek: number, vw: number, vh: number, boxes: DOMRect[], bar: boolean) {
-  const inBox = (x: number, y: number) => boxes.some((r) => x > r.left - 6 && x < r.right + 6 && y > r.top - 6 && y < r.bottom + 6);
-  const free = (pts: number[][]) => {
-    const on = pts.filter(([x, y]) => x >= 0 && y >= 0 && x < vw && y < vh);
-    return !on.some(([x, y]) => inBox(x, y)) && !on.some(([x, y]) => blocked(x, y));
-  };
+  const free = (area: Box, pts: number[][]) =>
+    !boxes.some((r) => meets(r, area, 6)) &&
+    !pts.some(([x, y]) => x >= 0 && y >= 0 && x < vw && y < vh && blocked(x, y, area));
   const mid = t + h / 2;
   // centre first (most often what is in the way), then the corners, then the quarters of a wide chip
   const slot = [[l + w / 2, mid], [l + 8, t + 6], [l + w - 8, t + 6], [l + 8, t + h - 6], [l + w - 8, t + h - 6]];
   if (w > 160) slot.push([l + w / 4, mid], [l + (w * 3) / 4, mid]);
-  if (free(slot)) return 0;
+  if (free({ l, t, r: l + w, b: t + h }, slot)) return 0;
   if (side === "top" || (side === "bottom" && bar)) return 2;
   const s = peek - 3; // inner edge of the strip, where it would meet content
-  const strip =
-    side === "left"
-      ? [[s, t + 6], [s, t + h / 2], [s, t + h - 6]]
-      : side === "right"
-        ? [[vw - s, t + 6], [vw - s, t + h / 2], [vw - s, t + h - 6]]
-        : [[l + 8, vh - s], [l + w / 2, vh - s], [l + w - 8, vh - s]];
-  return free(strip) ? 1 : 2;
+  if (side === "left") return free({ l: 0, t, r: peek, b: t + h }, [[s, t + 6], [s, mid], [s, t + h - 6]]) ? 1 : 2;
+  if (side === "right") return free({ l: vw - peek, t, r: vw, b: t + h }, [[vw - s, t + 6], [vw - s, mid], [vw - s, t + h - 6]]) ? 1 : 2;
+  return free({ l, t: vh - peek, r: l + w, b: vh }, [[l + 8, vh - s], [l + w / 2, vh - s], [l + w - 8, vh - s]]) ? 1 : 2;
 }
 
 /**
