@@ -1,0 +1,206 @@
+/* DecisionOS command center — world styles. Namespace: .cc-*
+   Transforms are split across properties on purpose: `rotate` = wall tilt, `translate` = chaos shake,
+   `transform` = GSAP intros. They never fight. */
+
+/* ── room ── */
+.cc-scanlines {
+  background: repeating-linear-gradient(to bottom, rgb(233 240 234 / 0.04) 0 1px, transparent 1px 3px);
+}
+.cc-sweep {
+  background: linear-gradient(to bottom, transparent, rgb(216 255 0 / 0.06) 45%, rgb(216 255 0 / 0.1) 50%, transparent);
+  animation: cc-sweep 9s linear infinite;
+}
+@keyframes cc-sweep {
+  from {
+    translate: 0 -30vh;
+  }
+  to {
+    translate: 0 130vh;
+  }
+}
+
+.cc-floor {
+  background-image:
+    linear-gradient(rgb(216 255 0 / 0.16) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(216 255 0 / 0.16) 1px, transparent 1px);
+  background-size: 64px 64px;
+  background-position: center bottom;
+  transform: perspective(480px) rotateX(66deg);
+  transform-origin: 50% 100%;
+  mask-image: linear-gradient(to top, #000 0%, transparent 80%);
+}
+
+.cc-ring {
+  border: 2px solid var(--cc-accent);
+  border-radius: 50%;
+  box-shadow:
+    0 0 26px 2px rgb(216 255 0 / 0.5),
+    inset 0 0 18px rgb(216 255 0 / 0.4);
+}
+.cc-orbit {
+  border: 1px dashed rgb(216 255 0 / 0.28);
+  border-radius: 50%;
+  animation: cc-spin 60s linear infinite;
+}
+@keyframes cc-spin {
+  to {
+    rotate: 360deg;
+  }
+}
+
+/* hollow hologram letters for the title accent */
+.cc-hollow {
+  color: transparent;
+  -webkit-text-stroke: max(1.5px, 0.012em) var(--cc-accent);
+  text-shadow: 0 0 0.25em rgb(216 255 0 / 0.35);
+}
+
+/* ── panels ── */
+.cc-flicker {
+  animation: cc-flicker 0.55s steps(2, end) 1;
+}
+@keyframes cc-flicker {
+  0% {
+    opacity: 0.25;
+  }
+  20% {
+    opacity: 1;
+  }
+  32% {
+    opacity: 0.45;
+  }
+  48% {
+    opacity: 1;
+  }
+  64% {
+    opacity: 0.75;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.cc-caret::after {
+  content: "";
+  display: inline-block;
+  width: 0.45em;
+  height: 0.95em;
+  margin-left: 0.12em;
+  vertical-align: -0.1em;
+  background: currentColor;
+  animation: blink 1.05s steps(1, end) infinite;
+}
+
+.cc-think::before {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  height: 35%;
+  background: linear-gradient(to bottom, transparent, rgb(216 255 0 / 0.14), transparent);
+  animation: cc-scan 1.2s linear infinite;
+  pointer-events: none;
+}
+@keyframes cc-scan {
+  from {
+    translate: 0 -100%;
+  }
+  to {
+    translate: 0 300%;
+  }
+}
+
+.cc-dots > span {
+  animation: cc-dot 1.2s steps(1, end) infinite;
+}
+.cc-dots > span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.cc-dots > span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+@keyframes cc-dot {
+  0%,
+  100% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* ── chaos: the board loses order ── */
+html[data-chaos="on"] .cc-shake {
+  animation: cc-shake 0.28s steps(3, end) infinite;
+  animation-delay: var(--cc-delay, 0s);
+}
+@keyframes cc-shake {
+  0% {
+    translate: 0 0;
+  }
+  25% {
+    translate: -3px 1px;
+  }
+  50% {
+    translate: 2px -2px;
+  }
+  75% {
+    translate: -1px 2px;
+  }
+  100% {
+    translate: 3px 0;
+  }
+}
+
+.cc-strobe {
+  background: radial-gradient(ellipse at 50% 40%, transparent 35%, rgb(255 45 32 / 0.55) 100%);
+  opacity: 0.4; /* what reduced motion keeps once the animation collapses: a steady alarm tint */
+  animation: cc-strobe 1.6s ease-in-out infinite;
+}
+@keyframes cc-strobe {
+  0%,
+  100% {
+    opacity: 0.1;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}
+
+html[data-chaos="on"] .cc-glitch {
+  animation: cc-glitch 2.6s steps(1, end) infinite;
+}
+@keyframes cc-glitch {
+  0%,
+  84%,
+  100% {
+    translate: 0 0;
+    clip-path: none;
+    text-shadow: none;
+  }
+  86% {
+    translate: -0.04em 0;
+    text-shadow:
+      0.05em 0 #ff2d20,
+      -0.05em 0 #d8ff00;
+  }
+  89% {
+    clip-path: inset(28% 0 44% 0);
+    translate: 0.06em 0;
+  }
+  92% {
+    clip-path: inset(68% 0 6% 0);
+    translate: -0.03em 0;
+  }
+  95% {
+    clip-path: none;
+    translate: 0.02em 0;
+  }
+}
+
+/* ── brief: printed out of the table ── */
+.cc-perf {
+  background-image: radial-gradient(circle, rgb(7 9 10 / 0.35) 1.5px, transparent 2px);
+  background-size: 14px 6px;
+  background-repeat: repeat-x;
+}
