@@ -1,0 +1,188 @@
+/* IDENTITY — Akshat as a printed product label. Eases are literal (@theme vars can be tree-shaken). */
+.dsheet-root {
+  --snap: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --machine: cubic-bezier(0.7, 0, 0.2, 1);
+}
+
+/* the label feeds out of the printer slot: anything above the slot line is clipped away */
+.dsheet-feed {
+  position: relative;
+  z-index: 1;
+  margin-top: -12px;
+  clip-path: inset(0 -100vw -100vh -100vw);
+}
+.dsheet-sheet,
+.dsheet-flapper {
+  transform-origin: 50% 0;
+}
+html[data-chaos="on"] .dsheet-flapper {
+  animation: dsheet-flap 1.3s var(--machine) infinite alternate;
+}
+@keyframes dsheet-flap {
+  from {
+    transform: perspective(1600px) rotateX(0deg);
+  }
+  to {
+    transform: perspective(1600px) rotateX(-16deg) skewX(-1deg);
+  }
+}
+
+/* thermal paper: fine grain + a little sheen at the top */
+.dsheet-paper {
+  position: relative;
+  color: #111;
+  background-color: #f8f7f3;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.32 0 0 0 0 0.28 0 0 0 0 0.2 0 0 0 0.12 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
+    linear-gradient(180deg, rgb(255 255 255 / 0.55), rgb(255 255 255 / 0) 35%);
+  box-shadow:
+    0 0 0 1px rgb(17 17 17 / 0.06),
+    0 2px 2px -1px rgb(17 17 17 / 0.12),
+    0 34px 60px -32px rgb(17 17 17 / 0.5);
+}
+
+/* tear-off stub: a row of punched holes with a notch at each end (painted in the page colour) */
+.dsheet-stub {
+  position: relative;
+}
+.dsheet-perf {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 6px;
+  translate: 0 -50%;
+  background: radial-gradient(circle, var(--bg) 0 2.4px, transparent 2.9px) 0 50% / 12px 6px repeat-x;
+}
+.dsheet-perf::before,
+.dsheet-perf::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 18px;
+  height: 18px;
+  margin-top: -9px;
+  border-radius: 50%;
+  background: var(--bg);
+}
+.dsheet-perf::before {
+  left: -9px;
+}
+.dsheet-perf::after {
+  right: -9px;
+}
+@media (min-width: 768px) {
+  .dsheet-perf {
+    right: auto;
+    bottom: 0;
+    width: 6px;
+    height: auto;
+    translate: -50% 0;
+    background: radial-gradient(circle, var(--bg) 0 2.4px, transparent 2.9px) 50% 0 / 6px 12px repeat-y;
+  }
+  .dsheet-perf::before,
+  .dsheet-perf::after {
+    top: auto;
+    left: 50%;
+    right: auto;
+    margin: 0 0 0 -9px;
+  }
+  .dsheet-perf::before {
+    top: -9px;
+  }
+  .dsheet-perf::after {
+    bottom: -9px;
+  }
+}
+
+/* ── QC sticker: the bottom-right corner peels back about the diagonal hinge x + y = 1.18 × size ── */
+.dsheet-sticker {
+  --peel: 0deg;
+  position: relative;
+  width: var(--size, 9.25rem);
+  height: var(--size, 9.25rem);
+  rotate: -8deg;
+  perspective: 700px;
+}
+.dsheet-under {
+  position: absolute;
+  left: 73%;
+  top: 73%;
+  width: 72%;
+  translate: -50% -50%;
+  rotate: -45deg;
+  text-align: center;
+  font-family: var(--font-plex), ui-monospace, monospace;
+  /* 11px fits the revealed corner from a 7.5rem sticker up (3 lines there, 2 at 9.25rem) */
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #111;
+}
+.dsheet-peel {
+  position: absolute;
+  inset: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  transform-style: preserve-3d;
+  -webkit-tap-highlight-color: transparent;
+}
+.dsheet-peel:focus-visible {
+  outline: 2px solid var(--signal);
+  outline-offset: 4px;
+  border-radius: 50%;
+}
+.dsheet-base,
+.dsheet-front,
+.dsheet-back {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+}
+.dsheet-base {
+  /* overlaps the hinge by 1% so no seam shows while the flap is down */
+  clip-path: polygon(0 0, 100% 0, 100% 19%, 19% 100%, 0 100%);
+  box-shadow: 0 1px 2px rgb(17 17 17 / 0.25);
+}
+.dsheet-flap {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  transform-origin: 59% 59%;
+  transform: rotate3d(1, -1, 0, var(--peel));
+  transition: transform 650ms var(--snap);
+}
+.dsheet-front,
+.dsheet-back {
+  clip-path: polygon(100% 18%, 100% 100%, 18% 100%);
+  backface-visibility: hidden;
+}
+.dsheet-back {
+  /* the adhesive side: same footprint, facing the other way (mirror across x = y) */
+  transform-origin: 0 0;
+  transform: rotate3d(1, 1, 0, 180deg);
+  background: linear-gradient(135deg, #fbf9f4 15%, #ddd7ca 60%, #f2eee6 90%);
+}
+@media (hover: hover) and (pointer: fine) {
+  .dsheet-peel:hover {
+    --peel: 128deg;
+  }
+}
+.dsheet-sticker[data-peeled="true"] .dsheet-peel {
+  --peel: 172deg;
+}
+html[data-chaos="on"] .dsheet-flap {
+  animation: dsheet-peel-flap 0.9s var(--machine) infinite alternate;
+}
+@keyframes dsheet-peel-flap {
+  from {
+    transform: rotate3d(1, -1, 0, 12deg);
+  }
+  to {
+    transform: rotate3d(1, -1, 0, 165deg);
+  }
+}
