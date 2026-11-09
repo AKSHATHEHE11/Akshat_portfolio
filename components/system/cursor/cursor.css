@@ -194,6 +194,13 @@ html[data-world]:not([data-world=""]) .cur-ring {
 html[data-world]:not([data-world=""]) .cur-disc {
   background-color: var(--world-accent, var(--accent));
 }
+/* pale world with a pale accent (Cursor.tsx sets data-pale): the accent can't be seen, use its ink */
+html[data-world]:not([data-world=""]) .cur-blend[data-pale] {
+  color: var(--world-fg, var(--fg));
+}
+html[data-world]:not([data-world=""]) .cur-blend[data-pale] :is(.cur-dot, .cur-beam) {
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--world-bg, var(--bg)) 80%, transparent); /* legible over its own ink */
+}
 
 @media print {
   .cur-layer {

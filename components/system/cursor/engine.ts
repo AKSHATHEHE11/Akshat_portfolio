@@ -1,7 +1,7 @@
 // Imperative cursor engine: one gsap.ticker loop + event delegation. Zero React renders per frame.
 // Mounted by components/system/Cursor.tsx (fine pointers only).
 //
-// State = closest [data-cursor] ancestor of whatever is under the pointer:
+// State = closest [data-cursor] ancestor of whatever is under the pointer (untagged links/buttons → hover):
 //   default · hover (ring wraps small controls, matching their radius) · open / view / drag (accent
 //   disc + label) · text (I-beam sized to the type under it) · hide · native (typing surfaces keep the
 //   OS caret). The ring lags (gsap.quickTo), the dot is immediate, both stretch along the velocity and
@@ -29,6 +29,8 @@ const NATIVE =
   "textarea, select, iframe, [contenteditable]:not([contenteditable='false']), input:not([type='checkbox'], " +
   "[type='radio'], [type='range'], [type='button'], [type='submit'], [type='reset'], [type='color'], [type='file'], [type='image'])";
 const KINDS = new Set(["hover", "open", "view", "drag", "text", "hide"]);
+/** The native pointer is hidden site-wide, so clickables nobody tagged still get the hover ring. */
+const CLICKABLE = "a[href], button:not(:disabled), [role='button'], summary";
 const LABEL: Record<DiscKind, string> = { open: "OPEN", view: "VIEW", drag: "DRAG" };
 const GLYPHS = ["✦", "◇", "■", "●", "✕"];
 const RING = 32; // idle ring diameter (cursor.css)
@@ -60,7 +62,6 @@ export function createCursor(blend: HTMLElement, solid: HTMLElement, getLenis: (
   const glyph = part(solid, "glyph");
   const ghosts = Array.from(solid.querySelectorAll<HTMLElement>('[data-c="ghost"]'));
   const html = document.documentElement;
-  html.classList.add("has-cursor");
 
   let kind: CursorKind = "default";
   let host: HTMLElement | null = null;
@@ -167,7 +168,8 @@ export function createCursor(blend: HTMLElement, solid: HTMLElement, getLenis: (
     wrap = false;
     if (next === "hover" && nextHost) {
       const b = nextHost.getBoundingClientRect();
-      wrap = b.width <= WRAP.w && b.height <= WRAP.h;
+      // a box-less host (display: contents) has nothing to wrap
+      wrap = b.width > 0 && b.height > 0 && b.width <= WRAP.w && b.height <= WRAP.h;
       radius = radiusOf(nextHost, b.width, b.height);
     } else if (isDisc(next)) {
       const text = nextHost?.dataset.cursorLabel?.trim() || LABEL[next];
@@ -193,8 +195,9 @@ export function createCursor(blend: HTMLElement, solid: HTMLElement, getLenis: (
     if (el.closest(NATIVE)) return setKind("native", null, el);
     const h = el.closest<HTMLElement>("[data-cursor]");
     const k = h?.dataset.cursor ?? "";
-    if (h && KINDS.has(k)) setKind(k as CursorKind, h, el);
-    else setKind("default", null, el);
+    if (h && KINDS.has(k)) return setKind(k as CursorKind, h, el);
+    const c = el.closest<HTMLElement>(CLICKABLE);
+    setKind(c ? "hover" : "default", c, el);
   }
 
   function probe() {
@@ -226,6 +229,8 @@ export function createCursor(blend: HTMLElement, solid: HTMLElement, getLenis: (
     const show = pointer.inside && !touch && kind !== "hide" && kind !== "native";
     if (show !== shown) {
       shown = show;
+      // the native pointer stays until ours has a position (a still mouse after load would see nothing)
+      if (show) html.classList.add("has-cursor");
       gsap.to(look, { alpha: show ? 1 : 0, duration: show ? 0.25 : 0.35, ease: "power2.out", overwrite: "auto" });
     }
 
@@ -264,8 +269,10 @@ export function createCursor(blend: HTMLElement, solid: HTMLElement, getLenis: (
     let tw = RING;
     let th = RING;
     let tr = RING / 2;
-    if (kind === "hover" && host && wrap && !chaos) {
-      const b = host.getBoundingClientRect();
+    const b = kind === "hover" && host && wrap && !chaos ? host.getBoundingClientRect() : null;
+    // the wrapped control vanished under a still pointer (display: none) — don't fly to its 0,0 rect
+    if (b && !b.width && !b.height) probe();
+    if (b && (b.width || b.height)) {
       tx = b.left + b.width / 2;
       ty = b.top + b.height / 2;
       tw = b.width + PAD * 2;

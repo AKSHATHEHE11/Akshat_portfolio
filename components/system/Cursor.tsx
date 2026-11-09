@@ -4,7 +4,9 @@ import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import { useLenis } from "lenis/react";
 import { ArrowUpRight } from "lucide-react";
+import { inkOn } from "@/components/worlds/shell/palette";
 import { useChaos, useCoarse, useReducedMotion, useSystemReady } from "@/lib/hooks";
+import { useSystem } from "@/lib/system";
 import { createCursor, type CursorEngine } from "./cursor/engine";
 
 const GHOSTS = [0, 1, 2, 3, 4];
@@ -35,11 +37,20 @@ function CursorLayers() {
   const lenisRef = useRef(lenis);
   const chaos = useChaos();
   const reduced = useReducedMotion();
+  const world = useSystem((s) => s.world);
   const pathname = usePathname();
 
   useEffect(() => {
     lenisRef.current = lenis;
   }, [lenis]);
+
+  // Worlds tint the pointer with their accent — unless accent and background sit on the same side of
+  // light/dark (e.g. lime on bone), where it would vanish: then it takes the world's ink (cursor.css).
+  useEffect(() => {
+    const st = getComputedStyle(document.documentElement);
+    const tone = (v: string) => inkOn(st.getPropertyValue(v).trim() || "#000");
+    blend.current?.toggleAttribute("data-pale", !!world && tone("--world-bg") === tone("--world-accent"));
+  }, [world]);
 
   useEffect(() => {
     if (!blend.current || !solid.current) return;
