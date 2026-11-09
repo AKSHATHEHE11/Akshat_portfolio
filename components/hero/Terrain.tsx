@@ -22,7 +22,10 @@ export function Terrain({ className }: { className?: string }) {
     const c = ref.current;
     const ctx = c?.getContext("2d");
     if (!c || !ctx) return;
-    let w = 0, h = 0, raf = 0, visible = false, t = 0, last = 0, camX = 0;
+    // left/width are cached on resize: vertical scrolling never moves the canvas horizontally, and a
+    // getBoundingClientRect() per frame forced a full page layout every frame (the kinetic headline
+    // invalidates layout each tick) — that was the hero's biggest mouse-move cost.
+    let w = 0, h = 0, raf = 0, visible = false, t = 0, last = 0, camX = 0, left = 0;
     const pts = new Float32Array(COLS * ROWS * 2);
 
     const height = (x: number, z: number, time: number, wild: boolean) => {
@@ -34,8 +37,7 @@ export function Terrain({ className }: { className?: string }) {
     const draw = () => {
       if (!w || !h) return;
       const wild = chaosRef.current && !reduced;
-      const r = c.getBoundingClientRect();
-      const target = pointer.inside && pointer.x > r.left && pointer.x < r.right ? ((pointer.x - r.left) / r.width - 0.5) * 1.2 : 0;
+      const target = pointer.inside && pointer.x > left && pointer.x < left + w ? ((pointer.x - left) / w - 0.5) * 1.2 : 0;
       camX += (target - camX) * 0.06;
       const f = Math.min(w, h * 1.6) * 0.62;
       const horizon = h * 0.3;
@@ -96,6 +98,7 @@ export function Terrain({ className }: { className?: string }) {
     const resize = () => {
       const r = c.getBoundingClientRect();
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      left = r.left;
       w = r.width;
       h = r.height;
       c.width = Math.round(w * dpr);
@@ -105,6 +108,7 @@ export function Terrain({ className }: { className?: string }) {
     };
     const ro = new ResizeObserver(resize);
     ro.observe(c);
+    window.addEventListener("resize", resize, { passive: true }); // position can shift without a size change
     const io = new IntersectionObserver(([e]) => {
       visible = e.isIntersecting;
       if (visible && !reduced && !raf) raf = requestAnimationFrame(loop);
@@ -114,6 +118,7 @@ export function Terrain({ className }: { className?: string }) {
       cancelAnimationFrame(raf);
       ro.disconnect();
       io.disconnect();
+      window.removeEventListener("resize", resize);
     };
   }, [reduced]);
 
