@@ -1,13 +1,14 @@
 "use client";
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { DrawSVGPlugin } from "gsap/DrawSVGPlugin";
+import { profile } from "@/data/profile";
 import { gsap, ScrollTrigger, useGSAP } from "@/lib/gsap";
 import { useChaos, useCoarse, useOnScreen, useReducedMotion } from "@/lib/hooks";
 import { play } from "@/lib/sound";
 import { useSystem } from "@/lib/system";
 import { cn, pad } from "@/lib/utils";
 import { Meter } from "../Meter";
-import { BOX, FX, GROUPS, PARENTS, ROW, SKILLS, layout, rootTrace, skillTrace, type Mode } from "./layout";
+import { BOX, FX, GROUPS, PARENTS, SKILLS, layout, rootTrace, rowH, skillTrace, type Mode } from "./layout";
 import { Readout, type Probe } from "./Readout";
 import "./build.css";
 
@@ -31,6 +32,8 @@ export function BuildSystem() {
   const [w, setW] = useState(0);
   const [hot, setHot] = useState<Probe>(null);
   const [pin, setPin] = useState<Probe>(null);
+  /** roving tabindex: the one node in the tab order (arrow keys move between the 26) */
+  const [cursor, setCursor] = useState("group0");
   const [parents, setParents] = useState<number[]>(PARENTS);
   const chaos = useChaos();
   const reduced = useReducedMotion();
@@ -39,7 +42,7 @@ export function BuildSystem() {
   const visible = useOnScreen(root, "0px");
 
   const mode: Mode = w && w < 640 ? "tall" : "wide";
-  const L = useMemo(() => layout(mode, w), [mode, w]);
+  const L = useMemo(() => layout(mode, w, coarse), [mode, w, coarse]);
   const wiring = chaos && !reduced ? parents : PARENTS;
   const probe = hot ?? pin;
 
@@ -108,13 +111,17 @@ export function BuildSystem() {
   }, [probe, wiring]);
 
   const handlers = (p: NonNullable<Probe>) => ({
+    tabIndex: cursor === `${p.kind}${p.i}` ? 0 : -1,
     onPointerEnter: (e: React.PointerEvent) => {
       if (e.pointerType !== "mouse") return;
       setHot(p);
       play("tick");
     },
     onPointerLeave: () => setHot((h) => (same(h, p) ? null : h)),
-    onFocus: () => setHot(p),
+    onFocus: () => {
+      setHot(p);
+      setCursor(`${p.kind}${p.i}`);
+    },
     onBlur: () => setHot((h) => (same(h, p) ? null : h)),
     onClick: () => {
       play("click");
@@ -122,8 +129,19 @@ export function BuildSystem() {
     },
   });
 
+  // ↑/↓ (or ←/→) walk the nodes in reading order: root's groups, each followed by its parts
+  const onKeyDown = (e: React.KeyboardEvent) => {
+    const nodes = Array.from(box.current?.querySelectorAll<HTMLButtonElement>("button") ?? []);
+    const i = nodes.indexOf(e.target as HTMLButtonElement);
+    const keys: Record<string, number> = { ArrowDown: i + 1, ArrowRight: i + 1, ArrowUp: i - 1, ArrowLeft: i - 1, Home: 0, End: nodes.length - 1 };
+    const to = keys[e.key];
+    if (i < 0 || to === undefined) return;
+    e.preventDefault();
+    nodes[Math.max(0, Math.min(nodes.length - 1, to))].focus();
+  };
+
   const wide = mode === "wide";
-  const row = ROW[mode];
+  const row = rowH(mode, coarse);
   /** a node box centred on y; wide columns are fractions so they place correctly before measuring */
   const at = (x: number, fx: number, y: number, h: number): CSSProperties => ({ left: wide ? `${fx * 100}%` : x, top: y - h / 2, height: h });
 
@@ -131,16 +149,21 @@ export function BuildSystem() {
     <section ref={root} id="build" data-rail="Build" aria-labelledby="ab-build" className="frame scroll-mt-[var(--nav-h)] py-[clamp(4rem,11vh,8rem)]">
       <div className="grid gap-y-8 lg:grid-cols-12 lg:gap-x-(--gutter)">
         <h2 id="ab-build" data-chaos-type className="display text-display-m lg:col-span-12">
-          How I&rsquo;m <span className="serif-accent">wired.</span>
+          {profile.about.build[0]} <span className="serif-accent">{profile.about.build[1]}</span>
         </h2>
 
         <div
           ref={box}
+          role="toolbar"
+          aria-orientation="vertical"
+          aria-label={`Build system: ${GROUPS.length} groups, ${SKILLS.length} parts. Arrow keys move between them.`}
           className="ab-sys relative lg:col-span-8"
           data-mode={mode}
           data-probe={probe ? "" : undefined}
+          data-arrows="local"
           style={{ height: L.h }}
           onPointerLeave={() => setHot(null)}
+          onKeyDown={onKeyDown}
         >
           {w > 0 && (
             <svg className="ab-sys-wires" width={w} height={L.h} viewBox={`0 0 ${w} ${L.h}`} aria-hidden>

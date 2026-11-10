@@ -150,6 +150,28 @@
 .ab-sys[data-probe] .ab-sys-skill:not([data-on]) {
   opacity: 0.38;
 }
+/* readout: route / name + stats / note on phones (one docked strip); a stacked column from 1024px */
+.ab-sys-readout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "route route"
+    "name stats"
+    "note note";
+  column-gap: 1rem;
+}
+@media (min-width: 1024px) {
+  .ab-sys-readout {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "route" "name" "note" "stats";
+  }
+}
+/* a mouse at tablet width: the HUD prints along the bottom edge, so the docked strip leaves it a lane */
+@media (min-width: 768px) and (max-width: 1023.98px) and (hover: hover) and (pointer: fine) {
+  .ab-sys-readout {
+    padding-bottom: 2.25rem;
+  }
+}
 .ab-sys-flag {
   padding: 0.1rem 0.35rem;
   background: var(--signal);

@@ -14,7 +14,8 @@ type Pt = { x: number; y: number };
 export const BOX = { rootW: 150, rootH: 76, tallRootH: 48, groupW: 132, groupH: 34, trunk: 12 } as const;
 /** wide mode: node columns as fractions of the width, so HTML can place them before the width is known */
 export const FX = { group: 0.3, skill: 0.58 } as const;
-export const ROW = { wide: 32, tall: 44 } as const;
+/** row height: 32px for a mouse, 44px wherever a finger has to hit it */
+export const rowH = (mode: Mode, coarse: boolean) => (mode === "tall" || coarse ? 44 : 32);
 const R = 9;
 
 export interface Layout {
@@ -41,11 +42,11 @@ function vh(x0: number, y0: number, y1: number, x1: number) {
   return `M${x0} ${y0}V${y1 - s * r}Q${x0} ${y1} ${x0 + r} ${y1}H${x1}`;
 }
 
-export function layout(mode: Mode, w: number): Layout {
+export function layout(mode: Mode, w: number, coarse: boolean): Layout {
+  const row = rowH(mode, coarse);
   if (mode === "wide") {
     const gap = 24;
     const pad = 18;
-    const row = ROW.wide;
     const skills = SKILLS.map((s, k) => ({ x: w * FX.skill, y: pad + k * row + s.gi * gap + row / 2 }));
     const groups = GROUPS.map((_, gi) => {
       const ys = skills.filter((_, k) => SKILLS[k].gi === gi).map((p) => p.y);
@@ -54,7 +55,6 @@ export function layout(mode: Mode, w: number): Layout {
     const h = pad * 2 + SKILLS.length * row + (GROUPS.length - 1) * gap;
     return { mode, h, root: { x: 0, y: h / 2 }, groups, skills };
   }
-  const row = ROW.tall;
   let y = BOX.tallRootH + 20;
   const groups: Pt[] = [];
   const skills: Pt[] = [];

@@ -7,6 +7,7 @@ export type Probe = { kind: "group" | "skill"; i: number } | null;
 /**
  * The probe's readout: the route from the root, the part's name, its note, a level meter and the
  * years. Visual only (aria-hidden): every node carries the same facts in its accessible name.
+ * Below 1024px it docks to the bottom of the screen as one compact strip.
  */
 export function Readout({ probe, wiring, coarse, className }: { probe: Probe; wiring: number[]; coarse: boolean; className?: string }) {
   let route: string[] = [];
@@ -18,12 +19,11 @@ export function Readout({ probe, wiring, coarse, className }: { probe: Probe; wi
 
   if (probe?.kind === "group") {
     const g = GROUPS[probe.i];
-    const parts = g.skills;
     route = [g.label];
     name = g.label;
     note = g.summary;
-    level = Math.round(parts.reduce((a, s) => a + s.level, 0) / parts.length);
-    years = Math.max(...parts.map((s) => s.years));
+    level = Math.round(g.skills.reduce((a, s) => a + s.level, 0) / g.skills.length);
+    years = Math.max(...g.skills.map((s) => s.years));
   } else if (probe?.kind === "skill") {
     const s = SKILLS[probe.i];
     const via = wiring[probe.i];
@@ -34,10 +34,12 @@ export function Readout({ probe, wiring, coarse, className }: { probe: Probe; wi
     level = s.level;
     years = s.years;
   }
+  const key = probe ? `${probe.kind}${probe.i}` : "idle";
+  const group = probe?.kind === "group";
 
   return (
     <div aria-hidden className={cn("ab-sys-readout", className)}>
-      <p className="label flex flex-wrap items-center gap-x-2 gap-y-1 text-fg-muted">
+      <p className="label flex flex-wrap items-center gap-x-2 gap-y-1 text-fg-muted [grid-area:route]">
         <span className="text-fg">Build system</span>
         {route.map((r) => (
           <span key={r} className="contents">
@@ -47,23 +49,33 @@ export function Readout({ probe, wiring, coarse, className }: { probe: Probe; wi
         ))}
         {misrouted && <span className="ab-sys-flag">Misrouted</span>}
       </p>
-      <div key={probe ? `${probe.kind}${probe.i}` : "idle"} className="ab-swap">
-        <p className="mt-3 font-display text-[clamp(1.6rem,1.2rem+1.4vw,2.6rem)] font-[820] uppercase leading-[0.9] tracking-[-0.035em] [font-variation-settings:'wdth'_80] max-lg:text-[1.375rem]">
-          {name}
-        </p>
-        <p className={cn("mt-2 leading-snug text-fg-muted max-lg:text-[0.9375rem]", probe?.kind === "group" ? "serif-accent text-[1.5rem] text-fg max-lg:text-[1.2rem]" : "text-lede")}>{note}</p>
-      </div>
-      <dl className="mt-4 flex items-end gap-6 border-t border-line pt-3 lg:mt-6">
+      <p
+        key={`n${key}`}
+        className="ab-swap mt-2 self-end font-display text-[1.375rem] font-[820] uppercase leading-[0.9] tracking-[-0.035em] [font-variation-settings:'wdth'_80] [grid-area:name] lg:mt-3 lg:text-[clamp(1.6rem,1.2rem+1.4vw,2.6rem)]"
+      >
+        {name}
+      </p>
+      <p
+        key={`t${key}`}
+        className={cn(
+          "ab-swap mt-1.5 leading-snug [grid-area:note] lg:mt-2",
+          group ? "serif-accent text-[1.2rem] lg:text-[1.5rem]" : "text-[0.9375rem] text-fg-muted lg:text-lede",
+        )}
+      >
+        {note}
+      </p>
+      {/* docked strip: idle has no stats to show (the name gets the row), and phones read the level off the meter */}
+      <dl className={cn("flex items-end gap-5 self-end [grid-area:stats] lg:mt-6 lg:gap-6 lg:border-t lg:border-line lg:pt-3", !probe && "max-lg:hidden")}>
         <div>
-          <dt className="label text-fg-muted">{probe?.kind === "group" ? "Avg level" : "Level"}</dt>
-          <dd className="mt-2 flex items-center gap-2.5 font-mono text-label tabular-nums">
+          <dt className="label text-fg-muted max-lg:hidden">{group ? "Avg level" : "Level"}</dt>
+          <dd className="flex items-center gap-2.5 font-mono text-label tabular-nums lg:mt-2">
             <Meter level={level} />
-            {level ? `${level}/5` : "–/5"}
+            <span className="max-sm:hidden">{level ? `${level}/5` : "–/5"}</span>
           </dd>
         </div>
         <div>
-          <dt className="label text-fg-muted">{probe?.kind === "group" ? "Longest" : "Years"}</dt>
-          <dd className="mt-1 font-mono text-[1.5rem] leading-none tabular-nums">
+          <dt className="label text-fg-muted max-lg:hidden">{group ? "Longest" : "Years"}</dt>
+          <dd className="font-mono text-[1.125rem] leading-none tabular-nums lg:mt-1 lg:text-[1.5rem]">
             {years === null ? "--" : pad(years)}
             <span className="ml-1 text-label text-fg-muted">yrs</span>
           </dd>
