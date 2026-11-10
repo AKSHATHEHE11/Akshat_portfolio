@@ -24,6 +24,8 @@ function readBest() {
  * seconds; squash them (click, tap, or Tab to one and press Enter). Best score lives in
  * localStorage. The bug layer sits right after the device in the DOM, so the next Tab after START
  * lands on a bug. Chaos: squashing one breeds two, and strays crawl in even without a game.
+ * Reduced motion: the bugs don't crawl, they blink from spot to spot. Only the score is a live
+ * region — the clock ticks ten times a second and would talk over everything.
  */
 export default function BugHunt() {
   const layer = useRef<HTMLDivElement>(null);
@@ -64,10 +66,12 @@ export default function BugHunt() {
     };
   }, [coarse]);
 
+  // (coarse too: a re-created swarm starts calm and crawling)
   useEffect(() => {
     chaosRef.current = chaos;
     swarm.current?.setChaos(chaos);
-  }, [chaos]);
+    swarm.current?.setStill(reduced);
+  }, [chaos, reduced, coarse]);
 
   // chaos without a game: strays wander in and slowly multiply
   useEffect(() => {
@@ -83,6 +87,28 @@ export default function BugHunt() {
     }, 2600);
     return () => window.clearInterval(id);
   }, [chaos, reduced, coarse]);
+
+  function end() {
+    lab.hunting = false;
+    swarm.current?.scatter("game");
+    setPhase("over");
+    const n = scoreRef.current;
+    const prev = readBest();
+    if (n > prev) {
+      try {
+        localStorage.setItem(BEST_KEY, String(n));
+      } catch {
+        /* private mode: the best lives as long as the tab */
+      }
+      setBest(n);
+      setRecord(true);
+      play("ready");
+      emit("toast", { text: `NEW BEST: ${pad(n)} BUGS` });
+    } else {
+      play("success");
+      emit("toast", { text: `BUG HUNT: ${pad(n)} SQUASHED` });
+    }
+  }
 
   // the game loop: countdown + spawning, 10 times a second
   const timeUp = useEffectEvent(() => end());
@@ -122,28 +148,6 @@ export default function BugHunt() {
     play("boot");
   }
 
-  function end() {
-    lab.hunting = false;
-    swarm.current?.scatter("game");
-    setPhase("over");
-    const n = scoreRef.current;
-    const prev = readBest();
-    if (n > prev) {
-      try {
-        localStorage.setItem(BEST_KEY, String(n));
-      } catch {
-        /* private mode: the best lives as long as the tab */
-      }
-      setBest(n);
-      setRecord(true);
-      play("ready");
-      emit("toast", { text: `NEW BEST: ${pad(n)} BUGS` });
-    } else {
-      play("success");
-      emit("toast", { text: `BUG HUNT: ${pad(n)} SQUASHED` });
-    }
-  }
-
   // page key: B starts (or stops) a hunt
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -158,17 +162,17 @@ export default function BugHunt() {
   const line = phase === "run" ? "> SQUASH THEM_" : phase === "over" ? (record ? "> NEW BEST_" : "> AGAIN?_") : "> PRESS START_";
   return (
     <>
-      <div className="pg-hunt" data-pg-in>
+      <div className="pg-hunt" data-pg-in data-chaos-drift>
         <div className="pg-hunt-screen" data-phase={phase}>
           <p className="crt pg-hunt-row">
             <span>BUG HUNT</span>
             <span>BEST {pad(best)}</span>
           </p>
-          <p className="crt pg-hunt-big" aria-live="polite" aria-atomic>
+          <p className="crt pg-hunt-big">
             <span>
               <span ref={clock}>{(GAME_MS / 1000).toFixed(1)}</span>s
             </span>
-            <span>
+            <span aria-live="polite" aria-atomic>
               <span className="sr-only">Squashed </span>
               {pad(score)}
             </span>

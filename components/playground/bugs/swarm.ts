@@ -1,7 +1,8 @@
 // Bugs as DOM sprites (no React per bug): <button>s in a mat-wide layer, moved by transform from the
 // shared GSAP ticker, which only runs while at least one bug or splat animation is alive.
 // Bugs wander in short darts toward targets inside the visible part of the mat, and fall into the
-// gravity well if they stray too close (lab.well).
+// gravity well if they stray too close (lab.well). Reduced motion (setStill): nobody crawls — a bug
+// sits where it appeared and blinks to another spot every second or so.
 import { gsap } from "@/lib/gsap";
 import { lab, visibleMat } from "../lab";
 
@@ -38,6 +39,7 @@ export function createSwarm(layer: HTMLElement, opts: { coarse: boolean; onSquas
   const bugs = new Set<Bug>();
   const byEl = new Map<Element, Bug>();
   let chaos = false;
+  let still = false;
   let running = false;
   const size = opts.coarse ? 1.25 : 1;
 
@@ -58,7 +60,10 @@ export function createSwarm(layer: HTMLElement, opts: { coarse: boolean; onSquas
     el.innerHTML = SPRITE;
     let x: number;
     let y: number;
-    if (at) {
+    if (still) {
+      x = rand(60, Math.max(61, v.w - 60));
+      y = rand(v.y + 60, Math.max(v.y + 61, v.y + v.h - 60));
+    } else if (at) {
       x = at.x + rand(-12, 12);
       y = at.y + rand(-12, 12);
     } else {
@@ -69,7 +74,8 @@ export function createSwarm(layer: HTMLElement, opts: { coarse: boolean; onSquas
     }
     const b: Bug = { el, kind, x, y, a: rand(0, TAU), speed: rand(70, 120) * (opts.coarse ? 0.8 : 1), tx: 0, ty: 0, rest: 0, leaving: false, scale: size };
     pickTarget(b);
-    b.a = Math.atan2(b.ty - y, b.tx - x);
+    if (still) b.rest = rand(900, 1600);
+    else b.a = Math.atan2(b.ty - y, b.tx - x);
     layer.appendChild(el);
     bugs.add(b);
     byEl.set(el, b);
@@ -107,6 +113,15 @@ export function createSwarm(layer: HTMLElement, opts: { coarse: boolean; onSquas
     const well = lab.well && { x: lab.well.x - lab.mat.left, y: lab.well.y - lab.mat.top, r: lab.well.r };
     const fast = chaos ? 1.4 : 1;
     for (const b of bugs) {
+      if (still) {
+        if (b.leaving) remove(b);
+        else if ((b.rest -= dtMs) <= 0) {
+          pickTarget(b);
+          [b.x, b.y, b.a, b.rest] = [b.tx, b.ty, rand(0, TAU), rand(900, 1600)];
+          place(b);
+        }
+        continue;
+      }
       let speed = b.speed * fast;
       if (b.leaving) speed *= 2.2;
       else if (b.rest > 0) {
@@ -178,6 +193,9 @@ export function createSwarm(layer: HTMLElement, opts: { coarse: boolean; onSquas
     count: (kind?: BugKind) => [...bugs].filter((b) => !b.leaving && (!kind || b.kind === kind)).length,
     setChaos(on: boolean) {
       chaos = on;
+    },
+    setStill(on: boolean) {
+      still = on;
     },
     /** Everyone of this kind runs for the nearest side of the mat. */
     scatter(kind?: BugKind) {
