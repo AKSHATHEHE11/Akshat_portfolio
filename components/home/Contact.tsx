@@ -13,7 +13,7 @@ import { Viewfinder } from "./contact/Viewfinder";
 
 const PANEL = "contact-terminal";
 
-/** CONTACT — pick an intent, type into the terminal, transmit (opens your mail app). */
+/** CONTACT — pick an intent, leave your name, email and (optionally) phone, type, transmit to my inbox. */
 export default function Contact() {
   const [index, setIndex] = useState(0);
   const booted = useSystem((s) => s.booted); // keys the heading reveal so it re-arms after RESTART
@@ -47,9 +47,7 @@ export default function Contact() {
           <Terminal className="mt-4 lg:mt-7" id={PANEL} intent={intent} labelledBy={tabId(intent)} />
 
           <div className="mt-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <p className="max-w-[44ch] text-[0.875rem] leading-snug text-fg-muted">
-              Send opens your own mail app with this message filled in. Nothing is sent from this page.
-            </p>
+            <p className="max-w-[44ch] text-[0.875rem] leading-snug text-fg-muted">{contact.form.note}</p>
             <div className="flex flex-wrap items-center gap-3">
               <a
                 href={`mailto:${profile.email}`}

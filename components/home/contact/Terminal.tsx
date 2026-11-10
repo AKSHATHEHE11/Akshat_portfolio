@@ -1,7 +1,7 @@
 "use client";
 import { useCallback, useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
 import { CornerDownLeft } from "lucide-react";
-import type { contact } from "@/data/contact";
+import { contact } from "@/data/contact";
 import { profile } from "@/data/profile";
 import { Button } from "@/components/ui/Button";
 import { Kbd } from "@/components/ui/marks";
@@ -10,7 +10,13 @@ import { gsap, useGSAP } from "@/lib/gsap";
 import { useChaos, useIsomorphicLayoutEffect, useReducedMotion } from "@/lib/hooks";
 import { play } from "@/lib/sound";
 import { cn } from "@/lib/utils";
+import { tidy, type Field } from "./rules";
+import { sendEnquiry, type Sent } from "./send";
 import "./contact.css";
+
+const WHO = ["name", "email", "phone"] as const;
+const KIND = { name: "text", email: "email", phone: "tel" } as const;
+const AUTO = { name: "name", email: "email", phone: "tel" } as const;
 
 type Intent = (typeof contact.intents)[number];
 type Tone = "sys" | "echo" | "err" | "ok";
@@ -37,8 +43,9 @@ function LogLine({ line, chaos }: { line: Line; chaos: boolean }) {
 }
 
 /**
- * The contact terminal: a real textarea with a block caret, Enter to transmit (Shift+Enter = new line).
- * Transmitting prints a few system lines and opens the visitor's own mail app — nothing is sent from here.
+ * The contact terminal: name, email and an optional phone, then a real textarea with a block caret,
+ * Enter to transmit (Shift+Enter = new line). Transmitting sends the enquiry to Akshat's inbox from
+ * the server; if that can't happen it opens the visitor's own mail app with everything filled in.
  */
 export function Terminal({ intent, id, labelledBy, className }: { intent: Intent; id: string; labelledBy: string; className?: string }) {
   const shell = useRef<HTMLDivElement>(null);
@@ -49,6 +56,9 @@ export function Terminal({ intent, id, labelledBy, className }: { intent: Intent
   const typing = useRef(0);
   const seq = useRef(0);
   const [value, setValue] = useState("");
+  const [who, setWho] = useState({ name: "", email: "", phone: "" });
+  const inputs = useRef<Partial<Record<Field, HTMLInputElement | null>>>({});
+  const trap = useRef<HTMLInputElement>(null);
   const [log, setLog] = useState<Line[]>([]);
   const [busy, setBusy] = useState(false);
   const reduced = useReducedMotion();
@@ -120,42 +130,52 @@ export function Terminal({ intent, id, labelledBy, className }: { intent: Intent
     }, 550);
   };
 
-  const transmit = () => {
+  const refuse = (f: Field) => {
+    play("error");
+    print(contact.form.errors[f], "err");
+    if (!reduced) shake();
+    (f === "message" ? field.current : inputs.current[f])?.focus();
+  };
+
+  const transmit = async () => {
     if (busy) return;
-    const msg = value.trim();
-    if (!msg) {
-      play("error");
-      print("NOTHING TO SEND — TYPE SOMETHING FIRST.", "err");
-      if (!reduced) shake();
-      field.current?.focus();
-      return;
-    }
+    const t = tidy({ intent: intent.id, ...who, message: value });
+    if (!t.ok) return refuse(t.field);
+    const e = t.value;
     setBusy(true);
-    const href = `mailto:${profile.email}?subject=${encodeURIComponent(intent.subject)}&body=${encodeURIComponent(msg)}`;
-    const rows = msg.split("\n");
+    const rows = e.message.split("\n");
+    print(`FROM ${e.name} <${e.email}>`, "echo");
     rows.slice(0, 3).forEach((r) => print(r.length > 160 ? `${r.slice(0, 160)}…` : r || " ", "echo"));
     if (rows.length > 3) print(`… ${rows.length - 3} more line${rows.length > 4 ? "s" : ""}`, "echo");
-    setValue("");
     play("click");
-    print(`PACKET ASSEMBLED · ${new TextEncoder().encode(msg).length} B · INTENT ${intent.id.toUpperCase()}`);
-    later(380, () => print("OPENING YOUR MAIL CLIENT…"));
-    later(560, () => {
-      window.location.href = href;
-    });
-    later(1050, () => {
-      print(intent.reply, "ok");
+    print(`PACKET ASSEMBLED · ${new TextEncoder().encode(e.message).length} B · INTENT ${intent.id.toUpperCase()}`);
+    print(contact.form.sending);
+
+    const sent: Sent = await sendEnquiry({ ...e, trap: trap.current?.value }).catch(() => ({ ok: false }));
+    if (sent.ok) {
+      setValue("");
+      setWho({ name: "", email: "", phone: "" });
+      print(contact.form.sent.replace("{email}", e.email.toUpperCase()), "ok");
+      later(450, () => print(intent.reply, "ok"));
       play("success");
-    });
-    later(1650, () => {
-      print(`NOTHING OPENED? WRITE TO ${profile.email}`);
-      setBusy(false);
-    });
+    } else if (sent.field) {
+      refuse(sent.field);
+    } else {
+      // never lose what they typed: hand all of it to their own mail app
+      print(contact.form.fallback, "err");
+      const body = `${e.message}\n\n— ${e.name}\n${e.email}${e.phone ? `\n${e.phone}` : ""}`;
+      later(450, () => {
+        window.location.href = `mailto:${profile.email}?subject=${encodeURIComponent(intent.subject)}&body=${encodeURIComponent(body)}`;
+      });
+      later(1400, () => print(`NOTHING OPENED? WRITE TO ${profile.email}`));
+    }
+    setBusy(false);
   };
 
   const onKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
       e.preventDefault();
-      transmit();
+      void transmit();
       return;
     }
     if (e.metaKey || e.ctrlKey || e.altKey) return;
@@ -186,12 +206,46 @@ export function Terminal({ intent, id, labelledBy, className }: { intent: Intent
       </div>
 
       <form
-        className="px-[clamp(1rem,2.5vw,1.75rem)] pb-4 pt-5"
+        noValidate
+        className="relative px-[clamp(1rem,2.5vw,1.75rem)] pb-4 pt-5"
         onSubmit={(e) => {
           e.preventDefault();
-          transmit();
+          void transmit();
         }}
       >
+        <div className="mb-5 grid gap-x-6 gap-y-4 sm:grid-cols-3">
+          {WHO.map((f) => (
+            <label
+              key={f}
+              data-cursor="text"
+              className="flex min-w-0 flex-col gap-1.5 border-b border-dashed border-line pb-2 transition-colors focus-within:border-signal"
+            >
+              <span className="font-mono text-micro uppercase tracking-[0.14em] text-signal">{contact.form.fields[f].label}</span>
+              <input
+                ref={(el) => {
+                  inputs.current[f] = el;
+                }}
+                name={f}
+                type={KIND[f]}
+                autoComplete={AUTO[f]}
+                required={f !== "phone"}
+                maxLength={f === "email" ? 254 : f === "name" ? 80 : 20}
+                value={who[f]}
+                placeholder={contact.form.fields[f].placeholder}
+                onChange={(e) => setWho((w) => ({ ...w, [f]: e.target.value }))}
+                onKeyDown={(e) => {
+                  if (e.key.length === 1 || e.key === "Backspace") play("type");
+                }}
+                className="w-full min-w-0 bg-transparent font-mono text-[0.9375rem] text-fg caret-signal outline-none placeholder:text-fg-muted"
+              />
+            </label>
+          ))}
+        </div>
+        {/* honeypot: people never see or reach it; bots fill every field they find */}
+        <div aria-hidden className="absolute -left-[9999px] size-px overflow-hidden">
+          <input ref={trap} name="company" tabIndex={-1} autoComplete="off" defaultValue="" />
+        </div>
+
         <ol aria-live="polite" className="space-y-1 font-mono text-[0.875rem] leading-[1.5] [&:not(:empty)]:mb-3">
           {log.map((l) => (
             <LogLine key={l.id} line={l} chaos={chaos} />

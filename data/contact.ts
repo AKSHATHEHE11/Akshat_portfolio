@@ -20,13 +20,6 @@ export const contact = {
       reply: "IDEA RECEIVED. Ideas are my favourite input.",
     },
     {
-      id: "problem",
-      label: "I have a problem",
-      prompt: "what is broken?",
-      subject: "A problem that needs solving",
-      reply: "PROBLEM LOGGED. Problems are just ideas wearing a disguise.",
-    },
-    {
       id: "hi",
       label: "I just want to say hi",
       prompt: "say hi",
@@ -34,6 +27,24 @@ export const contact = {
       reply: "HELLO RECEIVED. Hi back.",
     },
   ],
+  /** The terminal's fields and what it prints. */
+  form: {
+    fields: {
+      name: { label: "name", placeholder: "your name" },
+      email: { label: "email", placeholder: "you@company.com" },
+      phone: { label: "phone · optional", placeholder: "+91 …" },
+    },
+    note: "Goes straight to my inbox. Your name, email and number are only used to reply to you.",
+    sending: "TRANSMITTING…",
+    sent: "DELIVERED. I'LL WRITE BACK TO {email}.",
+    fallback: "DIRECT LINE IS DOWN — OPENING YOUR MAIL APP INSTEAD…",
+    errors: {
+      name: "WHO'S ASKING? ADD YOUR NAME FIRST.",
+      email: "THAT EMAIL LOOKS OFF — I NEED IT TO REPLY.",
+      phone: "THAT NUMBER LOOKS OFF. FIX IT OR LEAVE IT EMPTY.",
+      message: "NOTHING TO SEND — TYPE A MESSAGE FIRST.",
+    },
+  },
   ending: {
     status: "SESSION COMPLETE",
     heading: ["You made it", "this far."],
