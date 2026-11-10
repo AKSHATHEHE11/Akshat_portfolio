@@ -74,31 +74,23 @@ export function Pipeline({ stages, active, hover, reduced, chaos, onActive, onHo
 
   // The sticky stage's height sets the track length (see .track). Measured before sibling sections
   // create their ScrollTriggers. Re-measured only when the WIDTH changes: the readout swapping text
-  // must not resize the track (and refresh every trigger) mid-scroll.
+  // must not resize the track mid-scroll. The new length changes the page height, and Providers
+  // refreshes every ScrollTrigger when that settles — no refresh of our own (it doubled the work).
   useIsomorphicLayoutEffect(() => {
     const t = track.current;
     const st = stage.current;
     if (!t || !st) return;
     let w = 0;
-    let timer = 0;
     const measure = () => {
       const width = st.offsetWidth;
       if (width === w) return;
-      const first = w === 0;
       w = width;
       t.style.setProperty("--stage-h", `${st.offsetHeight}px`);
-      if (!first) {
-        window.clearTimeout(timer);
-        timer = window.setTimeout(() => ScrollTrigger.refresh(), 160);
-      }
     };
     measure();
     const ro = new ResizeObserver(measure);
     ro.observe(st);
-    return () => {
-      ro.disconnect();
-      window.clearTimeout(timer);
-    };
+    return () => ro.disconnect();
   }, []);
 
   // Writes straight to the SVG — no React render per scroll frame.
