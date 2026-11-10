@@ -21,6 +21,7 @@ import { TitleBlock } from "./TitleBlock";
 export function Cover({ project, sheets }: { project: Project<BlueprintScene>; sheets: number }) {
   const { scene, slug, title, color } = project;
   const ref = useRef<HTMLElement>(null);
+  const settled = useRef(false);
   const reduced = useReducedMotion();
   const ready = useSystem((s) => s.ready);
   const booted = useSystem((s) => s.booted);
@@ -30,15 +31,19 @@ export function Cover({ project, sheets }: { project: Project<BlueprintScene>; s
 
   useGSAP(
     () => {
-      // the server-rendered sheet keeps its linework hidden (CSS, [data-draft]) until GSAP owns it
-      const done = () => ref.current?.removeAttribute("data-draft");
-      if (reduced) return done();
-      const q = gsap.utils.selector(ref);
+      const el = ref.current;
+      if (!el) return;
+      const q = gsap.utils.selector(el);
       const lines = q("[data-bd]");
       const ink = q("[data-bi]");
+      // The server-rendered sheet keeps its linework hidden (CSS, [data-draft]) until GSAP owns it, with
+      // a CSS failsafe that shows it anyway if JS is late. If that already happened, the visitor has
+      // seen the finished plan: keep it, never un-draw it.
+      if (el.hasAttribute("data-draft") && lines[0] && getComputedStyle(lines[0]).opacity !== "0") settled.current = true;
+      el.removeAttribute("data-draft");
+      if (reduced || settled.current) return;
       gsap.set(lines, { drawSVG: 0 });
       gsap.set(ink, { autoAlpha: 0 });
-      done();
       if (!ready) return; // first paint before the system has read storage: decide next tick
       const draw = () =>
         gsap

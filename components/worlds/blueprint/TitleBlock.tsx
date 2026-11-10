@@ -50,7 +50,8 @@ export function TitleBlock({ project, sheets, className }: { project: Project<Bl
           <dd>{year}</dd>
         </div>
       </dl>
-      <span className="bp-stamp" aria-label={`Status: ${status}`}>
+      <span className="bp-stamp" data-chaos-drift>
+        <span className="sr-only">Status: </span>
         {status}
       </span>
       <span className="bp-void chaos-only" aria-hidden>

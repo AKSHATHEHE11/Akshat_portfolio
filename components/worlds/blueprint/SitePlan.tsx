@@ -14,6 +14,26 @@ const TREES = [
   [140, 88], [160, 88], [178, 112], [200, 112], [246, 88], [292, 112], [312, 112], [340, 88], [52, 100], [36, 196], [60, 196], [84, 196],
 ] as const;
 
+/** Chaos: a grid line hangs from its bubble and swings (CSS .bp-swing, seeded per line). */
+const loose = (origin: string, i: number) =>
+  ({ "--o": origin, "--a": `${((i % 2 ? -1 : 1) * (2 + seeded(i + 40) * 5)).toFixed(1)}deg`, "--t": `${(2.2 + seeded(i + 60) * 1.6).toFixed(1)}s` }) as CSSProperties;
+
+/**
+ * A dashed line that drafts itself without losing its dashes: DrawSVG writes its own dasharray, so it
+ * draws a solid twin inside a mask and the dashed line shows through it. The mask lives in the line's
+ * own user space, so it swings with it in chaos.
+ */
+function Dashed({ id, d, className }: { id: string; d: string; className?: string }) {
+  return (
+    <>
+      <mask id={id} maskUnits="userSpaceOnUse" x="-48" y="-50" width="474" height="330">
+        <path data-bd d={d} stroke="#fff" strokeWidth="5" strokeDasharray="none" />
+      </mask>
+      <path d={d} mask={`url(#${id})`} className={className} />
+    </>
+  );
+}
+
 /** Interior partitions per building, so each reads as what it is. */
 function inside(b: Building) {
   const { x, y, w, h } = b;
@@ -85,8 +105,8 @@ export const SitePlan = memo(function SitePlan({ campus, to, room, className }: 
       {/* structural grid */}
       <g className="bp-gridref">
         {GRID_X.map((x, i) => (
-          <g key={x}>
-            <path data-bd d={`M${x} -20V256`} />
+          <g key={x} className="bp-swing" style={loose("50% 0%", i)}>
+            <Dashed id={`bp-gx-${i}`} d={`M${x} -20V256`} />
             <circle data-bd cx={x} cy="-31" r="8" />
             <text data-bi x={x} y="-28" textAnchor="middle">
               {i + 1}
@@ -94,8 +114,8 @@ export const SitePlan = memo(function SitePlan({ campus, to, room, className }: 
           </g>
         ))}
         {GRID_Y.map((y, i) => (
-          <g key={y}>
-            <path data-bd d={`M-20 ${y}H396`} />
+          <g key={y} className="bp-swing" style={loose("0% 50%", i + 6)}>
+            <Dashed id={`bp-gy-${i}`} d={`M-20 ${y}H396`} />
             <circle data-bd cx="-31" cy={y} r="8" />
             <text data-bi x="-31" y={y + 3} textAnchor="middle">
               {String.fromCharCode(65 + i)}
@@ -127,16 +147,16 @@ export const SitePlan = memo(function SitePlan({ campus, to, room, className }: 
         <Room key={b.id} b={b} i={i} target={b.id === to} />
       ))}
 
-      {/* section cut A–A through Block B (drawn on sheet A-401) */}
+      {/* section cut A–A through Block B's upper rooms (drawn on sheet A-401) */}
       <g className="bp-cut bp-swing" style={{ "--o": "0% 50%" } as CSSProperties}>
-        <path data-bd d="M170 52H282" />
-        <circle data-bd cx="164" cy="52" r="6" />
-        <circle data-bd cx="288" cy="52" r="6" />
-        <path data-bi d="M160 44l4-6 4 6zM284 44l4-6 4 6z" className="bp-fill" />
-        <text data-bi x="164" y="55" textAnchor="middle">
+        <Dashed id="bp-cut-aa" d="M170 40H282" />
+        <circle data-bd cx="164" cy="40" r="6" />
+        <circle data-bd cx="288" cy="40" r="6" />
+        <path data-bi d="M160 32l4-6 4 6zM284 32l4-6 4 6z" className="bp-fill" />
+        <text data-bi x="164" y="43" textAnchor="middle">
           A
         </text>
-        <text data-bi x="288" y="55" textAnchor="middle">
+        <text data-bi x="288" y="43" textAnchor="middle">
           A
         </text>
       </g>
@@ -158,10 +178,7 @@ export const SitePlan = memo(function SitePlan({ campus, to, room, className }: 
       {/* the walk: library steps → the next class */}
       {walk && (
         <g className="bp-walk">
-          <mask id="bp-walk-mask" maskUnits="userSpaceOnUse">
-            <path data-bd d={pathD(walk.points)} stroke="#fff" strokeWidth="8" fill="none" />
-          </mask>
-          <path d={pathD(walk.points)} mask="url(#bp-walk-mask)" className="bp-walk-line" />
+          <Dashed id="bp-walk-mask" d={pathD(walk.points)} className="bp-walk-line" />
           <circle cx={you.x} cy={you.y} r="9" className="bp-you-ring" data-bi />
           <circle cx={you.x} cy={you.y} r="3.6" className="bp-fill-acc" data-bi />
           <g data-bi className="bp-plan-label bp-acc">
