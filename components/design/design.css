@@ -467,6 +467,126 @@
   }
 }
 
+/* ── lightbox: one piece at a time, as big as the screen allows ── */
+.dz-lb {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: flex;
+  flex-direction: column;
+  --dz-lb-pad: clamp(0.75rem, 2.5vh, 1.5rem);
+  padding: max(var(--dz-lb-pad), var(--safe-top)) max(var(--margin), var(--safe-right)) max(var(--dz-lb-pad), var(--safe-bottom))
+    max(var(--margin), var(--safe-left));
+  background: #111111;
+  color: var(--dz-fg);
+  animation: dz-fade 0.3s var(--ease-out-quart) both;
+}
+.dz-lb:focus {
+  outline: none;
+}
+.dz-lb-head,
+.dz-lb-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.dz-lb-head {
+  align-items: flex-start;
+  padding-bottom: 1rem;
+}
+.dz-lb-foot {
+  padding-top: 1rem;
+}
+.dz-lb-caption {
+  min-width: 0;
+}
+.dz-lb-title {
+  font-size: clamp(1.125rem, 2.2vw, 1.75rem);
+  line-height: 1.05;
+}
+.dz-lb-meta {
+  margin-top: 0.5rem;
+  color: var(--dz-muted);
+}
+.dz-lb-count {
+  color: var(--dz-muted);
+  font-variant-numeric: tabular-nums;
+}
+.dz-lb-btn {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-width: 2.75rem;
+  height: 2.75rem;
+  padding-inline: 0.85rem;
+  border: 1px solid var(--dz-line);
+  border-radius: 4px;
+  color: var(--dz-fg);
+  transition:
+    background-color 0.25s,
+    color 0.25s;
+}
+@media (hover: hover) {
+  .dz-lb-btn:hover {
+    background: var(--dz-fg);
+    color: var(--dz-bg);
+  }
+}
+/* the stage is a size container, so the piece can be sized to fit it exactly at its own aspect ratio */
+.dz-lb-stage {
+  display: grid;
+  flex: 1;
+  place-items: center;
+  min-height: 0;
+  container-type: size;
+}
+.dz-lb-media {
+  position: relative;
+  width: min(100cqw, 100cqh * var(--ar));
+  aspect-ratio: var(--ar);
+  background: #000;
+  animation: dz-rise 0.6s var(--ease-out-expo) both;
+}
+.dz-lb-media img {
+  object-fit: contain;
+}
+.dz-lb-media > :is(video, iframe) {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+@keyframes dz-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+/* short screens (a phone on its side): the nav alone is a fifth of the height, so the index scrolls
+   away with the page instead of sticking, and the lightbox gives its bars less room */
+@media (max-height: 30rem) {
+  .dz-index {
+    position: relative;
+    top: auto;
+  }
+  .dz-field {
+    scroll-margin-top: calc(var(--nav-h) + var(--safe-top));
+  }
+  .dz-lb {
+    --dz-lb-pad: 0.5rem;
+  }
+  .dz-lb-head {
+    padding-bottom: 0.5rem;
+  }
+  .dz-lb-foot {
+    padding-top: 0.5rem;
+  }
+}
+
 /* ── the way to the full portfolio ── */
 .dz-behance {
   display: grid;
