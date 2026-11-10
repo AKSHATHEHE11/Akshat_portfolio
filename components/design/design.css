@@ -354,6 +354,119 @@
   }
 }
 
+/* ── tiles: rows in Akshat's order, --n to a row, a short last row centred so no count leaves a hole.
+   Edits 16:9, posters at their own shape, 3D in squares ── */
+.dz-grid {
+  --n: 2;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: clamp(1.75rem, 4vh, 3rem) var(--gutter);
+}
+.dz-grid > li {
+  width: calc((100% - (var(--n) - 1) * var(--gutter)) / var(--n));
+  min-width: 0;
+}
+.dz-grid[data-field="edits"] {
+  --n: 1;
+}
+/* posters keep their own shape and stand on one line: nothing is cropped */
+.dz-grid[data-field="posters"] {
+  align-items: flex-end;
+}
+@media (min-width: 768px) {
+  .dz-grid {
+    --n: 3;
+  }
+  .dz-grid[data-field="edits"] {
+    --n: 2;
+  }
+}
+
+.dz-tile {
+  display: block;
+  width: 100%;
+  text-align: left;
+}
+.dz-tile-media {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  background: #1a1a1a;
+  transition: translate 0.5s var(--ease-out-expo);
+}
+.dz-tile-media img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+/* edits and 3D show the whole frame inside their box, whatever its shape: a vertical reel sits between
+   black bars, a render on the page grey. Nothing is cropped. */
+.dz-grid[data-field="edits"] .dz-tile-media {
+  aspect-ratio: 16 / 9;
+  background: #000;
+}
+.dz-grid[data-field="three-d"] .dz-tile-media {
+  aspect-ratio: 1;
+  background: var(--dz-bg);
+  outline: 1px solid var(--dz-line);
+  outline-offset: -1px;
+}
+.dz-grid:not([data-field="posters"]) .dz-tile-media img {
+  height: 100%;
+  object-fit: contain;
+}
+.dz-tile-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.dz-tile-video[data-on] {
+  opacity: 1;
+}
+.dz-tile-play {
+  position: absolute;
+  left: 0.75rem;
+  bottom: 0.75rem;
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 4px;
+  background: var(--dz-bg);
+  color: var(--dz-fg);
+  transition: opacity 0.3s;
+}
+.dz-tile-video[data-on] + .dz-tile-play {
+  opacity: 0;
+}
+/* title over meta, like a print caption, whatever the title's length */
+.dz-cap {
+  display: grid;
+  justify-items: start;
+  gap: 0.3rem;
+  padding-top: 0.75rem;
+}
+.dz-cap-title {
+  font-size: clamp(0.875rem, 1.1vw, 1rem);
+}
+.dz-cap-meta {
+  color: var(--dz-muted);
+  transition: color 0.3s;
+}
+@media (hover: hover) {
+  .dz-tile:hover .dz-tile-media {
+    translate: 0 -0.375rem;
+  }
+  .dz-tile:hover .dz-cap-meta {
+    color: var(--dz-fg);
+  }
+}
+
 /* ── the way to the full portfolio ── */
 .dz-behance {
   display: grid;
