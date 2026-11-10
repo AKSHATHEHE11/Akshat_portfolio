@@ -43,6 +43,8 @@ next-env.d.ts
 # local tooling
 /.locks/
 /shots/
+# generated SAMPLE media for previewing /design before Akshat's files arrive (dev only, never deployed)
+/public/design/_samples/
 
 # design references — kept on this machine, never published
 # (third-party Instagram screenshots and private mockup boards)
