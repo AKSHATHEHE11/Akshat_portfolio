@@ -1,5 +1,7 @@
 // Generative rubber-stamp prints. Print n is always the same shape (seeded), drawn in a 100×100 box.
+// The next print renders on the server too, so the trig is lab's bit-exact sin/cos, not Math's.
 import { seeded } from "@/lib/utils";
+import { cos, sin } from "../lab";
 
 export type Tone = "ink" | "signal" | "accent";
 export interface Mark {
@@ -18,7 +20,7 @@ export interface Print {
 
 const f = (n: number) => +n.toFixed(1);
 const ring = (cx: number, cy: number, r: number) => `M${f(cx - r)} ${f(cy)}a${f(r)} ${f(r)} 0 1 0 ${f(2 * r)} 0a${f(r)} ${f(r)} 0 1 0 ${f(-2 * r)} 0Z`;
-const polar = (r: number, a: number) => [50 + Math.cos(a) * r, 50 + Math.sin(a) * r] as const;
+const polar = (r: number, a: number) => [50 + cos(a) * r, 50 + sin(a) * r] as const;
 const line = (r0: number, r1: number, a: number) => {
   const [x0, y0] = polar(r0, a);
   const [x1, y1] = polar(r1, a);
@@ -93,7 +95,7 @@ const KINDS: Gen[] = [
     const n = 3 + Math.floor(r(1) * 4);
     const d = Array.from({ length: n }, (_, i) => {
       const a = (i / n) * Math.PI;
-      return `M${f(50 - Math.cos(a) * 42)} ${f(50 - Math.sin(a) * 42)}L${f(50 + Math.cos(a) * 42)} ${f(50 + Math.sin(a) * 42)}`;
+      return `M${f(50 - cos(a) * 42)} ${f(50 - sin(a) * 42)}L${f(50 + cos(a) * 42)} ${f(50 + sin(a) * 42)}`;
     }).join("");
     return { name: `STAR·${n * 2}`, marks: [{ d, w: 10 + r(2) * 5 }] };
   },

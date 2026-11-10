@@ -13,10 +13,11 @@ export const lab = {
   hunting: false,
 };
 
-/** The part of the mat currently on screen, in mat-local px. */
+/** The part of the mat on screen and not under the fixed nav, in mat-local px. (The mat starts right
+ *  under the nav, so the nav is mat.top tall: the first visible mat row is `scroll`.) */
 export function visibleMat() {
   const { mat, scroll, vh } = lab;
-  const top = Math.max(0, scroll - mat.top);
+  const top = Math.max(0, scroll);
   const bottom = Math.min(mat.h, scroll + vh - mat.top);
   return { x: 0, y: top, w: mat.w, h: Math.max(0, bottom - top) };
 }
@@ -25,6 +26,19 @@ export function visibleMat() {
 export function toMat(x: number, y: number) {
   return { x: x - lab.mat.left, y: y + lab.scroll - lab.mat.top };
 }
+
+/* Trig for markup that renders on the server AND in the browser (protractor, stamp prints, the well's
+   sheet). Math.sin/cos/exp may differ in the last bit between Node and Chrome, and a rounded value on a
+   boundary then breaks hydration; + − × ÷ are exactly rounded everywhere, so these are identical on
+   both. Taylor series to x¹¹ on [−π/2, π/2]: error < 6e-8. */
+export function sin(x: number) {
+  x -= Math.PI * 2 * Math.floor(x / (Math.PI * 2) + 0.5);
+  if (x > Math.PI / 2) x = Math.PI - x;
+  else if (x < -Math.PI / 2) x = -Math.PI - x;
+  const q = x * x;
+  return x * (1 - (q / 6) * (1 - (q / 20) * (1 - (q / 42) * (1 - (q / 72) * (1 - q / 110)))));
+}
+export const cos = (x: number) => sin(x + Math.PI / 2);
 
 /** Update an element's text without replacing its Text node (keeps layout untouched). */
 export function setText(el: Element | null, value: string) {

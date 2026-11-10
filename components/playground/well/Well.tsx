@@ -80,7 +80,7 @@ export default function Well({ active }: { active: boolean }) {
   };
 
   return (
-    <div className="pg-well" data-pg-in>
+    <div className="pg-well" data-pg-in data-run={active || undefined}>
       <button
         ref={disc}
         type="button"
@@ -120,11 +120,13 @@ export default function Well({ active }: { active: boolean }) {
   );
 }
 
-/* The sheet: a square grid pulled toward the centre (a Gaussian dent), clipped to the disc, plus
-   three equipotential rings. Computed once at module load; identical on server and client. */
+/* The sheet: a square grid pulled toward the centre, clipped to the disc, plus three equipotential
+   rings. Computed once at module load. The dent is a cubic bump, (1 − r²/100²)³ — close to a
+   Gaussian, but plain arithmetic, so server and browser print the same path (Math.exp may not). */
 const GRID = (() => {
   const warp = (x: number, y: number) => {
-    const k = 1 - 0.62 * Math.exp(-(x * x + y * y) / (2 * 34 * 34));
+    const g = 1 - (x * x + y * y) / 10000;
+    const k = 1 - 0.62 * g * g * g;
     return `${(x * k).toFixed(1)} ${(y * k).toFixed(1)}`;
   };
   let d = "";

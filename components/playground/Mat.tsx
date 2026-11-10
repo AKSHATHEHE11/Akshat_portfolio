@@ -4,11 +4,18 @@ import { site } from "@/data/site";
 import { gsap } from "@/lib/gsap";
 import { pointer } from "@/lib/pointer";
 import { pad } from "@/lib/utils";
-import { lab, setText, toMat } from "./lab";
+import { cos, lab, setText, sin, toMat } from "./lab";
 
 const X_NUMS = Array.from({ length: 26 }, (_, i) => i * 100);
 const Y_NUMS = Array.from({ length: 90 }, (_, i) => i * 100);
-const PROTRACTOR = Array.from({ length: 19 }, (_, i) => i * 5);
+// lab's bit-exact trig, rounded: Math.cos/sin differ between Node and Chrome and broke hydration here
+const PROTRACTOR = Array.from({ length: 19 }, (_, i) => {
+  const d = i * 5;
+  const a = (d * Math.PI) / 180;
+  const long = d % 15 === 0;
+  const at = (r: number) => [+(-cos(a) * r).toFixed(2), +(-sin(a) * r).toFixed(2)];
+  return { d, long, p0: at(long ? 160 : 170), p1: at(180), t: at(146) };
+});
 
 /**
  * The self-healing cutting mat: grid, angle guides, a protractor, rulers on two edges and a live
@@ -73,23 +80,16 @@ export const Mat = memo(function Mat() {
       <svg className="pg-protractor" viewBox="-200 -200 200 200">
         <path d="M-180 0A180 180 0 0 1 0-180" fill="none" stroke="currentColor" strokeWidth="1" />
         <path d="M-120 0A120 120 0 0 1 0-120" fill="none" stroke="currentColor" strokeWidth="0.75" strokeDasharray="2 4" />
-        {PROTRACTOR.map((d) => {
-          const a = (d * Math.PI) / 180;
-          const long = d % 15 === 0;
-          const r0 = long ? 160 : 170;
-          const c = Math.cos(a);
-          const s = Math.sin(a);
-          return (
-            <g key={d}>
-              <line x1={-c * r0} y1={-s * r0} x2={-c * 180} y2={-s * 180} stroke="currentColor" strokeWidth={long ? 1 : 0.6} />
-              {long && d > 0 && d < 90 ? (
-                <text x={-c * 146} y={-s * 146 + 3} fontSize="8" textAnchor="middle" fill="currentColor">
-                  {d}
-                </text>
-              ) : null}
-            </g>
-          );
-        })}
+        {PROTRACTOR.map(({ d, long, p0, p1, t }) => (
+          <g key={d}>
+            <line x1={p0[0]} y1={p0[1]} x2={p1[0]} y2={p1[1]} stroke="currentColor" strokeWidth={long ? 1 : 0.6} />
+            {long && d > 0 && d < 90 ? (
+              <text x={t[0]} y={t[1] + 3} fontSize="8" textAnchor="middle" fill="currentColor">
+                {d}
+              </text>
+            ) : null}
+          </g>
+        ))}
       </svg>
 
       <div className="pg-ruler pg-ruler-x">
