@@ -1,0 +1,135 @@
+/* ── /design: the design side, in the black and white of the Behance cover ── */
+.dz {
+  /* the cover's grey (34, 34, 34) is also the photo's own background, so the cut-out has no edge */
+  --dz-bg: #222222;
+  --dz-fg: #f4f4f1;
+  --dz-muted: #a5a5a0;
+  --dz-line: rgb(244 244 241 / 0.16);
+  background: var(--dz-bg);
+  color: var(--dz-fg);
+  overflow-x: clip;
+}
+.dz-script {
+  font-family: var(--font-script), cursive;
+  font-weight: 400;
+  font-style: normal;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.dz-caps {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-variation-settings: "wdth" 125;
+  line-height: 1.12;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+/* ── hero: the tags over the top corners, then the name in two lines with the photo standing in
+   line one. Solid name behind the photo, outline name in front: where he stands the letters turn
+   to outline. The photo's bottom edge sits in the gap between the lines. ── */
+.dz-hero {
+  --f: min(12.4vw, 13rem); /* name size; stops growing at 1680px, like the photo */
+  --lh: 0.86;
+  --pw: min(53vw, 55.6rem); /* photo width */
+  --ph: calc(var(--pw) * 642 / 960); /* photo height (the file is 960 × 642) */
+  position: relative;
+  padding: calc(var(--nav-h) + clamp(1rem, 3vh, 2.5rem)) 0 clamp(2.5rem, 7vh, 5rem);
+}
+.dz-tags {
+  position: absolute;
+  z-index: 4;
+  inset: calc(var(--nav-h) + clamp(1.5rem, 6vh, 4rem)) var(--margin) auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+.dz-tag-title {
+  /* script swashes overhang their box: the inline padding keeps them on screen */
+  margin: 0 0 0.12em;
+  padding-inline: 0.12em 0.2em;
+  font-size: clamp(2.6rem, 4.6vw, 4.75rem);
+  line-height: 1;
+}
+.dz-tag .dz-caps {
+  font-size: clamp(0.8125rem, 1.55vw, 1.6rem);
+}
+.dz-tag-like {
+  margin-top: clamp(4rem, 12vw, 13rem);
+  text-align: right;
+}
+.dz-stage {
+  position: relative;
+  margin-top: calc(var(--ph) - var(--f) * var(--lh));
+  text-align: center;
+}
+.dz-name {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--f);
+  font-weight: 900;
+  font-variation-settings: "wdth" 125;
+  line-height: var(--lh);
+  letter-spacing: -0.015em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--dz-fg);
+}
+.dz-line {
+  display: block;
+}
+.dz-name-outline {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  color: transparent;
+  -webkit-text-stroke: clamp(1px, 0.1vw, 2px) var(--dz-fg);
+  pointer-events: none;
+  user-select: none;
+}
+.dz-photo {
+  position: absolute;
+  z-index: 2;
+  left: calc(50% - var(--pw) * 0.46);
+  bottom: 50%;
+  width: var(--pw);
+  height: auto;
+  /* the crop ends mid-chest: dissolve that edge into the gap between the lines */
+  mask-image: linear-gradient(to bottom, #000 92%, transparent);
+}
+
+@media (max-width: 767px) {
+  .dz-hero {
+    --f: 13.8vw; /* AGRAWAL is ~6.5 em wide: this keeps it inside the margins */
+    --pw: 94vw;
+    padding-bottom: 0;
+  }
+  .dz-tags {
+    position: static;
+    padding: 0 var(--margin);
+  }
+  .dz-tag-like {
+    margin-top: 0;
+  }
+  .dz-tag .dz-caps {
+    font-size: 0.75rem;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .dz-line {
+    animation: dz-rise 1.1s cubic-bezier(0.16, 1, 0.3, 1) calc(0.15s + var(--i) * 0.09s) both;
+  }
+  .dz-photo {
+    animation: dz-rise 1.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .dz-tag {
+    animation: dz-rise 1s cubic-bezier(0.16, 1, 0.3, 1) 0.4s both;
+  }
+}
+@keyframes dz-rise {
+  from {
+    opacity: 0;
+    translate: 0 0.6rem;
+  }
+}
