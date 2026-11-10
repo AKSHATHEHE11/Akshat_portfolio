@@ -49,15 +49,44 @@ export default function Providers({ children }: { children: React.ReactNode }) {
   );
 }
 
+/** Jump to a section. Lenis caches the scroll limit and re-measures ~250ms after the page height
+ *  changes; jumping before that clamps to the previous page's bottom, so measure first. */
+function toSection(lenis: ReturnType<typeof useLenis>, el: HTMLElement) {
+  lenis?.resize();
+  lenis?.scrollTo(el, { immediate: true, force: true });
+}
+
 /** Keeps ScrollTrigger in step with Lenis and resets scroll on route change. */
 function ScrollSync() {
   const pathname = usePathname();
   const lenis = useLenis(() => ScrollTrigger.update());
+  /** a #section the route change asked for, kept in view while the page settles */
+  const hold = useRef<HTMLElement | null>(null);
 
+  // A new route starts at the top — or at the section its link names (/#contact from another page).
+  // The target is measured after ScrollTrigger has laid out pin spacers, and re-aligned whenever lazy
+  // content above it changes the height, until the visitor scrolls on their own (or 4 s pass).
   useEffect(() => {
+    const id = decodeURIComponent(window.location.hash.slice(1));
+    const el = id ? document.getElementById(id) : null;
+    hold.current = el;
     lenis?.scrollTo(0, { immediate: true, force: true });
-    const id = requestAnimationFrame(() => ScrollTrigger.refresh());
-    return () => cancelAnimationFrame(id);
+    const raf = requestAnimationFrame(() => {
+      ScrollTrigger.refresh();
+      if (el) toSection(lenis, el);
+    });
+    const release = () => (hold.current = null);
+    const expire = window.setTimeout(release, 6000);
+    window.addEventListener("wheel", release, { passive: true });
+    window.addEventListener("touchstart", release, { passive: true });
+    window.addEventListener("keydown", release);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.clearTimeout(expire);
+      window.removeEventListener("wheel", release);
+      window.removeEventListener("touchstart", release);
+      window.removeEventListener("keydown", release);
+    };
   }, [pathname, lenis]);
 
   // Lazy content (canvases, dynamic imports, fonts) changes page height after mount; re-measure every
@@ -75,6 +104,8 @@ function ScrollSync() {
         last = h;
         ScrollTrigger.refresh();
         last = main.offsetHeight;
+        const el = hold.current;
+        if (el?.isConnected) toSection(lenis, el);
       }, 220);
     });
     ro.observe(main);
@@ -82,7 +113,7 @@ function ScrollSync() {
       ro.disconnect();
       window.clearTimeout(timer);
     };
-  }, []);
+  }, [lenis]);
 
   return null;
 }
