@@ -3,11 +3,10 @@
 // Every module's screen is the real pipeline stopped at that stage (the world's one canvas moves here
 // and draws each screen in its own scissor box). Pick a module to read what happens there and which
 // tools do it; pick a tool to light every stage it powers.
-import { useState } from "react";
+import { useState, type CSSProperties } from "react";
 import { useCoarse } from "@/lib/hooks";
 import { play } from "@/lib/sound";
 import type { Tech } from "@/lib/types";
-import { cn } from "@/lib/utils";
 import { useFieldHost } from "./FieldHost";
 import type { FlowStage } from "./scene";
 
@@ -47,7 +46,13 @@ export function Flow({ flow, tech }: { flow: FlowStage[]; tech: Tech[] }) {
       <div ref={host.flow} className="nf-flow mt-12 md:mt-16">
         <ol className="nf-chain">
           {flow.map((s, i) => (
-            <li key={s.id} className="nf-mod" data-on={(stage?.id === s.id) || undefined} data-lit={lit(s) || undefined}>
+            <li
+              key={s.id}
+              className="nf-mod"
+              data-on={stage?.id === s.id || undefined}
+              data-lit={lit(s) || undefined}
+              style={{ "--i": i } as CSSProperties}
+            >
               <button
                 type="button"
                 className="nf-mod-btn"

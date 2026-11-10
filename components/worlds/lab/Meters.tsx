@@ -28,25 +28,25 @@ const arc = (from: number, to: number, r: number) => {
   return `M${a.x.toFixed(2)} ${a.y.toFixed(2)}A${r} ${r} 0 0 1 ${b.x.toFixed(2)} ${b.y.toFixed(2)}`;
 };
 
-export function Meters({ metrics, scales }: { metrics: Metric[]; scales: MeterScale[] }) {
+export function Meters({ metrics, scales, model }: { metrics: Metric[]; scales: MeterScale[]; model: string }) {
   return (
     <section aria-labelledby="nf-out-h" className="frame relative py-24 md:py-36">
       <div className="flex flex-wrap items-end justify-between gap-x-10 gap-y-5">
         <h2 id="nf-out-h" data-chaos-type className="nf-h2">
           Output
         </h2>
-        <p className="max-w-[30ch] pb-1 text-[1.0625rem] leading-snug text-(--fg)/75">Levels after a year of evenings on the NF-1.</p>
+        <p className="max-w-[30ch] pb-1 text-[1.0625rem] leading-snug text-(--fg)/75">Levels after a year of evenings on the {model}.</p>
       </div>
       <ul className="mt-12 grid grid-cols-1 gap-x-(--gutter) gap-y-10 min-[420px]:grid-cols-2 md:mt-16 lg:grid-cols-4">
         {metrics.map((m, i) => (
-          <Meter key={m.label} m={m} scale={scales[i]} />
+          <Meter key={m.label} m={m} scale={scales[i]} model={model} />
         ))}
       </ul>
     </section>
   );
 }
 
-function Meter({ m, scale: given }: { m: Metric; scale?: MeterScale }) {
+function Meter({ m, scale: given, model }: { m: Metric; scale?: MeterScale; model: string }) {
   const root = useRef<HTMLLIElement>(null);
   const needle = useRef<HTMLSpanElement>(null);
   const num = useRef<HTMLSpanElement>(null);
@@ -75,8 +75,10 @@ function Meter({ m, scale: given }: { m: Metric; scale?: MeterScale }) {
         0,
       );
       write();
+      // the figure is a text node GSAP doesn't own: put the real value back when this is reverted
+      return () => void (text instanceof Text && (text.data = m.value));
     },
-    { scope: root, dependencies: [reduced, deg, value] },
+    { scope: root, dependencies: [reduced, deg, value], revertOnUpdate: true },
   );
 
   return (
@@ -101,7 +103,7 @@ function Meter({ m, scale: given }: { m: Metric; scale?: MeterScale }) {
               );
             })}
             <text x="100" y="92" textAnchor="middle" className="nf-vu-brand">
-              NF-1 · VU
+              {model} · VU
             </text>
           </svg>
           <span ref={needle} aria-hidden className="nf-needle" style={{ transform: `rotate(${deg}deg)` }}>
@@ -109,7 +111,7 @@ function Meter({ m, scale: given }: { m: Metric; scale?: MeterScale }) {
           </span>
         </div>
       </div>
-      <p className="mt-4 flex items-baseline gap-3">
+      <p className="mt-4">
         <span ref={num} className="nf-vu-value">
           {m.value}
         </span>
