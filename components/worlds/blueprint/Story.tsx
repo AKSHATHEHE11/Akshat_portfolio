@@ -59,6 +59,7 @@ export function Story({ project }: { project: Project<BlueprintScene> }) {
         .to(q("[data-service-retired]"), { drawSVG: "0%", duration: 0.25 }, 1.2);
       t.addLabel("p2", 1.7);
       tl.current = t;
+      svg.current?.setAttribute("data-live", ""); // GSAP holds the Existing state now; the CSS stand-in can go
       return () => {
         tl.current = null;
       };
@@ -182,7 +183,7 @@ export function Story({ project }: { project: Project<BlueprintScene> }) {
                 <>
                   <rect data-retire width={W} height={H} className="bp-portal-gone" />
                   <path data-x d={`M0 0L${W} ${H}M${W} 0L0 ${H}`} className="bp-x" />
-                  <text data-retire x={W + 6} y="24" className="bp-acc-text">
+                  <text data-retire x={W} y={H + 11} textAnchor="end" className="bp-acc-text">
                     RETIRED
                   </text>
                 </>

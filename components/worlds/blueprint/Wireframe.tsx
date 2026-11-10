@@ -28,7 +28,7 @@ function Part({ area, inked, children }: { area: Area; inked: boolean; children:
   );
 }
 
-export const Wireframe = memo(function Wireframe({ inked = () => true }: { inked?: (a: Area) => boolean }) {
+export const Wireframe = memo(function Wireframe({ initials, inked = () => true }: { initials: string; inked?: (a: Area) => boolean }) {
   return (
     <g className="bp-wf">
       <rect x="0" y="0" width="300" height="560" rx="34" className="bp-wf-body" />
@@ -39,7 +39,7 @@ export const Wireframe = memo(function Wireframe({ inked = () => true }: { inked
         <rect x="22" y="61" width="88" height="6" rx="2" className="bp-wf-soft" />
         <circle cx="262" cy="54" r="15" className="bp-wf-line" />
         <text x="262" y="58" textAnchor="middle" className="bp-wf-text">
-          AK
+          {initials}
         </text>
       </Part>
 

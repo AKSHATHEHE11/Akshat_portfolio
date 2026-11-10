@@ -29,7 +29,7 @@ export function Revisions({ project }: { project: Project<BlueprintScene> }) {
   const ref = useRef<HTMLElement>(null);
   const clouds = useRef<(SVGPathElement | null)[]>([]);
   const reduced = useReducedMotion();
-  const seen = useRef(false);
+  const drawn = useRef(0); // the revision whose cloud is already on the paper
   useDraw(ref);
 
   const inked = useCallback(
@@ -44,7 +44,8 @@ export function Revisions({ project }: { project: Project<BlueprintScene> }) {
   useGSAP(
     () => {
       const el = clouds.current[cur];
-      if (!seen.current) return void (seen.current = true);
+      if (drawn.current === cur) return;
+      drawn.current = cur;
       if (!el || reduced) return;
       gsap.fromTo(el, { drawSVG: "0%" }, { drawSVG: "100%", duration: 0.9, ease: "power2.inOut" });
     },
@@ -58,17 +59,19 @@ export function Revisions({ project }: { project: Project<BlueprintScene> }) {
   };
 
   return (
-    <section ref={ref} id="process" data-rail="Process" aria-labelledby="bp-rev" className="bp-sheet bp-rev frame">
+    <section ref={ref} id="process" aria-labelledby="bp-rev" className="bp-sheet bp-rev frame">
       <div className="bp-rev-head">
         <ViewTitle n={4} sheet="A-201" id="bp-rev" scale="1 : 1">
           Revisions
         </ViewTitle>
-        <p className="bp-instr">Five issues of one screen. Each revision clouds what it changed; pick one to see the drawing as it stood.</p>
+        <p className="bp-instr">
+          {process.length} issues of one screen. Each revision clouds what it changed; pick one to see the drawing as it stood.
+        </p>
       </div>
 
       <figure className="bp-rev-fig">
         <svg viewBox="-28 -22 380 606" className="bp-wfsvg" aria-hidden>
-          <Wireframe inked={inked} />
+          <Wireframe initials={project.scene.student.initials} inked={inked} />
           {revs.map((r, i) => {
             if (i > cur) return null;
             const s = shape(r.area);

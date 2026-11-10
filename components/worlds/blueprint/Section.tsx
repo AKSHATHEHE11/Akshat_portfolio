@@ -9,12 +9,12 @@ import { useReducedMotion } from "@/lib/hooks";
 import { play } from "@/lib/sound";
 import type { Tech, TechGroup } from "@/lib/types";
 import { cn, seeded } from "@/lib/utils";
-import { ViewTitle } from "./kit";
+import { useShownAtHydration, ViewTitle } from "./kit";
 
 /** Top to bottom. Groups below the ground line are underground. */
 const FLOORS: { group: TechGroup; name: string; below?: boolean }[] = [
   { group: "design", name: "Roof" },
-  { group: "motion", name: "Roof" },
+  { group: "motion", name: "Attic" },
   { group: "frontend", name: "Upper floors" },
   { group: "ai", name: "Plant room" },
   { group: "backend", name: "Ground floor" },
@@ -28,16 +28,18 @@ const level = (n: number) => (n === 0 ? "±0.00" : `${n > 0 ? "+" : "−"}${Math
 
 export function Section({ technologies }: { technologies: Tech[] }) {
   const ref = useRef<HTMLElement>(null);
+  const draw = useRef<HTMLDivElement>(null);
   const [pinned, setPinned] = useState(0);
   const [hover, setHover] = useState<number | null>(null);
   const reduced = useReducedMotion();
+  const shown = useShownAtHydration();
 
   // built from the foundation up when the sheet arrives
   useGSAP(
     () => {
-      if (reduced) return;
+      if (reduced || shown(draw.current, 0.78)) return;
       gsap
-        .timeline({ scrollTrigger: { trigger: ref.current, start: "top 70%", once: true } })
+        .timeline({ scrollTrigger: { trigger: draw.current, start: "top 78%", once: true } })
         .from(".bp-ground", { scaleX: 0, duration: 0.8, ease: "power3.inOut" })
         .from(".bp-floor", { autoAlpha: 0, y: 28, duration: 0.6, ease: "expo.out", stagger: { each: 0.12, from: "end" }, clearProps: "transform,opacity,visibility" }, 0.3);
     },
@@ -115,7 +117,7 @@ export function Section({ technologies }: { technologies: Tech[] }) {
         <p className="bp-instr">Cut through Block B. The stack is the building; every room has a reason to be there.</p>
       </div>
 
-      <div className="bp-sec-draw">
+      <div ref={draw} className="bp-sec-draw">
         <ol className="bp-floors" aria-label="Stack, top to bottom">
           {above.map((f, k) => floorRow(f, k))}
         </ol>

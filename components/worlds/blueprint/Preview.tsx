@@ -8,24 +8,35 @@ import { useReducedMotion } from "@/lib/hooks";
 import { play } from "@/lib/sound";
 import type { Project } from "@/lib/types";
 import SidApp, { TABS } from "./app/SidApp";
-import { revLetter, ViewTitle } from "./kit";
+import { revLetter, useShownAtHydration, ViewTitle } from "./kit";
 import type { AppTab, BlueprintScene } from "./scene";
 
 export function Preview({ project }: { project: Project<BlueprintScene> }) {
   const { scene } = project;
   const [tab, setTab] = useState<AppTab>("today");
   const ref = useRef<HTMLElement>(null);
+  const plot = useRef<HTMLDivElement>(null);
   const reduced = useReducedMotion();
+  const shown = useShownAtHydration();
 
-  // the elevation is plotted top to bottom when the sheet arrives
+  // the elevation is plotted top to bottom when it arrives (on phones it sits below the index)
   useGSAP(
     () => {
       if (reduced) return;
-      gsap
-        .timeline({ scrollTrigger: { trigger: ref.current, start: "top 70%", once: true } })
-        .from("[data-plot]", { clipPath: "inset(0% 0% 100% 0%)", duration: 1.3, ease: "power2.inOut", clearProps: "clipPath" })
-        .from("[data-dimline]", { scaleX: 0, scaleY: 0, duration: 0.7, ease: "power3.out", stagger: 0.1, clearProps: "transform" }, 0.7)
-        .from("[data-index] li", { autoAlpha: 0, x: -10, duration: 0.5, stagger: 0.05, clearProps: "all" }, 0.3);
+      if (!shown(ref.current, 0.7))
+        gsap.from("[data-index] li", {
+          autoAlpha: 0,
+          x: -10,
+          duration: 0.5,
+          stagger: 0.05,
+          clearProps: "all",
+          scrollTrigger: { trigger: ref.current, start: "top 70%", once: true },
+        });
+      if (!shown(plot.current, 0.8))
+        gsap
+          .timeline({ scrollTrigger: { trigger: plot.current, start: "top 80%", once: true } })
+          .from(plot.current, { clipPath: "inset(0% 0% 100% 0%)", duration: 1.3, ease: "power2.inOut", clearProps: "clipPath" })
+          .from("[data-dimline]", { scaleX: 0, scaleY: 0, duration: 0.7, ease: "power3.out", stagger: 0.1, clearProps: "transform" }, 0.7);
     },
     { scope: ref, dependencies: [reduced], revertOnUpdate: true },
   );
@@ -62,7 +73,7 @@ export function Preview({ project }: { project: Project<BlueprintScene> }) {
       </div>
 
       <div className="bp-device-wrap">
-        <div className="bp-device" data-plot>
+        <div ref={plot} className="bp-device">
           <span className="bp-device-btn bp-device-btn-a" aria-hidden />
           <span className="bp-device-btn bp-device-btn-b" aria-hidden />
           <span className="bp-device-btn bp-device-btn-c" aria-hidden />

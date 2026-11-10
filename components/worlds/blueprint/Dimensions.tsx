@@ -8,7 +8,7 @@ import { gsap, useGSAP } from "@/lib/gsap";
 import { useReducedMotion } from "@/lib/hooks";
 import type { Metric } from "@/lib/types";
 import { seeded } from "@/lib/utils";
-import { ViewTitle } from "./kit";
+import { useShownAtHydration, ViewTitle } from "./kit";
 import { measure } from "./logic";
 
 /** The value's centre never sits closer than this to the start of the line (it would hang off the sheet). */
@@ -27,6 +27,7 @@ export function Dimensions({ metrics }: { metrics: Metric[] }) {
   const ref = useRef<HTMLElement>(null);
   const parts = useRef<Parts[]>([]);
   const reduced = useReducedMotion();
+  const shown = useShownAtHydration();
   const dims = useMemo(() => metrics.map((m) => measure(m.value)), [metrics]);
   // ref callbacks run children-first, so whichever arrives first creates the slot
   const slot = (i: number) => (parts.current[i] ??= { line: null, end: null, mid: null, val: null, row: null });
@@ -35,9 +36,10 @@ export function Dimensions({ metrics }: { metrics: Metric[] }) {
   useGSAP(
     () => {
       if (reduced) return;
+      const restore: (() => void)[] = [];
       dims.forEach((me, i) => {
         const p = parts.current[i];
-        if (!p?.line || !p.end || !p.mid || !p.val || !p.row) return;
+        if (!p?.line || !p.end || !p.mid || !p.val || !p.row || shown(p.row, 0.92)) return;
         const node = p.val.firstChild as Text | null;
         gsap.set([p.line, p.end, p.mid], { clearProps: "transform" }); // drop the server-rendered end state
         const scale = gsap.quickSetter(p.line, "scaleX");
@@ -52,11 +54,19 @@ export function Dimensions({ metrics }: { metrics: Metric[] }) {
           if (node && node.data !== t) node.data = t;
         };
         apply();
+        // quickSetter writes aren't undone by a context revert (reduced motion arriving, unmount): put the
+        // finished dimension back by hand, text node included (it's React's; hand it back as rendered)
+        restore.push(() => {
+          s.l = me.l1;
+          s.v = me.to;
+          apply();
+        });
         const drop = p.row.querySelectorAll("[data-drop]");
-        const tl = gsap.timeline({ scrollTrigger: { trigger: p.row, start: "top 82%", once: true } });
+        const tl = gsap.timeline({ scrollTrigger: { trigger: p.row, start: "top 92%", once: true } });
         tl.to(s, { l: me.l1, v: me.to, duration: 1.7, ease: "power3.inOut", onUpdate: apply });
         if (drop.length) tl.to(drop, { autoAlpha: 0, y: 14, duration: 0.5, stagger: 0.08, ease: "power2.in" }, 0.35);
       });
+      return () => restore.forEach((r) => r());
     },
     { scope: ref, dependencies: [dims, reduced], revertOnUpdate: true },
   );
