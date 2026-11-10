@@ -19,7 +19,9 @@ export function Notes({ steps, notes }: { steps: ProcessStep[]; notes: PatchNote
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    const io = new IntersectionObserver(([e]) => scrim(e.isIntersecting ? "notes" : "none"), { rootMargin: "-50% 0px -50% 0px" });
+    const io = new IntersectionObserver(([e]) => (e.isIntersecting ? scrim("notes") : scrim("none", ["notes"])), {
+      rootMargin: "-50% 0px -50% 0px",
+    });
     io.observe(el);
     return () => io.disconnect();
   }, [scrim]);

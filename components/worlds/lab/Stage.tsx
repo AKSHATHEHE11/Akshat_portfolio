@@ -6,7 +6,7 @@
 import { useEffect, useMemo, useRef, type CSSProperties, type PointerEvent, type ReactNode } from "react";
 import { Morph } from "@/components/transitions/Morph";
 import { Led } from "@/components/ui/marks";
-import { useCoarse } from "@/lib/hooks";
+import { useCoarse, useReducedMotion } from "@/lib/hooks";
 import { play } from "@/lib/sound";
 import { morph } from "@/lib/transitions";
 import type { Project } from "@/lib/types";
@@ -78,7 +78,11 @@ export function Stage({ project, children }: { project: Project<LabScene>; child
       <div aria-hidden className="pointer-events-none absolute inset-0">
         <div ref={host.stage} className="nf-stage">
           <Poster initial={initial} />
+          {/* the nav, the readout and the shell bar always sit on a dark edge, whatever the field does */}
+          <div className="nf-vignette" />
         </div>
+        {/* the field sinks into the page where the stage ends */}
+        <div className="absolute inset-x-0 bottom-0 h-[45svh] bg-linear-to-b from-transparent to-(--bg)" />
       </div>
       <div className="relative z-[1]">
         <Hero project={project} />
@@ -92,10 +96,11 @@ function Hero({ project }: { project: Project<LabScene> }) {
   const { slug, title, tagline, category, year, status, scene, links } = project;
   const { gl, live } = useFieldHost();
   const coarse = useCoarse();
+  const reduced = useReducedMotion();
   const [head, ...tail] = title.split(" ");
 
   return (
-    <section aria-labelledby="nf-title" className="flex min-h-svh flex-col justify-between pb-32 pt-[calc(var(--nav-h)+1rem)] md:pb-36">
+    <section aria-labelledby="nf-title" className="flex min-h-svh flex-col justify-between pb-24 pt-[calc(var(--nav-h)+1rem)] md:[@media(min-height:501px)]:pb-36">
       <div className="frame flex items-center justify-between gap-6 font-mono text-[0.6875rem] uppercase tracking-[0.14em] text-(--fg)/75">
         <p className="flex items-center gap-2">
           <Led tone="accent" pulse={live} />
@@ -117,9 +122,11 @@ function Hero({ project }: { project: Project<LabScene> }) {
         <div className="mt-6 flex flex-wrap items-end justify-between gap-x-10 gap-y-6 md:mt-8">
           <p className="nf-shade max-w-[24ch] font-serif text-[1.45rem] italic leading-[1.08] md:text-[1.9rem]">{tagline}</p>
           <div className="flex flex-col items-start gap-3 sm:items-end">
-            <p className="nf-shade font-mono text-[0.6875rem] uppercase tracking-[0.14em] text-(--fg)/75">
-              {coarse ? "Tap the field to stir it" : "Move over the field to stir it"}
-            </p>
+            {gl !== false && !reduced && (
+              <p className="nf-shade font-mono text-[0.6875rem] uppercase tracking-[0.14em] text-(--fg)/75">
+                {coarse ? "Tap the field to stir it" : "Move over the field to stir it"}
+              </p>
+            )}
             <div className="flex flex-wrap gap-2">
               {links.map((l, i) => (
                 <a
@@ -127,6 +134,7 @@ function Hero({ project }: { project: Project<LabScene> }) {
                   href={l.href}
                   className="nf-chip"
                   data-tone={i === 0 ? "accent" : undefined}
+                  data-chaos-escape={i > 0 || undefined}
                   data-cursor="hover"
                   onPointerEnter={() => play("tick")}
                   onClick={() => play("click")}

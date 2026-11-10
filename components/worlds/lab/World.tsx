@@ -11,7 +11,7 @@ import { FieldProvider } from "./FieldHost";
 import { Flow } from "./Flow";
 import { Meters } from "./Meters";
 import { Notes } from "./Notes";
-import { Panel } from "./Panel";
+import { Panel, PanelHint } from "./Panel";
 import { PatchBay } from "./PatchBay";
 import type { LabScene } from "./scene";
 import { Stage } from "./Stage";
@@ -43,18 +43,21 @@ export default function LabWorld({ project }: WorldProps<LabScene>) {
     <FieldProvider field={field} accent={color.accent}>
       <div className="nf-world relative overflow-x-clip pb-28" style={palette}>
         <Stage project={project}>
-          <section id="preview" aria-labelledby="nf-play-h" className="frame flex min-h-svh scroll-mt-0 flex-col justify-end pb-32 pt-28 md:pb-36">
+          <section id="preview" aria-labelledby="nf-play-h" className="frame flex min-h-svh flex-col justify-end pb-24 pt-24 md:[@media(min-height:501px)]:pb-36">
             <h2 id="nf-play-h" className="sr-only">
               The instrument: every control is a shader uniform
             </h2>
-            <Panel model={scene.model} serial={scene.serial} />
+            <div className="mx-auto w-full max-w-[82rem]">
+              <PanelHint />
+              <Panel model={scene.model} serial={scene.serial} />
+            </div>
           </section>
           <Story project={project} />
           <Notes steps={project.process} notes={scene.patchNotes} />
         </Stage>
         <PatchBay decisions={project.decisions} />
         <Flow flow={scene.flow} tech={project.technologies} />
-        <Meters metrics={project.metrics} scales={scene.meters} />
+        <Meters metrics={project.metrics} scales={scene.meters} model={scene.model} />
       </div>
     </FieldProvider>
   );

@@ -40,11 +40,13 @@ export function Story({ project }: { project: Project<LabScene> }) {
     return () => io.disconnect();
   }, []);
 
+  // odd beats read from the right on a desk: the scrim darkens that side instead
   const tweak = on >= 0 ? beats[on].tweak : null;
   useEffect(() => {
     field.story(tweak);
-    scrim(tweak ? "story" : "none");
-  }, [field, scrim, tweak]);
+    if (on < 0) scrim("none", ["story", "story-r"]);
+    else scrim(on % 2 ? "story-r" : "story");
+  }, [field, scrim, tweak, on]);
   useEffect(() => () => field.story(null), [field]);
 
   return (
@@ -57,7 +59,7 @@ export function Story({ project }: { project: Project<LabScene> }) {
           key={b.lead || i}
           ref={(el) => void (refs.current[i] = el)}
           data-on={on === i || undefined}
-          className={cn("nf-beat frame", i === 1 && "md:justify-end")}
+          className={cn("nf-beat frame", i % 2 === 1 && "md:justify-end")}
         >
           <div className="max-w-[46rem]">
             <h3 data-chaos-type className={cn("nf-lead", `nf-lead-${i}`)}>

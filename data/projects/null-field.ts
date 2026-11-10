@@ -36,7 +36,7 @@ export const nullField: Project<LabScene> = {
   environment: "lab",
   metrics: [
     { label: "Presets in memory", value: "64", note: "kept after a year of evenings" },
-    { label: "Frames per second", value: "120", note: "laptop GPU, pixel size 3" },
+    { label: "GPU ms per frame", value: "2.1", note: "integrated laptop graphics, pixel size 3" },
     { label: "Lines of GLSL", value: "1.9k", note: "half of it is the dither, somehow" },
     { label: "Accidents in client work", value: "4", note: "two album covers, a launch film, a club visual" },
   ],
@@ -58,7 +58,7 @@ export const nullField: Project<LabScene> = {
     },
     {
       title: "Feedback and fat pixels",
-      body: "The field renders at a fraction of the screen and remembers its last frame. Trails for free, 120 fps on a laptop.",
+      body: "The noise is shaded once per cell, never per pixel, and the field remembers its last frame. Trails for free, two milliseconds a frame on a laptop.",
     },
     {
       title: "Presets as memory",
@@ -82,7 +82,7 @@ export const nullField: Project<LabScene> = {
         { label: "Fat pixels + dither", note: "A ninth of the pixels to shade, and the dither turned out to be the look." },
       ],
       chosen: 1,
-      why: "The constraint paid twice: 120 fps and a style I didn't have to invent.",
+      why: "The constraint paid twice: a laptop GPU barely notices, and a style I didn't have to invent.",
     },
     {
       question: "Listen to the microphone?",
@@ -237,7 +237,8 @@ export const nullField: Project<LabScene> = {
     ],
     meters: [
       { max: 80, ticks: [0, 20, 40, 60, 80], red: 60 },
-      { max: 144, ticks: [0, 30, 60, 90, 120], red: 120 },
+      // milliseconds: the red zone starts where a 144 Hz frame runs out
+      { max: 8, ticks: [0, 2, 4, 6, 8], red: 6.9 },
       { max: 2400, ticks: [0, 600, 1200, 1800, 2400], red: 2000 },
       { max: 8, ticks: [0, 2, 4, 6, 8], red: 6 },
     ],
