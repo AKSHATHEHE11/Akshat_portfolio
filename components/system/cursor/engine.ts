@@ -73,6 +73,7 @@ export function createCursor(blend: HTMLElement, solid: HTMLElement, getLenis: (
   let reduced = false;
   let touch = false;
   let shown = false;
+  let labelText = ""; // what the disc label says now
   let down = false;
   let scrolling = false;
   let calmAt = 0;
@@ -162,9 +163,12 @@ export function createCursor(blend: HTMLElement, solid: HTMLElement, getLenis: (
   }
 
   function setKind(next: CursorKind, nextHost: HTMLElement | null, under: Element | null) {
-    if (next === kind && nextHost === host) return;
+    // a host can change its label in place (READ → CLOSE after a click), so compare that too
+    const text = isDisc(next) ? nextHost?.dataset.cursorLabel?.trim() || LABEL[next] : "";
+    if (next === kind && nextHost === host && text === labelText) return;
     kind = next;
     host = nextHost;
+    labelText = text;
     wrap = false;
     if (next === "hover" && nextHost) {
       const b = nextHost.getBoundingClientRect();
@@ -172,7 +176,6 @@ export function createCursor(blend: HTMLElement, solid: HTMLElement, getLenis: (
       wrap = b.width > 0 && b.height > 0 && b.width <= WRAP.w && b.height <= WRAP.h;
       radius = radiusOf(nextHost, b.width, b.height);
     } else if (isDisc(next)) {
-      const text = nextHost?.dataset.cursorLabel?.trim() || LABEL[next];
       disc.dataset.kind = next;
       size = Math.round(Math.max(84, text.length * 7.6 + (next === "drag" ? 52 : 44)));
       put(disc, "width", `${size}px`);
@@ -216,6 +219,10 @@ export function createCursor(blend: HTMLElement, solid: HTMLElement, getLenis: (
   };
   const onDown = (e: PointerEvent) => {
     touch = e.pointerType === "touch";
+  };
+  // a click often changes its host's label or kind in place: look again once React has re-rendered
+  const onClick = () => {
+    if (!touch) requestAnimationFrame(probe);
   };
 
   const tick = () => {
@@ -353,6 +360,7 @@ export function createCursor(blend: HTMLElement, solid: HTMLElement, getLenis: (
 
   document.addEventListener("pointerover", onOver, { passive: true });
   document.addEventListener("pointerdown", onDown, { passive: true, capture: true });
+  document.addEventListener("click", onClick, { passive: true, capture: true });
   gsap.ticker.add(tick);
   probe();
 
@@ -369,6 +377,7 @@ export function createCursor(blend: HTMLElement, solid: HTMLElement, getLenis: (
       gsap.ticker.remove(tick);
       document.removeEventListener("pointerover", onOver);
       document.removeEventListener("pointerdown", onDown, true);
+      document.removeEventListener("click", onClick, true);
       gsap.killTweensOf([pos, look, ripple, label]);
       html.classList.remove("has-cursor");
     },
