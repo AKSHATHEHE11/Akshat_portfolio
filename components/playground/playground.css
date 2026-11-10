@@ -250,8 +250,36 @@
 }
 .pg-zone {
   display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
   align-items: flex-start;
   min-width: 0;
+}
+/* the note printed on the mat above each toy: what it is, what to do. Its own line (basis 100%),
+   so the toy below keeps its row layout */
+.pg-note {
+  flex-basis: 100%;
+  margin: 0 0 16px;
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--fg-muted);
+  text-wrap: balance;
+}
+.pg-note::before {
+  content: "↘ ";
+  color: var(--signal);
+}
+:is(.pg-zone-key, .pg-zone-hunt, .pg-zone-well, .pg-zone-form, .pg-zone-stamp) .pg-note {
+  text-align: center;
+}
+.pg-intro {
+  max-width: 40ch;
+  font-size: 1.0625rem;
+  line-height: 1.5;
+  color: var(--fg-muted);
+  text-wrap: pretty;
 }
 .pg-zone-key,
 .pg-zone-hunt,

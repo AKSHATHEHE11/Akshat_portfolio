@@ -1,6 +1,21 @@
 // Every line of text the lab shows. It is UI copy (labels, quips, the legend), not portfolio content —
 // ponytail: lives beside the toys; move to data/ if it ever needs editing without touching code.
 
+/** Under the title: what this page is, for someone who just landed on it. */
+export const INTRO =
+  "Small toys I built to test how an interface should feel. None of them is useful; all of them want to be touched. The note above each one says what to do.";
+
+/** The note printed on the mat above each toy (by zone). */
+export const HINTS = {
+  tray: "Throw what’s in the tray · flip gravity · try the magnet",
+  key: "A 3D keycap · spin it, press it, or type any key",
+  stamp: "Click any bare patch of mat to stamp it",
+  win: "Drag the windows · set type, play notes, pick a colour",
+  hunt: "Press start · squash the bugs before time runs out",
+  well: "A gravity well · bring your cursor close",
+  form: "A joke about forms that fight back · it saves nothing",
+};
+
 export const LEGEND: { id: string; name: string; line: string; keys: string[] }[] = [
   { id: "tray", name: "Tray", line: "Throw things. Gravity has three settings; the magnet only likes metal. Focused, arrows tilt it and Space shakes it.", keys: ["G", "M"] },
   { id: "win", name: "Windows", line: "Drag them by the bar. Focus a bar and the arrows move it.", keys: ["←", "→"] },

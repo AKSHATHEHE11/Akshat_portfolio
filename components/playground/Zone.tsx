@@ -2,6 +2,7 @@
 import { useRef, useState, type ReactNode } from "react";
 import { useOnScreen } from "@/lib/hooks";
 import { cn } from "@/lib/utils";
+import { HINTS } from "./copy";
 
 /**
  * A patch of mat that holds one toy. The toy's static shell renders straight away; `near` latches
@@ -15,7 +16,7 @@ export function Zone({
   className,
   children,
 }: {
-  area: string;
+  area: keyof typeof HINTS;
   /** label for the global scroll rail */
   rail?: string;
   className?: string;
@@ -35,6 +36,7 @@ export function Zone({
       style={{ gridArea: area }}
       data-zone={area}
     >
+      <p className="pg-note">{HINTS[area]}</p>
       {children({ near, active })}
     </div>
   );
