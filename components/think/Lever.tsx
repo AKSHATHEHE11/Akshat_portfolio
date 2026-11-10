@@ -71,7 +71,8 @@ export function Lever({
       aria-describedby={describedBy}
       data-on={on ? "1" : "0"}
       data-cursor={coarse ? "hover" : "drag"}
-      data-cursor-label={on ? "OFF" : "ON"}
+      // static on purpose: the cursor reads its label on enter, so ON/OFF would go stale after a click
+      data-cursor-label="THROW"
       className={cn("tk-lever", className)}
       onPointerEnter={() => play("tick")}
       onPointerDown={(e) => {
