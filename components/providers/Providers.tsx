@@ -70,7 +70,8 @@ function ScrollSync() {
     const id = decodeURIComponent(window.location.hash.slice(1));
     const el = id ? document.getElementById(id) : null;
     hold.current = el;
-    lenis?.scrollTo(0, { immediate: true, force: true });
+    // with a target, never pass through the top: the browser has usually jumped to it already
+    if (!el) lenis?.scrollTo(0, { immediate: true, force: true });
     const raf = requestAnimationFrame(() => {
       ScrollTrigger.refresh();
       if (el) toSection(lenis, el);
