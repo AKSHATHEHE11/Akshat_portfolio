@@ -1,0 +1,157 @@
+/* BUILD SYSTEM — namespace ab-sys-. */
+.ab-sys {
+  --ab-machine: cubic-bezier(0.7, 0, 0.2, 1);
+  --ab-snap: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.ab-sys ul {
+  display: contents;
+}
+.ab-sys-wires {
+  position: absolute;
+  inset: 0;
+  overflow: visible;
+  pointer-events: none;
+}
+.ab-sys-wires path {
+  fill: none;
+  stroke: var(--fg);
+  stroke-opacity: 0.32;
+  stroke-width: 1.25;
+}
+.ab-sys-wires [data-off] {
+  stroke: var(--signal);
+  stroke-opacity: 0.95;
+  stroke-dasharray: 4 3;
+}
+/* the probe's wire: root → group, then group → part (pathLength=1, so dash 1 = the whole wire) */
+.ab-sys-lit path {
+  stroke: var(--signal);
+  stroke-opacity: 1;
+  stroke-width: 2.25;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: ab-sys-draw 320ms var(--ab-machine) forwards;
+}
+.ab-sys-lit .ab-sys-lit-2 {
+  animation-delay: 260ms;
+}
+@keyframes ab-sys-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.ab-sys-root {
+  position: absolute;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.3rem;
+  padding: 0 0.9rem;
+  border: 1.5px solid var(--fg);
+  border-radius: 4px;
+  background: var(--surface);
+}
+/* DIP pins along the long edges */
+.ab-sys-root::before,
+.ab-sys-root::after {
+  content: "";
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  height: 5px;
+  background: repeating-linear-gradient(90deg, var(--fg) 0 3px, transparent 3px 11px);
+}
+.ab-sys-root::before {
+  top: -6.5px;
+}
+.ab-sys-root::after {
+  bottom: -6.5px;
+}
+.ab-sys[data-mode="tall"] .ab-sys-root::before {
+  display: none;
+}
+.ab-sys[data-mode="tall"] .ab-sys-root::after {
+  left: 6px;
+  right: auto;
+  width: 13px;
+}
+
+.ab-sys-group,
+.ab-sys-skill {
+  position: absolute;
+  -webkit-tap-highlight-color: transparent;
+}
+.ab-sys-group {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 0.75rem;
+  border: 1px solid var(--line-strong);
+  border-radius: 4px;
+  background: var(--bg);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  transition:
+    opacity 300ms,
+    background-color 220ms,
+    color 220ms;
+}
+/* 44px touch target without changing the chip */
+.ab-sys-group::after {
+  content: "";
+  position: absolute;
+  inset: -6px -1px;
+}
+.ab-sys-group[data-on] {
+  background: var(--fg);
+  color: var(--bg);
+}
+.ab-sys-group[data-on] > .text-fg-muted {
+  color: inherit;
+  opacity: 0.6;
+}
+.ab-sys-skill {
+  right: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding-right: 0.15rem;
+  text-align: left;
+  font-size: 0.9375rem;
+  transition: opacity 300ms;
+}
+.ab-sys-pad {
+  flex: none;
+  width: 9px;
+  height: 9px;
+  border: 1.5px solid var(--fg);
+  background: var(--bg);
+  transition:
+    background-color 200ms,
+    border-color 200ms,
+    transform 300ms var(--ab-snap);
+}
+.ab-sys-skill[data-on] .ab-sys-pad {
+  border-color: var(--signal);
+  background: var(--signal);
+  transform: scale(1.35);
+}
+.ab-sys-leader {
+  flex: 1;
+  min-width: 0.75rem;
+  border-bottom: 1px dotted color-mix(in oklab, var(--fg) 35%, transparent);
+}
+.ab-sys[data-probe] .ab-sys-group:not([data-on]),
+.ab-sys[data-probe] .ab-sys-skill:not([data-on]) {
+  opacity: 0.38;
+}
+.ab-sys-flag {
+  padding: 0.1rem 0.35rem;
+  background: var(--signal);
+  color: var(--signal-ink);
+}

@@ -1,0 +1,974 @@
+/* ── Experiment lab (namespace: xp-) ─────────────────────────────────────────
+   A bench of specimen stations. Each station: a title, a riveted spec plate, the instruction verb,
+   the note, and the chamber — a dark instrument (bar + screen) that holds the live piece.
+   Never give a station ancestor a z-index/transform/isolation: the chamber's no-API fullscreen
+   (phones) is position:fixed and must escape to the page's stacking context. */
+
+/* ── header ── */
+.xp-head {
+  display: grid;
+  gap: clamp(2rem, 4vw, 3rem) var(--gutter);
+  padding-top: calc(var(--nav-h) + clamp(2rem, 5vw, 4.5rem));
+  padding-bottom: clamp(3.5rem, 8vw, 6.5rem);
+}
+@media (min-width: 1024px) {
+  .xp-head {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    align-items: start;
+  }
+  .xp-head > .xp-h1 {
+    grid-column: 1 / -1;
+  }
+  .xp-head > .xp-lede {
+    grid-column: 1 / span 5;
+  }
+  .xp-head > .xp-rack {
+    grid-column: 7 / -1;
+  }
+}
+/* "EXPERIMENTS," must fit the frame at every width: ~7.4em wide at wdth 88 */
+.xp-h1 {
+  font-size: clamp(2.5rem, calc(12.4vw - 0.3rem), 11.75rem);
+  line-height: 0.84;
+}
+.xp-lede {
+  max-width: 34ch;
+}
+.xp-h1 .display {
+  font-variation-settings: "wdth" 88;
+}
+.xp-mask {
+  display: block;
+  overflow: clip;
+  padding-bottom: 0.06em;
+}
+.xp-h1 .serif-accent {
+  font-size: 0.78em;
+  line-height: 0.95;
+  padding-right: 0.1em;
+}
+
+/* intro: keyed on <html data-booted> (set before first paint); [data-intro] = the client is alive */
+html[data-booted="0"] .xp-head[data-intro] [data-in] {
+  opacity: 0;
+}
+html[data-booted="1"] .xp-head [data-in] {
+  animation: xp-rise 1.05s var(--ease-out-expo) both;
+  animation-delay: var(--d, 0ms);
+}
+html[data-booted="1"] .xp-head [data-in="fade"] {
+  animation-name: xp-fade;
+}
+@keyframes xp-rise {
+  from {
+    transform: translateY(112%) rotate(2deg);
+  }
+}
+@keyframes xp-fade {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .xp-head [data-in] {
+    animation: none !important;
+  }
+}
+
+/* ── the rack: an index of the bench ── */
+.xp-rack ol {
+  border-top: 1px solid var(--line-strong);
+}
+.xp-row {
+  display: grid;
+  grid-template-columns: 4.6rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.9rem;
+  min-height: 3rem;
+  padding-inline: 0.35rem;
+  border-bottom: 1px solid var(--line);
+  transition: background-color var(--dur-hover) var(--ease-out-quart);
+}
+.xp-row:focus-visible {
+  outline-offset: -2px;
+}
+@media (hover: hover) {
+  .xp-row:hover {
+    background: var(--surface-2);
+  }
+}
+.xp-row-name {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  min-width: 0;
+  font-weight: 600;
+  font-size: 1.05rem;
+  letter-spacing: -0.01em;
+}
+.xp-row-name::after {
+  content: "";
+  flex: 1;
+  min-width: 1rem;
+  border-bottom: 1px dotted color-mix(in oklab, var(--fg) 35%, transparent);
+  transform: translateY(-0.3em);
+}
+.xp-row-id {
+  position: relative;
+  justify-self: start;
+  padding: 0.2rem 0.35rem;
+}
+.xp-row[data-active] .xp-row-id {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+.xp-row-run {
+  display: none;
+}
+.xp-row[data-active] .xp-row-run {
+  display: inline;
+}
+
+/* ── station ── */
+.xp-station {
+  scroll-margin-top: calc(var(--nav-h) + 1rem);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  column-gap: var(--gutter);
+  /* little above, a lot below: /experiments#slug lands with the title right under the nav */
+  padding-top: clamp(1.25rem, 2.2vw, 2rem);
+  padding-bottom: clamp(4.5rem, 9vw, 8.5rem);
+  border-top: 1px solid var(--line);
+}
+.xp-title {
+  grid-column: 1 / -1;
+  margin-bottom: clamp(1.1rem, 2.4vw, 2rem);
+  font-size: clamp(2.3rem, 0.4rem + 8.6vw, 8.25rem);
+  line-height: 0.86;
+}
+.xp-title .display {
+  line-height: 0.86;
+}
+/* phones: the same face, narrower — long single words (OSCILLOSCOPE) must never overflow */
+@media (max-width: 639px) {
+  .xp-title .display {
+    font-variation-settings: "wdth" 78;
+  }
+}
+.xp-plate-slot {
+  margin-bottom: 1.25rem;
+}
+.xp-verb {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+  font-size: var(--text-title);
+  line-height: 1;
+}
+.xp-verb svg {
+  flex: none;
+  width: 2.4rem;
+  height: auto;
+  color: var(--signal);
+  transform: rotate(90deg);
+}
+.xp-note {
+  max-width: 34ch;
+  margin-top: 1.25rem;
+  color: var(--fg-muted);
+}
+
+@media (min-width: 1024px) {
+  .xp-station {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    grid-template-rows: auto auto auto minmax(0, 1fr) auto;
+  }
+  .xp-title {
+    grid-row: 1;
+  }
+  .xp-chamber {
+    grid-row: 2 / span 4;
+    grid-column: 1 / span 8;
+  }
+  .xp-plate-slot,
+  .xp-note,
+  .xp-verb {
+    grid-column: 9 / -1;
+    padding-left: clamp(0rem, 1.5vw, 1.5rem);
+  }
+  .xp-plate-slot {
+    grid-row: 2;
+  }
+  .xp-note {
+    grid-row: 3;
+    margin-top: 0;
+  }
+  .xp-verb {
+    grid-row: 5;
+    margin-bottom: 0;
+    padding-bottom: 0.5rem;
+  }
+  .xp-verb svg {
+    transform: scaleX(-1);
+  }
+  /* even stations mirror: chamber on the right, title flush right */
+  .xp-station[data-side="right"] .xp-title {
+    text-align: right;
+  }
+  .xp-station[data-side="right"] .xp-chamber {
+    grid-column: 5 / -1;
+  }
+  .xp-station[data-side="right"] :is(.xp-plate-slot, .xp-note, .xp-verb) {
+    grid-column: 1 / span 4;
+    padding-left: 0;
+    padding-right: clamp(0rem, 1.5vw, 1.5rem);
+  }
+  .xp-station[data-side="right"] .xp-verb {
+    justify-content: flex-end;
+  }
+  .xp-station[data-side="right"] .xp-verb svg {
+    order: 2;
+    transform: none;
+  }
+}
+
+/* ── spec plate: a riveted cream nameplate (a physical object — same in both themes) ── */
+.xp-plate {
+  position: relative;
+  display: grid;
+  gap: 0.55rem;
+  max-width: 24rem;
+  padding: 0.95rem 1.2rem 1rem;
+  border-radius: 6px;
+  background: linear-gradient(180deg, #efe9de, #e3dccf);
+  color: #111111;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.75),
+    inset 0 -1px 0 rgb(0 0 0 / 0.12),
+    0 1px 0 rgb(0 0 0 / 0.22),
+    0 12px 22px -14px rgb(0 0 0 / 0.5);
+}
+.xp-plate-rule {
+  height: 1px;
+  background: rgb(17 17 17 / 0.16);
+  box-shadow: 0 1px 0 rgb(255 255 255 / 0.6);
+}
+.xp-plate .label {
+  color: #111111;
+}
+.xp-plate .xp-plate-tags {
+  color: #4f4c45;
+}
+.xp-screw {
+  position: absolute;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #ffffff, #a59e90 58%, #6c6559);
+  box-shadow: 0 0.5px 0 rgb(255 255 255 / 0.8);
+}
+.xp-screw::after {
+  content: "";
+  position: absolute;
+  left: 1px;
+  right: 1px;
+  top: 3px;
+  height: 1px;
+  background: rgb(0 0 0 / 0.5);
+  transform: rotate(var(--r, 30deg));
+}
+.xp-led {
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  animation: var(--animate-pulse-dot);
+}
+.xp-led[data-tone="stable"] {
+  background: #1fc25b;
+  color: #1fc25b;
+}
+.xp-led[data-tone="unstable"] {
+  background: #b9d600;
+  color: #b9d600;
+}
+.xp-led[data-tone="volatile"] {
+  background: #ff5a1f;
+  color: #ff5a1f;
+  animation-duration: 0.7s;
+}
+html[data-chaos="on"] .xp-led {
+  background: #ff5a1f;
+  color: #ff5a1f;
+  animation-duration: 0.42s;
+}
+
+/* chaos: the bench labels glitch (small elements only — clip-path stays cheap here) */
+html[data-chaos="on"] .xp-glitch {
+  display: inline-block;
+  animation: xp-glitch 2.8s steps(1, end) infinite;
+  animation-delay: var(--gd, 0s);
+}
+@keyframes xp-glitch {
+  0%,
+  88%,
+  100% {
+    transform: none;
+    clip-path: none;
+  }
+  90% {
+    transform: translateX(-4px) skewX(-14deg);
+    clip-path: inset(0 0 55% 0);
+  }
+  92% {
+    transform: translateX(5px);
+    clip-path: inset(45% 0 0 0);
+    color: #ff5a1f;
+  }
+  94% {
+    transform: translateX(-2px) scaleX(1.25);
+    clip-path: inset(25% 0 30% 0);
+  }
+  96% {
+    transform: translateX(1px);
+    clip-path: none;
+    color: #ff5a1f;
+  }
+}
+
+/* ── chamber: the instrument that holds the live piece ── */
+.xp-chamber {
+  --xp-body: #111111;
+  /* keycaps inside an instrument are physical: cream in both themes */
+  --surface: #f8f7f3;
+  --fg: #111111;
+  --line: rgb(17 17 17 / 0.16);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  /* title + chamber fit one screen under the nav */
+  height: clamp(26rem, calc(100svh - var(--nav-h) - 14rem), 47rem);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--xp-body);
+  color: #f2eee7;
+  box-shadow:
+    0 0 0 1px rgb(0 0 0 / 0.55),
+    var(--shadow-float);
+}
+[data-theme="dark"] .xp-chamber {
+  --xp-body: #1c1b19;
+  box-shadow: 0 0 0 1px rgb(242 238 231 / 0.1);
+}
+@media (max-width: 1023px) {
+  /* phones/tablets: title, verb, chamber, then the plate and note */
+  .xp-title {
+    order: 1;
+  }
+  .xp-verb {
+    order: 2;
+  }
+  .xp-chamber {
+    order: 3;
+    height: clamp(24rem, calc(100svh - var(--nav-h) - 9.5rem), 46rem);
+  }
+  .xp-plate-slot {
+    order: 4;
+    margin-top: 1.5rem;
+    margin-bottom: 0;
+  }
+  .xp-note {
+    order: 5;
+  }
+}
+@media (max-width: 639px) {
+  .xp-chamber {
+    margin-inline: calc(var(--margin) * -1);
+    border-radius: 0;
+    box-shadow: none;
+  }
+}
+/* phones in landscape: the chamber is the screen */
+@media (max-height: 500px) and (orientation: landscape) {
+  .xp-chamber {
+    height: calc(100svh - var(--nav-h) - 1rem);
+  }
+}
+.xp-chamber:fullscreen {
+  height: 100%;
+  border-radius: 0;
+  margin: 0;
+}
+.xp-chamber[data-full="css"] {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  height: auto;
+  margin: 0;
+  border-radius: 0;
+  padding: var(--safe-top) var(--safe-right) var(--safe-bottom) var(--safe-left);
+}
+
+.xp-bar {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 3.5rem;
+  padding: 0.45rem 0.5rem 0.45rem 0.85rem;
+  color: rgb(242 238 231 / 0.72);
+}
+.xp-bar .label {
+  color: inherit;
+}
+.xp-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  padding-right: 0.25rem;
+  color: #f2eee7;
+}
+.xp-state-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 1px;
+  background: rgb(242 238 231 / 0.55);
+}
+.xp-chamber[data-live] .xp-state-dot {
+  border-radius: 50%;
+  background: #ff5a1f;
+  color: #ff5a1f;
+  animation: var(--animate-pulse-dot);
+}
+button.xp-state:hover .xp-state-run,
+button.xp-state:focus-visible .xp-state-run {
+  color: #d8ff00;
+}
+
+.xp-screen {
+  position: relative;
+  container-type: inline-size;
+  flex: 1;
+  min-height: 0;
+  margin: 0 6px 6px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #0b0b0a;
+  box-shadow: inset 0 0 0 1px rgb(242 238 231 / 0.07);
+}
+@media (max-width: 639px) {
+  .xp-screen {
+    margin: 0;
+    border-radius: 0;
+  }
+}
+.xp-chamber:fullscreen .xp-screen,
+.xp-chamber[data-full="css"] .xp-screen {
+  margin: 0;
+  border-radius: 0;
+}
+
+.xp-loading {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: rgb(242 238 231 / 0.55);
+}
+.xp-loading::after {
+  content: "_";
+  margin-left: 0.2em;
+  animation: var(--animate-blink);
+}
+
+/* ── end of the bench ── */
+.xp-end {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding-top: clamp(3rem, 7vw, 6rem);
+  padding-bottom: clamp(5rem, 10vw, 8rem);
+  border-top: 1px solid var(--line);
+}
+
+/* ── EXP-01 liquid type: a type-specimen sheet ── */
+.xp-liquid {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: #f2eee7;
+  color: #111111;
+  touch-action: pan-y;
+  -webkit-user-select: none;
+  user-select: none;
+}
+[data-theme="dark"] .xp-liquid {
+  background: #0b0b0a;
+  color: #f2eee7;
+}
+.xp-liquid-word {
+  position: relative;
+  display: flex;
+  align-items: baseline;
+  font-family: var(--font-display);
+  font-variation-settings: "wght" 300, "wdth" 100;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  white-space: pre;
+}
+.xp-liquid-ch {
+  display: inline-block;
+  transform-origin: 50% 84%;
+  will-change: transform;
+}
+html[data-chaos="on"] .xp-liquid-word {
+  color: #ff5a1f;
+}
+.xp-liquid-caret {
+  align-self: center;
+  width: 0.06em;
+  height: 0.78em;
+  margin-left: 0.04em;
+  background: #ff5a1f;
+  opacity: 0;
+}
+.xp-liquid:focus-within .xp-liquid-caret {
+  opacity: 1;
+  animation: var(--animate-blink);
+}
+.xp-liquid-guides {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 0;
+  pointer-events: none;
+}
+.xp-liquid-guides span {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 0;
+  border-top: 1px dashed rgb(17 17 17 / 0.16);
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-align: right;
+  line-height: 1.6;
+  padding-right: 0.85rem;
+  color: rgb(17 17 17 / 0.45);
+}
+[data-theme="dark"] .xp-liquid-guides span {
+  border-color: rgb(242 238 231 / 0.14);
+  color: rgb(242 238 231 / 0.4);
+}
+.xp-liquid-readout {
+  position: absolute;
+  left: 0.85rem;
+  top: 0.75rem;
+  color: rgb(17 17 17 / 0.6);
+  white-space: pre;
+}
+[data-theme="dark"] .xp-liquid-readout {
+  color: rgb(242 238 231 / 0.55);
+}
+.xp-liquid-tape {
+  position: absolute;
+  left: 0.6rem;
+  bottom: 0.6rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 2.75rem;
+  padding: 0 0.4rem 0 0.75rem;
+  border-radius: 4px;
+  background: #111111;
+  color: #f2eee7;
+  cursor: text;
+}
+.xp-liquid-tape .label {
+  color: #ff5a1f;
+}
+.xp-liquid-tape input {
+  width: 11ch;
+  min-height: 2.25rem;
+  background: transparent;
+  border: 0;
+  outline: none;
+  color: inherit;
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  letter-spacing: 0.04em;
+}
+.xp-liquid-tape:focus-within {
+  outline: 2px solid #ff5a1f;
+  outline-offset: 2px;
+}
+.xp-liquid-tape input::placeholder {
+  color: rgb(242 238 231 / 0.4);
+}
+
+/* ── EXP-03 pattern machine: the poster on a dark wall, the knob rack beside it ── */
+.xp-pm {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 15.5rem;
+}
+.xp-pm-stage {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  min-height: 0;
+  background: radial-gradient(ellipse at 50% 40%, #1d1c1a, #0b0b0a 70%);
+}
+.xp-pm-poster {
+  display: block;
+  box-shadow:
+    0 34px 60px -28px rgb(0 0 0 / 0.9),
+    0 0 0 1px rgb(255 255 255 / 0.05);
+}
+.xp-pm-panel {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1.4rem;
+  padding: 1.25rem 1.1rem;
+  border-left: 1px solid rgb(242 238 231 / 0.08);
+}
+.xp-pm-knobs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.4rem 0.5rem;
+}
+.xp-pm-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+@container (max-width: 620px) {
+  .xp-pm {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) auto;
+  }
+  .xp-pm-panel {
+    gap: 0.9rem;
+    padding: 0.9rem var(--margin) 1rem;
+    border-left: 0;
+    border-top: 1px solid rgb(242 238 231 / 0.08);
+  }
+  .xp-pm-knobs {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.25rem;
+  }
+}
+
+.xp-knob {
+  display: grid;
+  justify-items: center;
+  gap: 0.3rem;
+  min-width: 0;
+}
+.xp-knob-dial {
+  position: relative;
+  width: 3.5rem;
+  height: 3.5rem;
+  margin: 0.45rem;
+  border-radius: 50%;
+  touch-action: none;
+  cursor: grab;
+}
+.xp-knob-dial:active {
+  cursor: grabbing;
+}
+.xp-knob-dial:focus-visible {
+  outline-offset: 0.55rem;
+  border-radius: 50%;
+}
+.xp-knob-scale {
+  position: absolute;
+  inset: -0.5rem;
+  overflow: visible;
+  stroke: rgb(242 238 231 / 0.4);
+  stroke-width: 2.6;
+  stroke-linecap: round;
+}
+.xp-knob-cap {
+  position: absolute;
+  inset: 0.25rem;
+  border-radius: 50%;
+  background: radial-gradient(circle at 34% 28%, #fffdf8, #ebe5d9 42%, #b9b1a2);
+  box-shadow:
+    0 7px 12px -5px rgb(0 0 0 / 0.75),
+    inset 0 -2px 0 rgb(0 0 0 / 0.16),
+    inset 0 1px 0 #ffffff;
+  will-change: transform;
+}
+.xp-knob-mark {
+  position: absolute;
+  left: 50%;
+  top: 9%;
+  width: 3px;
+  height: 32%;
+  margin-left: -1.5px;
+  border-radius: 2px;
+  background: #ff5a1f;
+}
+.xp-knob-label {
+  color: rgb(242 238 231 / 0.55);
+}
+.xp-knob-value {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #f2eee7;
+}
+
+/* ── shared by the specimens: overlay labels on the dark screen ── */
+.xp-pf-readout,
+.xp-pf-hint,
+.xp-ascii-hint {
+  position: absolute;
+  pointer-events: none;
+  color: rgb(242 238 231 / 0.55);
+}
+.xp-pf-readout {
+  left: 0.85rem;
+  top: 0.75rem;
+}
+.xp-pf-hint,
+.xp-ascii-hint {
+  right: 0.85rem;
+  bottom: 0.75rem;
+}
+/* in a fullscreen chamber nothing scrolls: the specimen gets every gesture */
+.xp-chamber:is(:fullscreen, [data-full]) :is(.xp-pf, .xp-ascii) {
+  touch-action: none;
+}
+
+/* ── EXP-02 particle field ── */
+.xp-pf {
+  position: absolute;
+  inset: 0;
+  touch-action: pan-y;
+  outline-offset: -3px;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.xp-pf-still {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.xp-pf[data-live] .xp-pf-still {
+  opacity: 0;
+}
+
+/* ── EXP-04 oscilloscope: a phosphor tube over a key deck ── */
+.xp-osc {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+}
+.xp-osc-scope {
+  position: relative;
+  margin: 0.6rem 0.6rem 0;
+  border-radius: 6px;
+  overflow: hidden;
+  /* graticule: 10 × 8 divisions, static */
+  background:
+    linear-gradient(rgb(255 90 31 / 0.09) 1px, transparent 1px) 0 0 / 10% 12.5%,
+    linear-gradient(90deg, rgb(255 90 31 / 0.09) 1px, transparent 1px) 0 0 / 10% 12.5%,
+    radial-gradient(ellipse at 50% 50%, #17110d, #0b0b0a 75%);
+  box-shadow:
+    inset 0 0 0 1px rgb(242 238 231 / 0.08),
+    inset 0 0 60px rgb(255 90 31 / 0.05);
+}
+.xp-osc-scope::before,
+.xp-osc-scope::after {
+  content: "";
+  position: absolute;
+  background: rgb(255 90 31 / 0.22);
+  pointer-events: none;
+}
+.xp-osc-scope::before {
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 1px;
+}
+.xp-osc-scope::after {
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 1px;
+}
+.xp-osc-scope canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.xp-osc-tl,
+.xp-osc-tr,
+.xp-osc-bl {
+  position: absolute;
+  z-index: 1;
+  pointer-events: none;
+  color: rgb(242 238 231 / 0.6);
+}
+.xp-osc-tl {
+  left: 0.75rem;
+  top: 0.65rem;
+}
+.xp-osc-tr {
+  right: 0.75rem;
+  top: 0.65rem;
+  display: grid;
+  justify-items: end;
+  gap: 0.15rem;
+  text-align: right;
+  color: #f2eee7;
+}
+.xp-osc-chord {
+  font-size: 1.6rem;
+  line-height: 1;
+  letter-spacing: 0;
+  text-transform: none;
+  color: #ff5a1f;
+}
+.xp-osc-bl {
+  left: 0.75rem;
+  bottom: 0.65rem;
+}
+.xp-osc-deck {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.75rem 1.25rem;
+  padding: 0.75rem 0.6rem 0.6rem;
+}
+.xp-osc-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.xp-osc-keys {
+  display: grid;
+  flex: 1 1 22rem;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 5px;
+  max-width: 42rem;
+  margin-left: auto;
+  /* pressing keys is grabbing: no scroll, no long-press menu */
+  touch-action: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.xp-osc-key {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-start;
+  min-width: 0;
+  height: 4.5rem;
+  padding: 0.45rem 0.5rem;
+  border-radius: 4px 4px 9px 9px;
+  background: linear-gradient(180deg, #fbfaf6, #ebe5d9);
+  color: #111111;
+  box-shadow: var(--shadow-key);
+  transition:
+    transform var(--dur-micro, 120ms) var(--ease-out-quart),
+    box-shadow var(--dur-micro, 120ms) var(--ease-out-quart),
+    background-color var(--dur-micro, 120ms);
+}
+.xp-osc-key[data-down] {
+  transform: translateY(2px);
+  background: #ff5a1f;
+  box-shadow: var(--shadow-key-down);
+}
+.xp-osc-letter {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.15rem;
+  line-height: 1;
+}
+.xp-osc-note {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.06em;
+  opacity: 0.6;
+}
+@container (max-width: 620px) {
+  .xp-osc-scope {
+    margin: 0;
+    border-radius: 0;
+  }
+  .xp-osc-deck {
+    padding-inline: var(--margin);
+  }
+  .xp-osc-keys {
+    flex-basis: 100%;
+    gap: 4px;
+  }
+  .xp-osc-key {
+    height: 3.75rem;
+    padding: 0.4rem 0.35rem;
+  }
+}
+
+/* ── EXP-06 ascii room ── */
+.xp-ascii {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: #0b0b0a;
+  color: #ff5a1f;
+  touch-action: pan-y;
+  outline-offset: -3px;
+  cursor: grab;
+  -webkit-user-select: none;
+  user-select: none;
+}
+html[data-chaos="on"] .xp-ascii {
+  color: #d8ff00;
+}
+/* only the characters are ever shown */
+.xp-ascii canvas {
+  opacity: 0 !important;
+}
+/* the live AsciiEffect table, and the still: one font, one grid (13.33px cells, -1px tracking) */
+.xp-ascii table,
+.xp-ascii-still {
+  font-family: var(--font-mono) !important;
+}
+.xp-ascii-still {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  margin: 0;
+  transform: translate(-50%, -50%);
+  /* the baked frame shrinks to fit narrow screens, never grows past the live cell size */
+  font-size: min(13.333px, calc(100cqw / (var(--cols) * 0.525)));
+  line-height: 1;
+  letter-spacing: -0.075em;
+  white-space: pre;
+  pointer-events: none;
+}
+.xp-ascii[data-live] .xp-ascii-still {
+  opacity: 0;
+}

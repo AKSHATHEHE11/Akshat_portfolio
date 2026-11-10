@@ -1,0 +1,402 @@
+/* ABOUT — namespace ab-. Eases are literal (@theme vars can be tree-shaken from plain CSS). */
+.ab-room,
+.ab-page {
+  --ab-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ab-snap: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ab-machine: cubic-bezier(0.7, 0, 0.2, 1);
+}
+
+/* text that swaps when a probe or the scanner moves: a short rise, no layout change */
+.ab-swap {
+  animation: ab-swap 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes ab-swap {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 10px, 0);
+  }
+}
+
+/* ── the room: shared ─────────────────────────────────────────────────── */
+.ab-obj {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  -webkit-tap-highlight-color: transparent;
+}
+.ab-obj:focus-visible {
+  outline: 2px solid var(--signal);
+  outline-offset: 6px;
+  border-radius: 10px;
+}
+.ab-obj svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+.ab-obj-body,
+.ab-obj-float {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+.ab-obj-body {
+  transition: transform 520ms var(--ab-expo);
+}
+.ab-obj-art {
+  transition: opacity 360ms var(--ab-expo);
+}
+.ab-obj[data-hot] .ab-obj-body,
+.ab-obj[data-state="open"] .ab-obj-body {
+  transform: translateY(-8px);
+}
+.ab-obj-shadow {
+  transition: opacity 360ms var(--ab-expo);
+}
+.ab-obj[data-hot] .ab-obj-shadow,
+.ab-obj[data-state="open"] .ab-obj-shadow {
+  opacity: 0.6;
+}
+
+/* little lives: only while looked at (idle = nothing animates) */
+.ab-caret {
+  animation: ab-caret 1.05s steps(1, end) infinite;
+}
+@keyframes ab-caret {
+  50% {
+    opacity: 0;
+  }
+}
+.ab-glow {
+  opacity: 0.75;
+  transition: opacity 500ms var(--ab-expo);
+}
+.ab-obj[data-hot] .ab-glow,
+.ab-obj[data-state="open"] .ab-glow {
+  opacity: 1;
+}
+.ab-obj[data-hot] .ab-bubbles circle,
+.ab-obj[data-state="open"] .ab-bubbles circle,
+.ab-room[data-float] .ab-bubbles circle {
+  animation: ab-bubble 1.5s ease-in infinite;
+}
+@keyframes ab-bubble {
+  0% {
+    transform: translateY(4px);
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-14px);
+    opacity: 0;
+  }
+}
+.ab-eyes circle {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.ab-obj[data-hot] .ab-eyes circle {
+  animation: ab-blink 2.4s steps(1, end) infinite;
+}
+@keyframes ab-blink {
+  0%,
+  46%,
+  54%,
+  100% {
+    transform: scaleY(1);
+  }
+  48%,
+  52% {
+    transform: scaleY(0.15);
+  }
+}
+.ab-key {
+  transition: transform 160ms var(--ab-snap);
+}
+.ab-obj[data-hot] .ab-key:last-child {
+  transform: translateY(2px);
+}
+
+/* chaos: gravity off. Everything lifts off the desk, then bobs */
+.ab-room[data-float] .ab-obj-float {
+  animation:
+    ab-rise 1.6s var(--ab-expo) both,
+    ab-bob var(--fd) ease-in-out 1.6s infinite alternate;
+}
+.ab-room[data-float] .ab-obj-shadow {
+  opacity: 0.25;
+  transition-duration: 1.6s;
+}
+.ab-room[data-float] .ab-glow {
+  animation: ab-flicker 2.2s steps(1, end) infinite;
+}
+@keyframes ab-rise {
+  from {
+    transform: none;
+  }
+  to {
+    transform: translate3d(var(--fx), var(--fy), 0) rotate(var(--fr));
+  }
+}
+@keyframes ab-bob {
+  from {
+    transform: translate3d(var(--fx), var(--fy), 0) rotate(var(--fr));
+  }
+  to {
+    transform: translate3d(calc(var(--fx) * -0.4), calc(var(--fy) * 0.62), 0) rotate(calc(var(--fr) * -0.7));
+  }
+}
+@keyframes ab-flicker {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  8% {
+    opacity: 0.2;
+  }
+  10% {
+    opacity: 0.9;
+  }
+  12% {
+    opacity: 0.1;
+  }
+  14% {
+    opacity: 1;
+  }
+}
+
+/* ── desk (tablet and up): an isometric drawing on a tilting stage ───── */
+@media (min-width: 768px) {
+  .ab-stage {
+    position: relative;
+    aspect-ratio: var(--ar);
+    transform-origin: 50% 55%;
+    will-change: transform;
+  }
+  .ab-floor,
+  .ab-desk,
+  .ab-leaders {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+  .ab-floor {
+    color: var(--fg);
+    opacity: 0.13;
+    pointer-events: none;
+  }
+  .ab-leaders {
+    pointer-events: none;
+  }
+  .ab-obj {
+    position: absolute;
+    left: var(--l);
+    top: var(--t);
+    width: var(--w);
+    height: var(--h);
+    /* hit-test the drawing, not the box: the svg shapes take the pointer */
+    pointer-events: none;
+  }
+  .ab-obj-body svg {
+    pointer-events: visiblePainted;
+  }
+  .ab-obj-art {
+    position: absolute;
+    inset: 0;
+  }
+  .ab-stage[data-open] .ab-obj[data-state="dim"]:not([data-hot]) .ab-obj-art {
+    opacity: 0.45;
+  }
+  .ab-placard {
+    display: none;
+  }
+}
+
+/* callouts: a dot on the object, a leader, a numbered balloon; the label draws out when lit */
+.ab-leaders line {
+  stroke: var(--fg);
+  stroke-opacity: 0.32;
+  stroke-width: 1;
+  transition:
+    stroke 300ms,
+    stroke-opacity 300ms;
+}
+.ab-leaders circle {
+  fill: var(--fg);
+  opacity: 0.45;
+  transition: fill 300ms;
+}
+.ab-leaders [data-on] line {
+  stroke: var(--signal);
+  stroke-opacity: 1;
+  stroke-width: 1.6;
+}
+.ab-leaders [data-on] circle {
+  fill: var(--signal);
+  opacity: 1;
+}
+.ab-tag {
+  position: absolute;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transform: translate(-11px, -50%);
+  white-space: nowrap;
+  pointer-events: none;
+}
+.ab-tag-l {
+  flex-direction: row-reverse;
+  text-align: right;
+  transform: translate(calc(-100% + 11px), -50%);
+}
+.ab-tag-t {
+  flex-direction: column-reverse;
+  gap: 0.35rem;
+  text-align: center;
+  transform: translate(-50%, calc(-100% + 11px));
+}
+.ab-balloon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 22px;
+  height: 22px;
+  border: 1px solid var(--fg);
+  border-radius: 50%;
+  background: var(--bg);
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  line-height: 1;
+  transition:
+    background-color 300ms,
+    border-color 300ms,
+    color 300ms;
+}
+.ab-tag[data-on] .ab-balloon {
+  border-color: var(--signal);
+  background: var(--signal);
+  color: var(--signal-ink);
+}
+.ab-tag-text {
+  padding: 0.2rem 0.45rem;
+  background: color-mix(in oklab, var(--bg) 88%, transparent);
+  clip-path: inset(0 100% 0 0);
+  transition: clip-path 480ms var(--ab-expo);
+}
+.ab-tag-l .ab-tag-text {
+  clip-path: inset(0 0 0 100%);
+}
+.ab-tag-t .ab-tag-text {
+  clip-path: inset(100% 0 0 0);
+}
+.ab-tag[data-on] .ab-tag-text {
+  clip-path: inset(0 0 0 0);
+}
+
+/* parts list rows (desktop) */
+.ab-part {
+  display: grid;
+  grid-template-columns: 2.25rem minmax(0, auto) minmax(1rem, 1fr) auto;
+  align-items: baseline;
+  gap: 0.6rem;
+  padding: 0.55rem 0;
+  border-bottom: 1px solid var(--line);
+  cursor: pointer;
+  transition:
+    padding 420ms var(--ab-expo),
+    color 200ms;
+}
+.ab-part-dots {
+  border-bottom: 1px dotted color-mix(in oklab, var(--fg) 40%, transparent);
+}
+.ab-part[data-on] {
+  padding-left: 0.6rem;
+}
+.ab-part[data-on] > :first-child {
+  color: var(--signal);
+}
+
+/* panel prev / next */
+.ab-step {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 44px;
+  padding: 0 0.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--fg-muted);
+  transition: color 200ms;
+}
+.ab-step:hover {
+  color: var(--fg);
+}
+
+/* ── phones: the desk becomes a stacked exhibit grid ───────────────────── */
+@media (max-width: 767.98px) {
+  .ab-stage {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 2rem 0.75rem;
+  }
+  .ab-floor,
+  .ab-desk,
+  .ab-leaders,
+  .ab-tag {
+    display: none;
+  }
+  .ab-obj {
+    grid-column: var(--span, auto);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    min-height: 44px;
+  }
+  .ab-obj-art {
+    position: relative;
+    display: block;
+    width: var(--pw);
+    aspect-ratio: var(--oar);
+    margin-inline: auto;
+  }
+  .ab-obj[data-state="open"] .ab-placard {
+    border-top-color: var(--signal);
+  }
+  .ab-placard {
+    display: block;
+    padding-top: 0.6rem;
+    border-top: 1px solid var(--line-strong);
+    transition: border-color 300ms;
+  }
+  .ab-room[data-float] .ab-obj-float {
+    animation-name: ab-rise-s, ab-bob-s;
+  }
+  @keyframes ab-rise-s {
+    to {
+      transform: translate3d(0, calc(var(--fy) * 0.35), 0) rotate(calc(var(--fr) * 0.5));
+    }
+  }
+  @keyframes ab-bob-s {
+    from {
+      transform: translate3d(0, calc(var(--fy) * 0.35), 0) rotate(calc(var(--fr) * 0.5));
+    }
+    to {
+      transform: translate3d(0, calc(var(--fy) * 0.2), 0) rotate(calc(var(--fr) * -0.4));
+    }
+  }
+}

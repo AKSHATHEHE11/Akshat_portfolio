@@ -1,9 +1,20 @@
 "use client";
-// STUB — replaced by its feature implementation.
+import "./about.css";
+import { Bio } from "./bio/Bio";
+import { BuildSystem } from "./build/BuildSystem";
+import { Close } from "./Close";
+import { Journey } from "./journey/Journey";
+import { Room } from "./room/Room";
+
+/** /about — an identity you discover: the desk, the bio, the build system, the line so far. */
 export default function AboutPage() {
   return (
-    <section className="frame grid min-h-[60svh] place-items-center border-t border-line">
-      <p className="label text-fg-muted">About — coming online</p>
-    </section>
+    <div className="ab-page relative">
+      <Room />
+      <Bio />
+      <BuildSystem />
+      <Journey />
+      <Close />
+    </div>
   );
 }
