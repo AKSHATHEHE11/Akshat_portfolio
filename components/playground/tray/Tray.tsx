@@ -11,6 +11,7 @@ import { useChaos, useCoarse, useReducedMotion } from "@/lib/hooks";
 import { play } from "@/lib/sound";
 import { on, useSystem } from "@/lib/system";
 import { cn } from "@/lib/utils";
+import { lab } from "../lab";
 import { createTray, type TrayEngine } from "./engine";
 import { GRAVITY, TRAY, type Gravity, type TrayThing } from "./things";
 
@@ -26,7 +27,8 @@ export default function Tray({ near, active }: { near: boolean; active: boolean 
   const box = useRef<HTMLDivElement>(null);
   const els = useRef<(HTMLElement | null)[]>([]);
   const engine = useRef<TrayEngine | null>(null);
-  const press = useRef<{ id: number; i: number } | null>(null);
+  /** the grab: pointer id, body index, and the tray box measured at pointerdown (+ scroll then) */
+  const press = useRef<{ id: number; i: number; left: number; top: number; scroll: number } | null>(null);
   const reduced = useReducedMotion();
   const chaos = useChaos();
   const coarse = useCoarse();
@@ -138,23 +140,21 @@ export default function Tray({ near, active }: { near: boolean; active: boolean 
     play(magnet ? "toggle-off" : "toggle-on");
   }
 
-  const local = (e: PointerEvent) => {
-    const r = box.current!.getBoundingClientRect();
-    return [e.clientX - r.left, e.clientY - r.top] as const;
-  };
+  // pointer → tray-local px. The box is measured once per grab (never per move); a wheel scroll
+  // mid-throw moves it by the scroll delta.
   function onDown(i: number, e: PointerEvent<HTMLElement>) {
     if (e.button !== 0 || press.current || !engine.current) return;
-    const [x, y] = local(e);
-    if (!engine.current.hold(i, x, y)) return;
+    const r = box.current!.getBoundingClientRect();
+    if (!engine.current.hold(i, e.clientX - r.left, e.clientY - r.top)) return;
     e.currentTarget.setPointerCapture(e.pointerId);
     e.currentTarget.dataset.held = "";
-    press.current = { id: e.pointerId, i };
+    press.current = { id: e.pointerId, i, left: r.left, top: r.top, scroll: lab.scroll };
     play(things[i].kind === "key" ? "press" : "tick");
   }
   function onMove(e: PointerEvent<HTMLElement>) {
-    if (press.current?.id !== e.pointerId) return;
-    const [x, y] = local(e);
-    engine.current?.move(x, y);
+    const p = press.current;
+    if (p?.id !== e.pointerId) return;
+    engine.current?.move(e.clientX - p.left, e.clientY - p.top + lab.scroll - p.scroll);
   }
   function onUp(e: PointerEvent<HTMLElement>) {
     if (press.current?.id !== e.pointerId) return;
@@ -181,6 +181,7 @@ export default function Tray({ near, active }: { near: boolean; active: boolean 
         data-physics={live ? "on" : "off"}
         data-still={still || undefined}
         data-gravity={gravity}
+        data-run={active || undefined}
         tabIndex={0}
         role="group"
         aria-label={`Tray. Gravity ${gravity}, magnet ${magnet ? "on" : "off"}. Arrow keys tilt it, Space shakes it.`}

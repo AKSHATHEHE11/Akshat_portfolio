@@ -7,7 +7,7 @@ import { useChaos, useCoarse, useReducedMotion } from "@/lib/hooks";
 import { pointer } from "@/lib/pointer";
 import { play } from "@/lib/sound";
 import { emit } from "@/lib/system";
-import { setText } from "../lab";
+import { lab, setText } from "../lab";
 import { FORM, GIVE_UP, RUNAWAY } from "../copy";
 
 /** Where the save button likes to hide: fractions of the free space in its track. */
@@ -53,6 +53,8 @@ export default function Settings() {
 
   // runaway button
   const track = useRef<HTMLDivElement>(null);
+  /** the track's box with `top` in document px (the page may scroll under a resting cursor); measured on
+   *  pointerenter, then compared against lab.scroll per move — no layout reads while the cursor moves */
   const geo = useRef<{ left: number; top: number; w: number; h: number } | null>(null);
   const [spot, setSpot] = useState(-1);
   const [pos, setPos] = useState({ x: 0, y: 0 });
@@ -142,7 +144,7 @@ export default function Settings() {
   /* ── save button ── */
   function measure() {
     const r = track.current?.getBoundingClientRect();
-    if (r) geo.current = { left: r.left, top: r.top, w: r.width, h: r.height };
+    if (r) geo.current = { left: r.left, top: r.top + lab.scroll, w: r.width, h: r.height };
     return geo.current;
   }
   /** top-left of a spot, relative to the track's centre position for the button */
@@ -162,7 +164,7 @@ export default function Settings() {
       SPOTS.forEach((_, i) => {
         if (i === spot) return;
         const o = offset(i, g);
-        const d = Math.hypot(g.left + g.w / 2 + o.x - from.x, g.top + g.h / 2 + o.y - from.y);
+        const d = Math.hypot(g.left + g.w / 2 + o.x - from.x, g.top - lab.scroll + g.h / 2 + o.y - from.y);
         if (d > best) {
           best = d;
           next = i;
@@ -186,16 +188,16 @@ export default function Settings() {
     const g = geo.current;
     if (!g) return;
     const bx = g.left + g.w / 2 + pos.x;
-    const by = g.top + g.h / 2 + pos.y;
+    const by = g.top - lab.scroll + g.h / 2 + pos.y;
     const dx = Math.max(Math.abs(e.clientX - bx) - BTN.w / 2, 0);
     const dy = Math.max(Math.abs(e.clientY - by) - BTN.h / 2, 0);
     if (Math.hypot(dx, dy) < 26) dodge({ x: e.clientX, y: e.clientY });
   };
   const onBtnDown = (e: PointerEvent<HTMLButtonElement>) => {
-    if (quit || saved || e.pointerType === "mouse") return;
+    // (a dodged tap's click may land on the track instead, so the flag is re-decided every press)
+    swallowClick.current = !(quit || saved || e.pointerType === "mouse");
     // a finger can't sneak up on it: the tap itself makes it jump
-    swallowClick.current = true;
-    dodge();
+    if (swallowClick.current) dodge();
   };
   const onBtnClick = (e: MouseEvent<HTMLButtonElement>) => {
     if (swallowClick.current) {
@@ -271,6 +273,7 @@ export default function Settings() {
             className="pg-run-btn"
             icon={<Save size={16} strokeWidth={1.75} />}
             onPointerDown={onBtnDown}
+            onPointerCancel={() => (swallowClick.current = false)}
             onClick={onBtnClick}
           >
             {saved ? "Saved" : FORM.save}

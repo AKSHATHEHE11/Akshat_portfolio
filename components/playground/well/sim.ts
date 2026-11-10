@@ -182,9 +182,9 @@ export function createWell(
         draw(o);
       }
     },
-    /** A probe at viewport (x, y) for a moment (touch). */
+    /** A probe at viewport (x, y) for a moment (touch; runs per pointermove, so no layout reads). */
     touch(x: number, y: number) {
-      probe = { x: x - cx, y: y - (cy - window.scrollY), until: performance.now() + 700 };
+      probe = { x: x - cx, y: y - (cy - lab.scroll), until: performance.now() + 700 };
     },
     /** Arrow keys steer a probe; it fades two and a half seconds after the last key. */
     steer(dx: number, dy: number) {
