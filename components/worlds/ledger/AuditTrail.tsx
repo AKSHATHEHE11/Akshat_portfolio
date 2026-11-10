@@ -61,7 +61,7 @@ export function AuditTrail({ project }: { project: Project<LedgerScene> }) {
         }),
       );
     },
-    { scope: ref, dependencies: [reduced] },
+    { scope: ref, dependencies: [reduced], revertOnUpdate: true },
   );
 
   // chaos: entries get "corrected" behind your back, one every few seconds; calm restores the signed copy
@@ -141,7 +141,6 @@ export function AuditTrail({ project }: { project: Project<LedgerScene> }) {
                 </p>
                 <button
                   type="button"
-                  aria-pressed={amended[i]}
                   aria-label={amended[i] ? `Revert entry ${i + 1}` : `Amend entry ${i + 1} to “${a?.tamper}”`}
                   onClick={() => toggle(i)}
                   onPointerEnter={() => play("tick")}

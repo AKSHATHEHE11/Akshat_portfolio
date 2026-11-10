@@ -36,7 +36,7 @@ export function CaseHistory({ project }: { project: Project<LedgerScene> }) {
         ),
       );
     },
-    { scope: ref, dependencies: [reduced] },
+    { scope: ref, dependencies: [reduced], revertOnUpdate: true },
   );
 
   return (

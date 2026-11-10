@@ -38,7 +38,7 @@ export function Ticker({ metrics, ticker }: { metrics: Metric[]; ticker: LedgerS
   const chaos = useChaos();
   const quotes = metrics.map((m, i) => ({ ...m, symbol: ticker[i]?.symbol ?? m.label, dir: ticker[i]?.dir ?? "flat" }));
 
-  // the board opens at zero and counts to the close; each quote flashes when it settles
+  // the board opens at zero and counts to the close; each quote ticks green when it settles
   useGSAP(
     () => {
       const els = gsap.utils.toArray<HTMLElement>("[data-lg-quote]", ref.current);
@@ -60,7 +60,7 @@ export function Ticker({ metrics, ticker }: { metrics: Metric[]; ticker: LedgerS
             const s = fmt(p.dec ? o.v : Math.round(o.v));
             if (text.data !== s) text.data = s;
           },
-          onComplete: () => el.closest("[data-lg-cell]")?.classList.add("lg-flash"),
+          onComplete: () => el.classList.add("lg-flash"),
         });
       });
       gsap.fromTo(
@@ -68,8 +68,14 @@ export function Ticker({ metrics, ticker }: { metrics: Metric[]; ticker: LedgerS
         { strokeDashoffset: 1 },
         { strokeDashoffset: 0, duration: 2, ease: "power2.out", stagger: 0.12, scrollTrigger: { trigger: ref.current, start: "top 70%", once: true } },
       );
+      // the counts write text directly, which a GSAP revert can't undo: put the closing figures back
+      return () =>
+        els.forEach((el) => {
+          const text = el.firstChild;
+          if (text instanceof Text && el.dataset.lgQuote) text.data = el.dataset.lgQuote;
+        });
     },
-    { scope: ref, dependencies: [reduced] },
+    { scope: ref, dependencies: [reduced], revertOnUpdate: true },
   );
 
   // haywire: the tape throws itself into reverse at irregular moments
@@ -128,7 +134,6 @@ export function Ticker({ metrics, ticker }: { metrics: Metric[]; ticker: LedgerS
         {quotes.map((q, i) => (
           <div
             key={q.label}
-            data-lg-cell
             className="relative border-t border-(--lg-fg)/14 py-8 md:py-10 md:pr-6 md:even:border-l md:even:pl-6 xl:not-first:border-l xl:odd:not-first:pl-6"
           >
             <dt className="flex items-baseline justify-between gap-4 font-mono text-[0.6875rem] uppercase tracking-[0.14em]">
