@@ -27,7 +27,7 @@ export default function Oscilloscope({ active, chaos, reduced, coarse }: PiecePr
   const [held, setHeld] = useState<number[]>([]);
   const [xy, setXy] = useState(true);
   const [wave, setWaveName] = useState(0);
-  const st = useRef({ w: 0, h: 0, dpr: 1, peak: 0.15, xy: true, wave: "sine" as OscillatorType, hot: false, bx: new Float32Array(N), by: new Float32Array(N) });
+  const st = useRef({ w: 0, h: 0, dpr: 1, peak: 0.15, xy: true, wave: "sine" as OscillatorType, hot: false, idle: 0, bx: new Float32Array(N), by: new Float32Array(N) });
 
   /* ── notes ── */
   const start = (i: number) => {
@@ -45,7 +45,8 @@ export default function Oscilloscope({ active, chaos, reduced, coarse }: PiecePr
     if (s) noteOff(s, i);
     // touch: pointerdown is not a user activation, pointerup is — the first tap unlocks audio here
     if (s?.ctx.state === "suspended") void s.ctx.resume();
-    setHeld((h) => h.filter((x) => x !== i));
+    // (same array back = no re-render when that note wasn't held)
+    setHeld((h) => (h.includes(i) ? h.filter((x) => x !== i) : h));
   };
   const stopAll = () => {
     const s = synth.current;
@@ -58,6 +59,7 @@ export default function Oscilloscope({ active, chaos, reduced, coarse }: PiecePr
     S.xy = xy;
     S.wave = WAVES[wave];
     S.hot = chaos && !reduced;
+    S.idle = 0;
     const s = synth.current;
     if (!s) return;
     setWave(s, S.wave);
@@ -96,15 +98,24 @@ export default function Oscilloscope({ active, chaos, reduced, coarse }: PiecePr
       window.removeEventListener("blur", stopAll);
       stopAll();
     };
-    // start/stop only touch refs and setState
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active]);
 
   /* ── the scope ── */
-  const draw = () => {
+  const draw = (ticking = false) => {
     const S = st.current;
     const g = canvas.current?.getContext("2d");
     if (!g || !S.w) return;
+    const s = synth.current;
+    let pk = 0;
+    if (s) {
+      s.x.getFloatTimeDomainData(S.bx);
+      s.y.getFloatTimeDomainData(S.by);
+      for (let i = 0; i < N; i++) pk = Math.max(pk, Math.abs(S.bx[i]));
+    }
+    // silent and the afterglow gone: nothing would change, so the tube rests until a note or a mode switch
+    if (ticking && pk < 1e-4 && !s?.voices.size) {
+      if (++S.idle > 45) return;
+    } else S.idle = 0;
     const { w, h } = S;
     g.setTransform(S.dpr, 0, 0, S.dpr, 0, 0);
     // phosphor: fade what was there, add the new trace on top
@@ -114,7 +125,6 @@ export default function Oscilloscope({ active, chaos, reduced, coarse }: PiecePr
     g.globalCompositeOperation = "lighter";
     g.lineCap = g.lineJoin = "round";
     g.beginPath();
-    const s = synth.current;
     const cx = w / 2;
     const cy = h / 2;
     if (!s) {
@@ -122,11 +132,8 @@ export default function Oscilloscope({ active, chaos, reduced, coarse }: PiecePr
       g.moveTo(S.xy ? cx : 0, cy);
       g.lineTo(S.xy ? cx + 0.01 : w, cy);
     } else {
-      s.x.getFloatTimeDomainData(S.bx);
-      s.y.getFloatTimeDomainData(S.by);
-      let pk = 0;
-      for (let i = 0; i < N; i++) pk = Math.max(pk, Math.abs(S.bx[i]));
-      S.peak += (Math.max(0.12, pk) - S.peak) * 0.08;
+      // auto-gain: jump up at once (never overdraw the tube), relax down slowly
+      S.peak = pk > S.peak ? pk : S.peak + (Math.max(0.12, pk) - S.peak) * 0.03;
       const k = 0.82 / S.peak;
       if (S.xy) {
         const R = Math.min(w, h) * 0.46;
@@ -169,15 +176,13 @@ export default function Oscilloscope({ active, chaos, reduced, coarse }: PiecePr
     const ro = new ResizeObserver(size);
     ro.observe(c);
     return () => ro.disconnect();
-    // draw reads refs only
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [coarse]);
 
   useEffect(() => {
     if (!active) return;
-    gsap.ticker.add(draw);
-    return () => gsap.ticker.remove(draw);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const tick = () => draw(true);
+    gsap.ticker.add(tick);
+    return () => gsap.ticker.remove(tick);
   }, [active]);
 
   // a mode switch redraws even while the scope is still
@@ -253,7 +258,10 @@ export default function Oscilloscope({ active, chaos, reduced, coarse }: PiecePr
               onPointerDown={keyDown(i)}
               onPointerEnter={keyEnter(i)}
               onPointerUp={() => stop(i)}
-              onPointerLeave={() => stop(i)}
+              // only a pressed pointer slides off a key: a hover crossing it must not cut a note held on A–K
+              onPointerLeave={(e) => {
+                if (e.buttons & 1) stop(i);
+              }}
               onPointerCancel={() => stop(i)}
               onContextMenu={(e) => e.preventDefault()}
               onClick={(e) => {
