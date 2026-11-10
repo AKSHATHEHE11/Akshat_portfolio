@@ -117,7 +117,7 @@ export const synthoraSid: Project<BlueprintScene> = {
       buildings: [
         { id: "A", name: "Block A", use: "Lecture halls", x: 24, y: 22, w: 140, h: 54, door: "dA" },
         { id: "B", name: "Block B", use: "Labs", x: 184, y: 22, w: 84, h: 62, door: "dB" },
-        { id: "AD", name: "Admin", use: "Registrar, fees desk", x: 288, y: 22, w: 64, h: 46, door: "dAD" },
+        { id: "AD", name: "Admin", use: "Registrar, fees", x: 288, y: 22, w: 64, h: 46, door: "dAD" },
         { id: "H", name: "Hostel", use: "H-1, H-2", x: 364, y: 22, w: 24, h: 150, door: "sH" },
         { id: "L", name: "Library", use: "Open 08:00–21:00", x: 24, y: 122, w: 74, h: 58, door: "dL" },
         { id: "C", name: "Canteen", use: "Chai till 18:00", x: 142, y: 122, w: 62, h: 46, door: "dC" },
@@ -337,14 +337,14 @@ export const synthoraSid: Project<BlueprintScene> = {
         { text: "Tap a slot for its room and route", at: 0.6 },
       ],
       id: [
-        { text: "Signed QR, verified with no signal", at: 0.3 },
+        { text: "On the back: a signed QR that verifies with no signal", at: 0.3 },
         { text: "Code 39 for the old library scanners", at: 0.6 },
         { text: "Tap to flip, tilt to catch the foil", at: 0.84 },
       ],
       records: [
-        { text: "CGPA at a glance, SGPA per semester", at: 0.2 },
-        { text: "What the end-sem needs for each grade", at: 0.46 },
-        { text: "Dues in two taps (not offline)", at: 0.72 },
+        { text: "The one total you care about first: CGPA, or what's due", at: 0.2 },
+        { text: "Grades: what each end-sem needs for your target", at: 0.46 },
+        { text: "Fees: tick, pay, keep the receipt. Not offline", at: 0.72 },
       ],
     },
   },

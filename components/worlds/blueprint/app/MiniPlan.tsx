@@ -102,7 +102,7 @@ export function MiniPlan({ campus, to, room }: { campus: Campus; to: Building; r
   );
 
   return (
-    <svg ref={svg} viewBox={first} className="sid-plan" role="img" aria-label={walk ? `Map: ${walk.metres} metres from ${campus.you.label} to ${room}, ${to.name}` : `Map of ${to.name}`}>
+    <svg ref={svg} viewBox={first} className="sid-plan" data-on={on || undefined} role="img" aria-label={walk ? `Map: ${walk.metres} metres from ${campus.you.label} to ${room}, ${to.name}` : `Map of ${to.name}`}>
       <path d={lanes} className="sid-plan-lane" />
       {campus.buildings.map((b) =>
         b.oval ? (

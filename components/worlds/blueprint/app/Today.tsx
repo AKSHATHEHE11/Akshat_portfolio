@@ -78,7 +78,8 @@ export function Today({ ctx, pick, setPick, onFocus }: { ctx: AppCtx; pick: Slot
           {pick && (
             <button
               type="button"
-              className="sid-textbtn"
+              className="sid-textbtn hit"
+              data-cursor="hover"
               onClick={() => {
                 play("click");
                 setPick(null);
@@ -92,7 +93,7 @@ export function Today({ ctx, pick, setPick, onFocus }: { ctx: AppCtx; pick: Slot
         <section className="sid-card sid-next">
           <span className="sid-kicker">Done for today</span>
           <p className="sid-next-name">No more classes</p>
-          <p className="sid-next-meta">{campus.buildings.filter((x) => x.id === "L").map((x) => `${x.name} · ${x.use}`)}</p>
+          <p className="sid-next-meta">{campus.buildings.filter((x) => x.door === campus.you.node).map((x) => `${x.name} · ${x.use}`)}</p>
         </section>
       )}
 

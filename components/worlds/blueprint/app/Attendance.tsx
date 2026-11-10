@@ -78,11 +78,12 @@ export function Attendance({
         {changed && (
           <button
             type="button"
-            className="sid-textbtn"
+            className="sid-textbtn hit"
             onClick={() => {
               play("toggle-off");
               onReset();
             }}
+            data-cursor="hover"
           >
             <Undo2 size={13} strokeWidth={2.2} aria-hidden /> Reset
           </button>
@@ -147,7 +148,10 @@ export function Attendance({
               {open && (
                 <div id={id} className="sid-att-more">
                   <p>
-                    {s.planned} classes planned this semester; you need {s.planned - allowed}. You&apos;ve missed {missed} of the {allowed} you can afford.
+                    {s.planned} classes planned this semester; you need {s.planned - allowed}.{" "}
+                    {missed > allowed
+                      ? `You've missed ${missed}; the semester only affords ${allowed}.`
+                      : `You've missed ${missed} of the ${allowed} you can afford.`}
                   </p>
                   <p className="sid-att-say">{SAY[r](m)}</p>
                   <div className="sid-actions">

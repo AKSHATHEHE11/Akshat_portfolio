@@ -2,7 +2,7 @@
 // The digital ID. Front: photo, details and a Code 39 barcode (it scans). Back: a QR that scans too.
 // Tap to flip; on a mouse it tilts and the foil catches the light. Airplane mode proves it works
 // offline: the QR is signed, not looked up.
-import { useMemo, useRef, useState, type CSSProperties, type PointerEvent } from "react";
+import { useMemo, useRef, useState, type PointerEvent } from "react";
 import { Plane, SunMedium, WifiOff } from "lucide-react";
 import { Barcode } from "@/components/home/identity/Barcode";
 import { useCoarse, useReducedMotion } from "@/lib/hooks";
@@ -17,6 +17,7 @@ export function IdScreen({ ctx, setOffline }: { ctx: AppCtx; setOffline: (v: boo
   const [flipped, setFlipped] = useState(false);
   const [bright, setBright] = useState(false);
   const tilt = useRef<HTMLDivElement>(null);
+  const foil = useRef<HTMLSpanElement>(null);
   const box = useRef<DOMRect | null>(null);
   const coarse = useCoarse();
   const reduced = useReducedMotion();
@@ -28,7 +29,7 @@ export function IdScreen({ ctx, setOffline }: { ctx: AppCtx; setOffline: (v: boo
     return { d, n: m.length };
   }, [payload]);
 
-  // tilt writes two variables on the card itself, only on mouse moves over it
+  // tilt writes its variables on the elements that read them, only on mouse moves over the card
   const onMove = (e: PointerEvent<HTMLDivElement>) => {
     if (coarse || reduced || e.pointerType !== "mouse" || !tilt.current) return;
     const r = (box.current ??= e.currentTarget.getBoundingClientRect()); // measured once per visit
@@ -36,14 +37,13 @@ export function IdScreen({ ctx, setOffline }: { ctx: AppCtx; setOffline: (v: boo
     const y = (e.clientY - r.top) / r.height - 0.5;
     tilt.current.style.setProperty("--rx", `${(-y * 14).toFixed(1)}deg`);
     tilt.current.style.setProperty("--ry", `${(x * 16).toFixed(1)}deg`);
-    tilt.current.style.setProperty("--gx", String(Math.round((x + 0.5) * 100)));
+    foil.current?.style.setProperty("--gx", String(Math.round((x + 0.5) * 100)));
   };
   const onLeave = () => {
     box.current = null;
-    const s = tilt.current?.style;
-    s?.setProperty("--rx", "0deg");
-    s?.setProperty("--ry", "0deg");
-    s?.setProperty("--gx", "50");
+    tilt.current?.style.setProperty("--rx", "0deg");
+    tilt.current?.style.setProperty("--ry", "0deg");
+    foil.current?.style.setProperty("--gx", "50");
   };
 
   return (
@@ -110,7 +110,7 @@ export function IdScreen({ ctx, setOffline }: { ctx: AppCtx; setOffline: (v: boo
               <span className="sid-front-code">
                 <Barcode value={st.roll} className="sid-barcode" />
               </span>
-              <span className="sid-foil" aria-hidden />
+              <span ref={foil} className="sid-foil" aria-hidden />
             </span>
             <span className="sid-face sid-back">
               <svg viewBox={`-2 -2 ${qrPath.n + 4} ${qrPath.n + 4}`} className="sid-qr" shapeRendering="crispEdges" role="img" aria-label={`QR code: ${payload}`}>
@@ -156,19 +156,21 @@ function Toggle({ on, onChange, icon, label }: { on: boolean; onChange: (v: bool
   );
 }
 
+const SKIN = "#c68a62";
+
 /** Drawn photo: head, hair, collar. Reads as a portrait at ID-card size. */
 function Portrait() {
   return (
-    <svg viewBox="0 0 60 72" className="sid-photo" aria-hidden style={{ "--skin": "#c68a62" } as CSSProperties}>
+    <svg viewBox="0 0 60 72" className="sid-photo" aria-hidden>
       <rect width="60" height="72" fill="#dfe6fb" />
-      <path d="M8 72c2-14 10-19 22-19s20 5 22 19z" fill="#1c3fa8" />
-      <path d="M24 50h12v7c-2 3-10 3-12 0z" fill="var(--skin)" />
+      <path d="M8 72c2-14 10-19 22-19s20 5 22 19z" style={{ fill: "var(--sid-blue)" }} />
+      <path d="M24 50h12v7c-2 3-10 3-12 0z" fill={SKIN} />
       <path d="M25 56l5 6 5-6" fill="none" stroke="#eaf0ff" strokeWidth="1.6" />
-      <ellipse cx="30" cy="34" rx="11.5" ry="14" fill="var(--skin)" />
+      <ellipse cx="30" cy="34" rx="11.5" ry="14" fill={SKIN} />
       <path d="M17.5 36c-2-15 5-23 13-23 9 0 15 7 12.5 23-1-7-4-12-9-14-3 4-10 6-15.5 6 0 3 .2 6-1 8z" fill="#22160f" />
       <path d="M18 38c-1 6 0 14 3 17M42 38c1 6 0 14-3 17" stroke="#22160f" strokeWidth="3" strokeLinecap="round" />
-      <circle cx="18.5" cy="40" r="1.2" fill="#ffd23f" />
-      <circle cx="41.5" cy="40" r="1.2" fill="#ffd23f" />
+      <circle cx="18.5" cy="40" r="1.2" style={{ fill: "var(--sid-yellow)" }} />
+      <circle cx="41.5" cy="40" r="1.2" style={{ fill: "var(--sid-yellow)" }} />
     </svg>
   );
 }
