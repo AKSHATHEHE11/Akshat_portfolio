@@ -53,10 +53,11 @@ function Shell({
   );
 }
 
-/** Label that folds away in the condensed bar (see .sys-collapse in nav.css). Its margin folds with it. */
-function Collapse({ side, children }: { side: "l" | "r"; children: ReactNode }) {
+/** Label that folds away in the condensed bar (see .sys-collapse in nav.css). Its margin folds with it.
+ *  `late` labels also give way on mid-width screens, to leave room for the links and "Work with me". */
+function Collapse({ side, late, children }: { side: "l" | "r"; late?: boolean; children: ReactNode }) {
   return (
-    <span className={cn("sys-collapse", side === "l" ? "ml-2.5" : "mr-2.5")}>
+    <span className={cn("sys-collapse", late && "sys-collapse-late", side === "l" ? "ml-2.5" : "mr-2.5")}>
       <span>{children}</span>
     </span>
   );
@@ -157,7 +158,7 @@ export function SoundToggle({ variant = "bar" }: { variant?: Variant }) {
       ) : (
         <>
           <Meter on={on} />
-          <Collapse side="l">
+          <Collapse side="l" late>
             <span className={cn(micro, "block")}>Sound</span>
           </Collapse>
         </>
@@ -199,7 +200,7 @@ export function LightsToggle({ variant = "bar" }: { variant?: Variant }) {
         </>
       ) : (
         <>
-          <Collapse side="r">
+          <Collapse side="r" late>
             <span className={cn(micro, "block")}>Lights</span>
           </Collapse>
           <Pill />

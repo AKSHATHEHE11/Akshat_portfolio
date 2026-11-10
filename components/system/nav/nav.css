@@ -128,9 +128,15 @@
   margin: 0;
   opacity: 0;
 }
-/* Below 1280px the switches speak for themselves (labels stay in aria-label/title). */
-@media (max-width: 1279.98px) {
+/* Below 1440px the switches speak for themselves (labels stay in aria-label/title); below 1600px
+   only Chaos keeps its label, so six links and "Work with me" fit beside them. */
+@media (max-width: 1439.98px) {
   .sys-nav .sys-collapse {
+    display: none;
+  }
+}
+@media (max-width: 1599.98px) {
+  .sys-nav .sys-collapse-late {
     display: none;
   }
 }
