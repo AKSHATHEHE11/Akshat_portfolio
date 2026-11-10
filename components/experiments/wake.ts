@@ -7,13 +7,14 @@ import { useThree } from "@react-three/fiber";
 
 const INPUT = ["pointermove", "pointerdown", "keydown"] as const;
 
-export function useWake(host: RefObject<HTMLElement | null>) {
+/** `on = false` leaves the frame pacing to the scene (the ASCII room's own 30 fps clock). */
+export function useWake(host: RefObject<HTMLElement | null>, on = true) {
   const invalidate = useThree((s) => s.invalidate);
   useEffect(() => {
     const el = host.current;
-    if (!el) return;
+    if (!el || !on) return;
     const wake = () => invalidate();
     INPUT.forEach((e) => el.addEventListener(e, wake, { passive: true }));
     return () => INPUT.forEach((e) => el.removeEventListener(e, wake));
-  }, [host, invalidate]);
+  }, [host, invalidate, on]);
 }

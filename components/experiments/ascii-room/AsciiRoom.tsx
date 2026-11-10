@@ -4,12 +4,12 @@
 // settles back into a slow turntable. Switched off, it holds its last frame as plain text — and before
 // it has ever run, a frame baked from the same scene at the same angle (still.ts).
 import dynamic from "next/dynamic";
-import { useCallback, useEffect, useRef, type CSSProperties, type KeyboardEvent, type PointerEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent } from "react";
 import { play } from "@/lib/sound";
 import { clamp } from "@/lib/utils";
 import type { PieceProps } from "../shared";
 import type { Orbit } from "./Room";
-import { REST, STILL, STILL_COLS } from "./still";
+import { REST, STILL, STILL_COLS, resolution } from "./still";
 
 const Room = dynamic(() => import("./Room"), { ssr: false });
 
@@ -29,27 +29,40 @@ const toText = (html: string) =>
 export default function AsciiRoom({ active, chaos, reduced, coarse }: PieceProps) {
   const host = useRef<HTMLDivElement>(null);
   const still = useRef<HTMLPreElement>(null);
-  const table = useRef<HTMLTableElement | null>(null);
+  const tableRef = useRef<HTMLTableElement | null>(null);
   const orbit = useRef<Orbit>({ ...REST, vy: 0, drag: false });
   const last = useRef({ id: -1, x: 0, y: 0, t: 0 });
+  // the character grid follows the box (fullscreen, rotation); quantised, so most resizes keep it
+  const [res, setRes] = useState(() => resolution(coarse));
 
   useEffect(() => {
     if (still.current && !still.current.textContent) still.current.textContent = STILL;
   }, []);
 
-  // switching off: the last live frame becomes the still
   useEffect(() => {
+    const el = host.current;
+    if (!el) return;
+    const ro = new ResizeObserver(([e]) => setRes(resolution(coarse, e.contentRect.width, e.contentRect.height)));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [coarse]);
+
+  // switching off: the last live frame becomes the still, at the size it was drawn
+  useEffect(() => {
+    const pre = still.current;
+    const el = host.current;
     if (!active) return;
     return () => {
-      const td = table.current?.rows[0]?.cells[0];
-      const pre = still.current;
-      if (td && pre) {
+      const table = tableRef.current;
+      const td = table?.rows[0]?.cells[0];
+      if (table && td && pre) {
         const text = toText(td.innerHTML);
         pre.textContent = text;
         pre.style.setProperty("--cols", String(text.indexOf("\n")));
+        pre.style.setProperty("--fs", table.style.fontSize);
       }
-      table.current = null;
-      if (host.current) delete host.current.dataset.live;
+      tableRef.current = null;
+      if (el) delete el.dataset.live;
     };
   }, [active]);
 
@@ -118,8 +131,8 @@ export default function AsciiRoom({ active, chaos, reduced, coarse }: PieceProps
       onLostPointerCapture={up}
       onKeyDown={onKey}
     >
-      <pre ref={still} aria-hidden className="xp-ascii-still" style={{ "--cols": STILL_COLS } as CSSProperties} />
-      {active && <Room orbit={orbit} host={host} table={table} chaos={chaos} reduced={reduced} coarse={coarse} onReady={onReady} />}
+      <pre ref={still} aria-hidden className="xp-ascii-still" style={{ "--cols": STILL_COLS, "--fs": `${2 / resolution(false)}px` } as CSSProperties} />
+      {active && <Room orbit={orbit} host={host} tableRef={tableRef} resolution={res} chaos={chaos} reduced={reduced} onReady={onReady} />}
       <p aria-hidden className="xp-ascii-hint label">
         {coarse ? "Swipe sideways to orbit" : "Drag to orbit · ← →"}
       </p>
