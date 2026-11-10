@@ -23,7 +23,7 @@ export const LEGEND: { id: string; name: string; line: string; keys: string[] }[
   { id: "bug", name: "Bug hunt", line: "Twenty seconds. Squash what crawls. Your best stays on this device.", keys: ["B"] },
   { id: "stamp", name: "Stamp", line: "Click any bare patch of mat. Every print is a new shape. X wipes the mat.", keys: ["X"] },
   { id: "well", name: "Gravity well", line: "Bends whatever comes near, your cursor included. Enter feeds it; arrows steer a probe.", keys: ["⏎"] },
-  { id: "form", name: "Settings", line: "Fill it in. It has opinions.", keys: [] },
+  { id: "form", name: "Settings", line: "A joke about bad forms: the slider drifts back, the box unticks itself, Save runs from your cursor. Keep at it and each one gives in. Nothing is saved.", keys: [] },
 ];
 
 /** The unreasonable settings form. */
