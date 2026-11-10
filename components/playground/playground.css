@@ -339,10 +339,12 @@
   z-index: 6;
 }
 .pg-keybtn {
-  display: grid;
-  place-items: center;
-  width: 44px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 44px;
   height: 44px;
+  padding: 0 16px 0 15px;
   border: 1px solid var(--line);
   border-radius: var(--radius-key);
   background: var(--surface);

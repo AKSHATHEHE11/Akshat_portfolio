@@ -48,14 +48,14 @@ export function Legend() {
         className="pg-keybtn"
         aria-expanded={open}
         aria-controls={id}
-        aria-label="Legend: what everything on the mat does"
         data-chaos-escape
         onClick={() => {
           setOpen((o) => !o);
           play(open ? "close" : "open");
         }}
       >
-        ?
+        <span aria-hidden>?</span>
+        <span className="label">How to play</span>
       </button>
       <AnimatePresence>
         {open ? (
