@@ -67,16 +67,19 @@ export function Printer({ borrower, sizer, run, printed, reduced, chaos, slotRef
       let at = 0.3;
       rows.forEach((row) => {
         t.to(paper, { y: H - row.offsetTop - row.offsetHeight, duration: 0.07, ease: "power2.out", onStart: () => play("type") }, at);
-        const flag = row.querySelector("[data-flag]");
+        const flag = row.querySelector<HTMLElement>("[data-flag]");
         const mark = row.querySelector("[data-mark]");
         if (mark) t.to(mark, { scaleX: 1, duration: 0.26, ease: "power2.out" }, at + 0.26 * pace);
-        if (flag)
+        if (flag) {
+          // GSAP takes over the CSS `rotate`, so it lands on the flag's own hand-stuck tilt, not 0
+          const tilt = Number(flag.dataset.tilt) || 0;
           t.fromTo(
             flag,
-            { autoAlpha: 0, x: -18, rotate: -12 },
-            { autoAlpha: 1, x: 0, rotate: 0, duration: 0.42, ease: "back.out(2.4)", onStart: () => play("tick") },
+            { autoAlpha: 0, x: -18, rotate: tilt - 12 },
+            { autoAlpha: 1, x: 0, rotate: tilt, duration: 0.42, ease: "back.out(2.4)", onStart: () => play("tick") },
             at + 0.32 * pace,
           );
+        }
         at += (row.dataset.row === "txn" ? 0.17 : 0.075) * pace;
       });
       t.to(paper, { y: 0, duration: 0.3, ease: "power2.out" }, at + 0.1);
@@ -112,27 +115,31 @@ export function Printer({ borrower, sizer, run, printed, reduced, chaos, slotRef
           {/* the paper is a masked backing layer, so the flags can stick out past its edge */}
           <span aria-hidden className="lg-paper lg-torn absolute inset-0 -z-10" />
           <Head b={b} />
-          {b.txns.map((t, i) => (
-            <div key={i} data-row="txn" className="lg-row relative grid grid-cols-[2.75rem_minmax(0,1fr)_auto] gap-x-2 sm:grid-cols-[3.1rem_minmax(0,1fr)_auto]">
-              <span>{t.date}</span>
-              <span className="truncate">
-                <Narration t={t} />
-              </span>
-              <span className={cn("tabular-nums", t.amount < 0 && "lg-red")}>
-                {amount(t.amount)}
-                <span className="ml-1 text-[0.85em] opacity-70">{t.amount < 0 ? "DR" : "CR"}</span>
-              </span>
-              <span
-                data-flag
-                data-kind={t.kind}
-                className="lg-flag absolute top-[3px]"
-                style={{ left: "calc(100% + 0.75rem - 3px)", rotate: `${((seeded(i * 7 + b.id.length * 31) - 0.5) * 6).toFixed(1)}deg`, "--lg-delay": `${-i * 0.07}s` } as CSSProperties}
-              >
-                {t.tag}
-                <b className="max-sm:hidden">.{Math.round(t.conf * 100)}</b>
-              </span>
-            </div>
-          ))}
+          {b.txns.map((t, i) => {
+            const tilt = ((seeded(i * 7 + b.id.length * 31) - 0.5) * 6).toFixed(1);
+            return (
+              <div key={i} data-row="txn" className="lg-row relative grid grid-cols-[2.75rem_minmax(0,1fr)_auto] gap-x-2 sm:grid-cols-[3.1rem_minmax(0,1fr)_auto]">
+                <span>{t.date}</span>
+                <span className="truncate">
+                  <Narration t={t} />
+                </span>
+                <span className={cn("tabular-nums", t.amount < 0 && "lg-red")}>
+                  {amount(t.amount)}
+                  <span className="ml-1 text-[0.85em] opacity-70">{t.amount < 0 ? "DR" : "CR"}</span>
+                </span>
+                <span
+                  data-flag
+                  data-kind={t.kind}
+                  data-tilt={tilt}
+                  className="lg-flag absolute top-[3px]"
+                  style={{ left: "calc(100% + 0.75rem - 3px)", rotate: `${tilt}deg`, "--lg-delay": `${-i * 0.07}s` } as CSSProperties}
+                >
+                  {t.tag}
+                  <b className="max-sm:hidden">.{Math.round(t.conf * 100)}</b>
+                </span>
+              </div>
+            );
+          })}
           <div data-row="foot" className="lg-row lg-dash" />
           <div data-row="foot" className="lg-row flex justify-between gap-3">
             <span>

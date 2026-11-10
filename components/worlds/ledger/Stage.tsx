@@ -36,7 +36,7 @@ export function Stage({ project }: { project: Project<LedgerScene> }) {
         gsap
           .timeline({ delay: 0.15 })
           .fromTo(parts, { autoAlpha: 0, y: 18 }, { autoAlpha: 1, y: 0, duration: 0.9, stagger: 0.08, ease: "expo.out", clearProps: "transform" })
-          // relative to the resting −9° the class sets (`rotate` and `transform` compose)
+          // relative to the −9° its wrapper rests at
           .fromTo(
             stamp,
             { autoAlpha: 0, scale: 2.6, rotate: -19 },
@@ -83,12 +83,15 @@ export function Stage({ project }: { project: Project<LedgerScene> }) {
               {title}
             </h1>
           </Morph>
+          {/* the outer span holds the resting −9°; GSAP folds a CSS `rotate` into its own transform,
+              so the landing tween runs on the inner block and stays relative to it */}
           <span
-            data-lg-stamp
             aria-hidden
-            className="pointer-events-none absolute right-[2%] top-[4%] origin-center -rotate-[9deg] text-[clamp(1.5rem,0.9rem+2.6vw,3.5rem)] max-md:right-1 max-md:top-[-78%] max-md:text-[1.1rem]"
+            className="pointer-events-none absolute right-[2%] top-[4%] -rotate-[9deg] text-[clamp(1.5rem,0.5rem+2.75vw,3.5rem)] xl:text-[clamp(1.5rem,0.9rem+2.6vw,3.5rem)] max-md:right-1 max-md:top-[-78%] max-md:text-[1.1rem]"
           >
-            <Stamp tone="signal" label="Explained" sub={`${scene.desk.date} · ${scene.desk.model}`} />
+            <span data-lg-stamp className="block origin-center">
+              <Stamp tone="signal" label="Explained" sub={`${scene.desk.date} · ${scene.desk.model}`} />
+            </span>
           </span>
         </div>
         <div aria-hidden className="lg-total mt-3 md:mt-4" />
