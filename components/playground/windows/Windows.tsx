@@ -20,17 +20,7 @@ const rand = (a: number, b: number) => a + Math.random() * (b - a);
  * anywhere on a window to bring it forward, arrows on a focused grip to nudge it. Bounds are the
  * whole mat. Chaos: every couple of seconds one of them slides off somewhere on its own.
  */
-export default function Windows({
-  near,
-  active,
-  bounds,
-  onHue,
-}: {
-  near: boolean;
-  active: boolean;
-  bounds: HTMLElement | null;
-  onHue: (hue: number | null) => void;
-}) {
+export default function Windows({ near, active, bounds }: { near: boolean; active: boolean; bounds: HTMLElement | null }) {
   const root = useRef<HTMLDivElement>(null);
   const drags = useRef<Record<string, Draggable>>({});
   const z = useRef(4);
@@ -107,9 +97,8 @@ export default function Windows({
     };
   }, [chaos, reduced, active, bounds]);
 
-  const chrome = (id: string) => ({
-    onFront: () => front(id),
-    onNudge: (dx: number, dy: number) => {
+  const nudge = useCallback(
+    (id: string, dx: number, dy: number) => {
       const d = drags.current[id];
       if (!d) return;
       front(id);
@@ -117,14 +106,16 @@ export default function Windows({
       d.update(true);
       play("tick");
     },
-  });
+    [front],
+  );
+  const chrome = { onFront: front, onNudge: nudge };
 
   return (
     <div ref={root} className="pg-wins" data-pg-in>
-      <TypeTester chrome={chrome("type")} />
-      <Synth chrome={chrome("synth")} />
-      <Accent chrome={chrome("accent")} onHue={onHue} />
-      <Fragment chrome={chrome("fragment")} active={active} />
+      <TypeTester chrome={chrome} />
+      <Synth chrome={chrome} />
+      <Accent chrome={chrome} />
+      <Fragment chrome={chrome} active={active} />
     </div>
   );
 }

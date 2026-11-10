@@ -3,9 +3,10 @@ import { useState } from "react";
 import { TYPE_SAMPLE } from "../copy";
 import { Win } from "./Win";
 
+/** What every window gets from Windows.tsx: bring-to-front and the keyboard nudge, keyed by window id. */
 export interface Chrome {
-  onNudge: (dx: number, dy: number) => void;
-  onFront: () => void;
+  onNudge: (id: string, dx: number, dy: number) => void;
+  onFront: (id: string) => void;
 }
 
 /**

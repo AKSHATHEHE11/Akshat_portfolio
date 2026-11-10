@@ -23,7 +23,7 @@ export function Synth({ chrome }: { chrome: Chrome }) {
   const timers = useRef<number[]>([]);
 
   function hit(i: number) {
-    note(NOTES[i].hz, WAVES[wave].id, chaos ? (Math.random() - 0.5) * 0.18 : 0);
+    note(NOTES[i].hz, WAVES[wave].id, chaos);
     const el = pads.current[i];
     if (!el) return;
     el.dataset.lit = "";

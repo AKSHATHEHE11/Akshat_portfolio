@@ -10,9 +10,10 @@ export const WAVES: { id: OscillatorType; label: string; path: string }[] = [
   { id: "sine", label: "Sine", path: "M2 9c2.5-7 5-7 7.5 0s5 7 7.5 0 5-7 7.5 0" },
 ];
 
-/** Play one note. No-op while the visitor has sound off. `wobble` bends the pitch in (chaos). */
-export function note(hz: number, wave: OscillatorType, wobble = 0) {
+/** Play one note. No-op while the visitor has sound off. Chaos bends each note in from up to ±9%. */
+export function note(hz: number, wave: OscillatorType, chaos = false) {
   if (!system.get().sound) return;
+  const wobble = chaos ? (Math.random() - 0.5) * 0.18 : 0;
   const a = getAudio();
   if (!a) return;
   const { ctx, out } = a;

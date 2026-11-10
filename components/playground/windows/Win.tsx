@@ -19,8 +19,8 @@ export function Win({
   id: string;
   title: string;
   meta?: ReactNode;
-  onNudge: (dx: number, dy: number) => void;
-  onFront: () => void;
+  onNudge: (id: string, dx: number, dy: number) => void;
+  onFront: (id: string) => void;
   children: ReactNode;
 }) {
   const onKey = (e: KeyboardEvent<HTMLButtonElement>) => {
@@ -28,10 +28,10 @@ export function Win({
     if (!s) return;
     e.preventDefault();
     const k = e.shiftKey ? 64 : 16;
-    onNudge(s[0] * k, s[1] * k);
+    onNudge(id, s[0] * k, s[1] * k);
   };
   return (
-    <section data-win={id} className={`pg-win pg-win-${id}`} aria-labelledby={`pg-win-${id}`} onPointerDownCapture={onFront}>
+    <section data-win={id} className={`pg-win pg-win-${id}`} aria-labelledby={`pg-win-${id}`} onPointerDownCapture={() => onFront(id)}>
       <header data-grip className="pg-win-bar" data-cursor="drag" data-cursor-label="MOVE">
         <button
           type="button"
@@ -39,7 +39,7 @@ export function Win({
           aria-label={`Move the ${title} window. Arrow keys move it.`}
           data-arrows="local"
           onKeyDown={onKey}
-          onClick={onFront}
+          onClick={() => onFront(id)}
         >
           <i />
           <i />
