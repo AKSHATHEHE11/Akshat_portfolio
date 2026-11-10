@@ -31,7 +31,7 @@ export default memo(function Scene({ rig, active, coarse, onReady, onLost }: Sce
       aria-hidden
       frameloop={active ? "always" : "never"}
       dpr={dpr}
-      camera={{ fov: 24, position: [0, 3.3, 4.9], near: 1, far: 20 }}
+      camera={{ fov: 24, position: [0, 3.65, 5.45], near: 1, far: 20 }}
       gl={{ alpha: true, antialias: true, powerPreference: "high-performance", toneMapping: THREE.NeutralToneMapping }}
       style={{ position: "absolute", inset: 0, pointerEvents: "none" }}
       onCreated={({ gl, camera }) => {
@@ -194,9 +194,11 @@ function Stage({ rig, onReady }: { rig: KeyRig; onReady: () => void }) {
 const Lights = memo(function Lights() {
   return (
     <>
-      <directionalLight position={[-2.5, 5, 4]} intensity={1.2} color="#fff3e4" />
-      <Environment resolution={128} frames={1} environmentIntensity={0.9}>
-        <color attach="background" args={["#3a3530"]} />
+      <directionalLight position={[-2.5, 5, 4]} intensity={1.6} color="#fff3e4" />
+      <ambientLight intensity={0.2} />
+      <Environment resolution={128} frames={1} environmentIntensity={1}>
+        {/* a warm mid-grey studio: a dark backdrop made the cream PBT read as tan */}
+        <color attach="background" args={["#9a9286"]} />
         <Lightformer form="rect" intensity={2.6} color="#fff5e8" position={[0, 5, 3]} rotation={[-Math.PI / 2.6, 0, 0]} scale={[8, 3, 1]} />
         <Lightformer form="rect" intensity={1.2} position={[-5, 1.5, 2]} rotation={[0, Math.PI / 2.4, 0]} scale={[4, 6, 1]} />
         <Lightformer form="rect" intensity={1.8} color="#ff7a3c" position={[4, 1, -4]} rotation={[0, -Math.PI / 1.4, 0]} scale={[3, 6, 1]} />
