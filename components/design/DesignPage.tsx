@@ -55,7 +55,7 @@ export default function DesignPage() {
           {design.kicker}
         </h2>
         <ol className="dz-list">
-          {design.disciplines.map((d, i) => (
+          {design.fields.map((d, i) => (
             <li key={d.title} className="dz-row">
               <span className="dz-num label">{pad(i + 1)}</span>
               <h3 className="dz-row-title">{d.title}</h3>
