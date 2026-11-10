@@ -233,6 +233,127 @@
   }
 }
 
+/* ── the work: an index that sticks under the nav, then one section per field that has work ── */
+.dz-work {
+  --dz-index-h: 3rem;
+}
+.dz-index {
+  position: sticky;
+  z-index: 20;
+  top: calc(var(--nav-h) + var(--safe-top));
+  background: var(--dz-bg);
+  border-block: 1px solid var(--dz-line);
+  /* fills the whole band behind the floating nav (a nav's height above the bar), so the work doesn't
+     show around the nav while the bar is stuck */
+  box-shadow: 0 calc((var(--nav-h) + var(--safe-top)) / -2) 0 calc((var(--nav-h) + var(--safe-top)) / 2) var(--dz-bg);
+}
+/* ...so the list above ends more than that band above the bar, or the fill would cover its last rule */
+.dz-section:has(+ .dz-work) {
+  padding-bottom: max(clamp(4rem, 11vh, 8rem), calc(var(--nav-h) + var(--safe-top) + 1rem));
+}
+.dz-index-in {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  height: var(--dz-index-h);
+}
+.dz-index-list {
+  position: relative; /* offsetParent: the lit field is scrolled into view by its offsetLeft */
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  gap: clamp(1.25rem, 3vw, 3rem);
+  /* phones: the fields run on under the Behance key and back into the page margin, fading at both
+     ends instead of being cut at the frame line */
+  margin-left: calc(var(--margin) * -1);
+  padding-inline: var(--margin) 2rem;
+  overflow-x: auto;
+  mask-image: linear-gradient(to right, transparent, #000 var(--margin), #000 calc(100% - 2rem), transparent);
+}
+.dz-index-link {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  height: 100%;
+  white-space: nowrap;
+  color: var(--dz-muted);
+  transition: color 0.25s;
+}
+.dz-index-link::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 2px;
+  background: var(--dz-fg);
+  scale: 0 1;
+  transform-origin: left;
+  transition: scale 0.45s var(--ease-out-expo);
+}
+.dz-index-link[aria-current] {
+  color: var(--dz-fg);
+}
+.dz-index-link[aria-current]::after {
+  scale: 1 1;
+}
+.dz-index-link:focus-visible {
+  outline-offset: -2px; /* the scroller clips anything outside it */
+}
+@media (hover: hover) {
+  .dz-index-link:hover {
+    color: var(--dz-fg);
+  }
+}
+.dz-index-behance {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 0.4rem;
+  height: 2rem;
+  padding-inline: 0.85rem;
+  border-radius: 4px;
+  background: var(--dz-fg);
+  color: var(--dz-bg);
+}
+
+.dz-field {
+  padding-block: 2rem clamp(4.5rem, 12vh, 8rem);
+  /* a jump from the list, the index or the rail lands with the heading clear of the nav and index */
+  scroll-margin-top: calc(var(--nav-h) + var(--safe-top) + var(--dz-index-h));
+}
+.dz-field:focus {
+  outline: none; /* focus lands here after a jump; it is a starting point, not a control */
+}
+.dz-field-head {
+  row-gap: 1.25rem;
+  margin-bottom: clamp(2rem, 6vh, 4rem);
+  padding-top: clamp(1rem, 2.5vh, 1.5rem);
+  border-top: 1px solid var(--dz-line);
+}
+.dz-field-head .dz-num {
+  padding-top: 0.4rem;
+}
+.dz-field-title {
+  font-family: var(--font-display);
+  font-size: clamp(2.4rem, 7vw, 7rem);
+  font-weight: 900;
+  font-variation-settings: "wdth" 125;
+  line-height: 0.9;
+  text-transform: uppercase;
+}
+@media (min-width: 1024px) {
+  .dz-field-head {
+    align-items: end;
+  }
+  .dz-field-head .dz-num {
+    align-self: start;
+  }
+  .dz-field-head .dz-aside {
+    padding-bottom: 0.6rem;
+  }
+}
+
 /* ── the way to the full portfolio ── */
 .dz-behance {
   display: grid;
