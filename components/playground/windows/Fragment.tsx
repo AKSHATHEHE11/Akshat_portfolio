@@ -38,7 +38,7 @@ const show = (v: Look[keyof Look]) => (typeof v === "string" ? `"${v}"` : String
  */
 export function Fragment({ chrome, active }: { chrome: Chrome; active: boolean }) {
   const chaos = useChaos();
-  const [{ look, rev, log }, setState] = useState({ look: START, rev: 1, log: [] as string[] });
+  const [{ look, rev, log }, setState] = useState({ look: START, rev: 1, log: ["· rev 0001 — as designed"] });
   const [frozen, setFrozen] = useState(false);
   const [approved, setApproved] = useState(false);
   const n = useRef(0);
@@ -90,10 +90,10 @@ export function Fragment({ chrome, active }: { chrome: Chrome; active: boolean }
             {look.label}
           </Button>
         </div>
-        <pre className="pg-frag-code" aria-label="Current props">
+        <pre className="pg-frag-code">
           {`<Button variant="${look.variant}" size="${look.size}"\n  radius={${look.radius}} wdth={${look.wdth}}${look.icon ? " icon" : ""}>`}
         </pre>
-        <ol className="pg-frag-log" aria-live="polite">
+        <ol className="pg-frag-log">
           {approved ? <li data-ok>✓ rev {pad(rev, 4)} approved — holding still</li> : null}
           {log.map((l, i) => (
             <li key={`${rev}-${i}`}>{l}</li>
