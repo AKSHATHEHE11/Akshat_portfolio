@@ -16,7 +16,18 @@ gsap.registerPlugin(Physics2DPlugin);
 const TONES: Band[] = ["approved", "declined", "review", "declined", "approved", "review"];
 const amount = (v: number) => Math.abs(v).toLocaleString("en-IN");
 
-export default function Spew({ slot, borrowers, date }: { slot: RefObject<HTMLDivElement | null>; borrowers: Borrower[]; date: string }) {
+/** a chaos:burst the world heard before this layer existed; t = performance.now() */
+export type Burst = { x: number; y: number; t: number };
+
+interface Props {
+  slot: RefObject<HTMLDivElement | null>;
+  /** set by the world on every chaos:burst — read once on mount, so the switch-on burst isn't missed */
+  burst: RefObject<Burst | null>;
+  borrowers: Borrower[];
+  date: string;
+}
+
+export default function Spew({ slot, burst, borrowers, date }: Props) {
   const layer = useRef<HTMLDivElement>(null);
   const coarse = useCoarse();
   const receipts = coarse ? 3 : 6;
@@ -64,18 +75,23 @@ export default function Spew({ slot, borrowers, date }: { slot: RefObject<HTMLDi
         .to(el, { autoAlpha: 0, duration: 0.7, delay: 1.1 });
     };
 
+    const blast = (x: number, y: number) => {
+      for (let k = 0; k < paper.length; k++) gsap.delayedCall(k * 0.06, () => spew(x, y, true));
+    };
+    // the burst that switched chaos on happened while this chunk was loading
+    const pending = burst.current;
+    if (pending && performance.now() - pending.t < 2000) blast(pending.x, pending.y);
+
     const a = window.setInterval(fromSlot, coarse ? 1500 : 850);
     const b = window.setInterval(rain, coarse ? 2200 : 1300);
-    const off = on<{ x: number; y: number } | undefined>("chaos:burst", (p) => {
-      for (let k = 0; k < paper.length; k++) gsap.delayedCall(k * 0.06, () => spew(p?.x ?? window.innerWidth / 2, p?.y ?? window.innerHeight / 2, true));
-    });
+    const off = on<{ x: number; y: number } | undefined>("chaos:burst", (p) => blast(p?.x ?? window.innerWidth / 2, p?.y ?? window.innerHeight / 2));
     return () => {
       window.clearInterval(a);
       window.clearInterval(b);
       off();
       gsap.killTweensOf([...paper, ...ink]);
     };
-  }, [slot, coarse]);
+  }, [slot, burst, coarse]);
 
   const lines = borrowers.flatMap((b) => b.txns);
   return (
