@@ -9,14 +9,13 @@ import { gsap, useGSAP } from "@/lib/gsap";
 import { useReducedMotion } from "@/lib/hooks";
 import { play } from "@/lib/sound";
 import type { Project } from "@/lib/types";
-import { cn } from "@/lib/utils";
+import { clamp, cn } from "@/lib/utils";
 import { revLetter, ViewTitle } from "./kit";
 import type { Area, BlueprintScene } from "./scene";
 import { AREA, centre, Wireframe } from "./Wireframe";
 
 /** Key plan viewBox: the phone (300 × 560) with room for bubbles either side. */
 const VB = { x: -64, y: -12, w: 428, h: 584 };
-const R_LENS = 86;
 const pct = (v: number, o: number, s: number) => `${(((v - o) / s) * 100).toFixed(2)}%`;
 
 /** The callout ring on the plan and where its bubble sits (alternating sides). */
@@ -42,7 +41,8 @@ export function Details({ project }: { project: Project<BlueprintScene> }) {
   const d = decisions[open];
   const area = spots[open]?.area ?? "next";
   const [zx, zy] = centre(area);
-  const view = `${zx - R_LENS} ${zy - R_LENS} ${R_LENS * 2} ${R_LENS * 2}`;
+  const r = clamp(Math.max(AREA[area][2], AREA[area][3]) / 2 + 16, 70, 150); // the whole part, never closer than ~2:1
+  const view = `${zx - r} ${zy - r} ${r * 2} ${r * 2}`;
   const [first] = useState(view); // after mount GSAP owns the viewBox, so it can pan
   const pick = picks[open];
 
@@ -60,10 +60,12 @@ export function Details({ project }: { project: Project<BlueprintScene> }) {
     if (i === open) return;
     play("open");
     setOpen(i);
-    // the lens grows out of the callout that was pressed
+    // the lens grows out of the callout that was pressed (measured at rest, not mid-flight)
+    if (reduced || !lens.current) return;
+    gsap.set(lens.current, { clearProps: "transform" });
     const from = bubbles.current[i]?.getBoundingClientRect();
-    const to = lens.current?.getBoundingClientRect();
-    if (reduced || !from || !to || !lens.current || !to.width) return;
+    const to = lens.current.getBoundingClientRect();
+    if (!from || !to.width) return;
     gsap.fromTo(
       lens.current,
       {
@@ -86,11 +88,13 @@ export function Details({ project }: { project: Project<BlueprintScene> }) {
         <ViewTitle n={5} sheet="A-301" id="bp-det" scale="1 : 1 · details 2 : 1">
           Details
         </ViewTitle>
-        <p className="bp-instr">Four calls that shaped the screen. Open a callout, pick the option you&apos;d have built.</p>
+        <p className="bp-instr">
+          {decisions.length} calls that shaped the screen. Open a callout, pick the option you&apos;d have built.
+        </p>
 
         <div className="bp-keyplan">
           <svg viewBox={`${VB.x} ${VB.y} ${VB.w} ${VB.h}`} className="bp-wfsvg bp-keyplan-svg" aria-hidden>
-            <Wireframe />
+            <Wireframe initials={project.scene.student.initials} />
             {spots.map((s, i) => {
               const p = spot(s.area, i);
               const x0 = p.right ? p.cx + p.r : p.cx - p.r;
@@ -140,7 +144,7 @@ export function Details({ project }: { project: Project<BlueprintScene> }) {
         <div className="bp-det-main">
           <div ref={lens} className="bp-lens" aria-hidden>
             <svg ref={zoom} viewBox={first} className="bp-wfsvg bp-lens-svg">
-              <Wireframe />
+              <Wireframe initials={project.scene.student.initials} />
             </svg>
             <span className="bp-lens-ring" />
             <span className="bp-lens-cross" />
