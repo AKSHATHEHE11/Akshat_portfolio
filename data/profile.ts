@@ -61,4 +61,11 @@ export const profile = {
   ],
 
   interests: ["Indian railways", "Mechanical keyboards", "Generative art", "Street food maps", "Old CRT televisions"],
+
+  /** /about copy that isn't biography. Headings are [plain, serif accent]. */
+  about: {
+    desk: ["Nothing on this desk is decoration.", "Pick something up."],
+    build: ["How I’m", "wired."],
+    journey: ["The line", "so far."],
+  },
 } as const;
