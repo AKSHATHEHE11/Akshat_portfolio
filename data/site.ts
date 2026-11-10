@@ -9,13 +9,14 @@ export const site = {
   build: "2026.11",
   version: "AKSHAT/OS 26.11",
 
+  /** Work and Design lead: they are the two portfolios. */
   nav: [
     { id: "01", label: "Work", href: "/work", key: "w" },
-    { id: "02", label: "Play", href: "/playground", key: "p" },
-    { id: "03", label: "Think", href: "/think", key: "t" },
-    { id: "04", label: "Experiment", href: "/experiments", key: "e" },
-    { id: "05", label: "About", href: "/about", key: "a" },
-    { id: "06", label: "Design", href: "/design", key: "d" },
+    { id: "02", label: "Design", href: "/design", key: "d" },
+    { id: "03", label: "Play", href: "/playground", key: "p" },
+    { id: "04", label: "Think", href: "/think", key: "t" },
+    { id: "05", label: "Experiment", href: "/experiments", key: "e" },
+    { id: "06", label: "About", href: "/about", key: "a" },
   ],
 
   /** Keyboard shortcuts — the shortcuts sheet (press ?) renders this list. */
@@ -25,11 +26,11 @@ export const site = {
     { keys: ["L"], label: "Lights (theme)" },
     { keys: ["H"], label: "Home" },
     { keys: ["W"], label: "Work" },
+    { keys: ["D"], label: "Design" },
     { keys: ["P"], label: "Playground" },
     { keys: ["T"], label: "Think" },
     { keys: ["E"], label: "Experiments" },
     { keys: ["A"], label: "About" },
-    { keys: ["D"], label: "Design" },
     { keys: ["←", "→"], label: "Previous / next world" },
     { keys: ["Esc"], label: "Exit a world" },
     { keys: ["?"], label: "This sheet" },
