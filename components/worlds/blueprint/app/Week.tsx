@@ -96,7 +96,7 @@ export function Week({ ctx, onRoute }: { ctx: AppCtx; onRoute: (s: Slot) => void
                       data-cursor="hover"
                     >
                       <b>{s.subject}</b>
-                      <small>{s.kind === "Lecture" ? s.room.replace(/^[A-Z]+-/, "") : s.kind}</small>
+                      <small>{s.kind === "Lecture" ? s.room.replace(/^[A-Z]+-/, "") : s.kind === "Tutorial" ? "Tut." : s.kind}</small>
                     </button>
                   </td>
                 );

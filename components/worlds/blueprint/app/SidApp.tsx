@@ -143,24 +143,28 @@ export default function SidApp({ scene, tab, onTab }: { scene: BlueprintScene; t
         {screen}
       </div>
 
-      {snack && (
-        <div key={snack.n} className={cn("sid-snack", snack.tone && `sid-snack-${snack.tone}`)} role="status">
-          <span>{snack.text}</span>
-          {snack.undo && (
-            <button
-              type="button"
-              className="sid-snack-undo"
-              onClick={() => {
-                snack.undo?.();
-                setSnack(null);
-                play("toggle-off");
-              }}
-            >
-              Undo
-            </button>
-          )}
-        </div>
-      )}
+      {/* the live region is always there, so screen readers hear each message as it lands */}
+      <div role="status">
+        {snack && (
+          <div key={snack.n} className={cn("sid-snack", snack.tone && `sid-snack-${snack.tone}`)}>
+            <span>{snack.text}</span>
+            {snack.undo && (
+              <button
+                type="button"
+                className="sid-snack-undo hit"
+                onClick={() => {
+                  snack.undo?.();
+                  setSnack(null);
+                  play("toggle-off");
+                }}
+                data-cursor="hover"
+              >
+                Undo
+              </button>
+            )}
+          </div>
+        )}
+      </div>
 
       <nav className="sid-tabs" aria-label="App">
         {TABS.map(({ id, label, icon: Icon }) => (

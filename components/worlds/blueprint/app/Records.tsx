@@ -12,6 +12,18 @@ import type { AppCtx } from "./SidApp";
 type View = "grades" | "fees";
 const VIEWS: View[] = ["grades", "fees"];
 
+/** Arrow keys walk a role="radiogroup" of buttons and pick as they go, like native radios (roving tabindex). */
+function radioKeys(e: KeyboardEvent<HTMLElement>) {
+  const d = e.key === "ArrowRight" || e.key === "ArrowDown" ? 1 : e.key === "ArrowLeft" || e.key === "ArrowUp" ? -1 : 0;
+  const all = [...e.currentTarget.querySelectorAll<HTMLButtonElement>("[role='radio']:not(:disabled)")];
+  const i = all.indexOf(document.activeElement as HTMLButtonElement);
+  if (!d || i < 0) return;
+  e.preventDefault();
+  const to = all[(i + d + all.length) % all.length];
+  to.focus();
+  to.click();
+}
+
 export function Records({ ctx, fees, setFees }: { ctx: AppCtx; fees: Fee[]; setFees: (f: Fee[]) => void }) {
   const [view, setView] = useState<View>("grades");
   const tabs = useRef<(HTMLButtonElement | null)[]>([]);
@@ -40,6 +52,7 @@ export function Records({ ctx, fees, setFees }: { ctx: AppCtx; fees: Fee[]; setF
               role="tab"
               aria-selected={view === v}
               tabIndex={view === v ? 0 : -1}
+              className="hit"
               onClick={() => {
                 play("click");
                 setView(v);
@@ -89,7 +102,7 @@ function Grades({ ctx }: { ctx: AppCtx }) {
         </ol>
       </div>
 
-      <div className="sid-target" role="radiogroup" aria-label="Grade you want">
+      <div className="sid-target" role="radiogroup" aria-label="Grade you want" onKeyDown={radioKeys}>
         <span className="sid-label">Aim for</span>
         {g.bands.map((b) => (
           <button
@@ -97,6 +110,8 @@ function Grades({ ctx }: { ctx: AppCtx }) {
             type="button"
             role="radio"
             aria-checked={target === b.grade}
+            tabIndex={target === b.grade ? 0 : -1}
+            className="hit"
             onClick={() => {
               play("tick");
               setTarget(b.grade);
@@ -210,7 +225,8 @@ function Fees({ ctx, fees, setFees }: { ctx: AppCtx; fees: Fee[]; setFees: (f: F
         {changed && (
           <button
             type="button"
-            className="sid-textbtn"
+            className="sid-textbtn hit"
+            data-cursor="hover"
             onClick={() => {
               play("toggle-off");
               setFees(scene.fees);
@@ -316,13 +332,14 @@ function Fees({ ctx, fees, setFees }: { ctx: AppCtx; fees: Fee[]; setFees: (f: F
                 <h4 id="sid-pay-h" ref={head} tabIndex={-1} className="sid-sheet-h">
                   Pay ₹{rupees(pay.amount)}
                 </h4>
-                <div className="sid-methods" role="radiogroup" aria-label="Payment method">
+                <div className="sid-methods" role="radiogroup" aria-label="Payment method" onKeyDown={radioKeys}>
                   {METHODS.map(({ id, icon: Icon, note }) => (
                     <button
                       key={id}
                       type="button"
                       role="radio"
                       aria-checked={pay.method === id}
+                      tabIndex={pay.method === id ? 0 : -1}
                       disabled={pay.step === "busy"}
                       onClick={() => {
                         play("tick");
