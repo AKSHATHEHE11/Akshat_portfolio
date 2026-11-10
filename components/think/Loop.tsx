@@ -11,6 +11,9 @@ import { play } from "@/lib/sound";
 import { pad } from "@/lib/utils";
 
 const describedBy = (i: number) => `tk-step-${pipeline[i].id}`;
+const NUMBER = ["Zero", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Eleven", "Twelve"];
+/** "Seven steps," — counted from data/think.ts, so the heading never disagrees with the board */
+const STEPS = `${NUMBER[pipeline.length] ?? pipeline.length} steps,`;
 
 /** The full readout under the board: what the stage does, the habit behind it, the file it leaves. */
 function StageReadout({ stage, index, total }: { stage: PipelineStage; index: number; total: number }) {
@@ -66,18 +69,18 @@ export function Loop() {
       id="loop"
       data-rail="Loop"
       aria-labelledby="tk-loop"
-      className="brain-scene tk-loop relative pb-[clamp(4rem,10vh,7rem)] pt-[clamp(5rem,12vh,8.5rem)]"
+      className="brain-scene tk-loop relative pb-[clamp(4rem,10svh,7rem)] pt-[clamp(5rem,12svh,8.5rem)]"
     >
       <header className="frame grid gap-10 lg:grid-cols-12 lg:items-end lg:gap-(--gutter)">
         <h2 id="tk-loop" data-chaos-type className="tk-h2 lg:col-span-7 xl:col-span-8">
-          Seven steps,
+          {STEPS}
           <br />
           <em>one loop.</em>
         </h2>
         <StatusPanel className="lg:col-span-5 xl:col-span-4" />
       </header>
 
-      <Pipeline {...shared} chaos={chaos} className="mt-[clamp(2.5rem,6vh,4.5rem)] hidden lg:block">
+      <Pipeline {...shared} chaos={chaos} className="mt-[clamp(2.5rem,6svh,4.5rem)] hidden lg:block">
         <StageReadout stage={pipeline[shown]} index={shown} total={pipeline.length} />
       </Pipeline>
 

@@ -32,7 +32,7 @@ export default function ThinkPage() {
       <Switchboard />
       <FieldNotes />
 
-      <section aria-label="Back to the start of the loop" className="frame pb-[clamp(5rem,13vh,9rem)]">
+      <section aria-label="Back to the start of the loop" className="frame pb-[clamp(5rem,13svh,9rem)]">
         <div className="flex flex-col gap-8 border-t border-line pt-10 md:flex-row md:items-end md:justify-between">
           <p className="tk-h2 text-[clamp(2.2rem,1.2rem+3.4vw,4.75rem)]">
             Ship it.

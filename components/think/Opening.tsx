@@ -17,6 +17,7 @@ export function Opening() {
   const root = useRef<HTMLElement>(null);
   const orbit = useRef<SVGSVGElement>(null);
   const [squash, setSquash] = useState<number | null>(null);
+  const letGo = useRef(0); // one release timer for taps, so a quick second tap isn't cut short by the first
   const reduced = useReducedMotion();
   const chaos = useChaos();
   const visible = useOnScreen(root, "0px");
@@ -52,7 +53,8 @@ export function Opening() {
               onPointerDown={(e) => {
                 if (e.pointerType === "mouse") return;
                 press(i);
-                window.setTimeout(() => setSquash(null), 420);
+                window.clearTimeout(letGo.current);
+                letGo.current = window.setTimeout(() => setSquash(null), 420);
               }}
             >
               <span aria-hidden className="tk-l-ghost">
