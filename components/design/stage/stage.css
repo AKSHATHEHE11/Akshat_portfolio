@@ -1,0 +1,335 @@
+/* ── Concert visuals: the loops on an LED wall over a crowd (components/design/stage) ── */
+.st {
+  /* the site's Button reads these: light on the dark page */
+  --fg: var(--dz-fg);
+  --bg: var(--dz-bg);
+  --fg-muted: var(--dz-muted);
+  --line: var(--dz-line);
+  --line-strong: var(--dz-fg);
+}
+
+/* The stage runs edge to edge whatever box it sits in. Sizes inside are in container units, so
+   the wall, the rig and the crowd keep their proportions at any width. */
+.st-stage {
+  --ww: min(72cqw, 70cqh * 16 / 9); /* wall width */
+  --wh: calc(var(--ww) * 9 / 16);
+  --wy: 8cqh; /* wall top */
+  --ty: 3cqh; /* truss top */
+  --th: max(6px, 1.2cqh); /* truss height */
+  position: relative;
+  margin-inline: calc(50% - 50vw);
+  /* Never wider than 2.7:1: past that the crowd, cut to the width, grows up over the wall. Otherwise as
+     tall as leaves the caption and the loops on screen too, under the nav and the field index. */
+  height: clamp(max(17rem, 37vw), min(50vw, 100svh - var(--nav-h) - var(--dz-index-h, 0px) - 14rem), 56rem);
+  overflow: hidden;
+  container-type: size;
+  background: #000;
+}
+
+/* the wall's light in the haze around it: its own picture, blurred far out. Static. */
+.st-spill {
+  position: absolute;
+  left: 50%;
+  top: calc(var(--wy) + var(--wh) / 2);
+  width: calc(var(--ww) * 1.45);
+  height: calc(var(--wh) * 1.9);
+  translate: -50% -50%;
+  background: center / cover no-repeat;
+  filter: blur(56px) saturate(1.3);
+  opacity: 0.5;
+}
+
+.st-wall {
+  position: absolute;
+  z-index: 1;
+  top: var(--wy);
+  left: calc(50% - var(--ww) / 2);
+  width: var(--ww);
+  height: var(--wh);
+  overflow: hidden;
+  background: #000;
+}
+.st-media {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+/* LED pixels and the seams between the wall's 16 × 9 panels */
+.st-wall::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    linear-gradient(to right, rgb(0 0 0 / 0.2) 1px, transparent 1px) 0 0 / calc(100% / 16) 100%,
+    linear-gradient(to bottom, rgb(0 0 0 / 0.2) 1px, transparent 1px) 0 0 / 100% calc(100% / 9),
+    radial-gradient(circle, transparent 0.85px, rgb(0 0 0 / 0.24) 1.45px) 0 0 / 3px 3px;
+  box-shadow: inset 0 0 3rem rgb(0 0 0 / 0.35);
+}
+
+/* play / pause: the whole wall is the button; the disc shows while paused or focused */
+.st-toggle {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  outline-offset: -4px;
+}
+/* the page's white key, like the Behance key in the field index */
+.st-glyph {
+  display: grid;
+  place-items: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 4px;
+  background: var(--dz-fg);
+  color: #000;
+  opacity: 0;
+  scale: 0.9;
+  transition:
+    opacity var(--dur-hover),
+    scale var(--dur-hover) var(--ease-out-quart);
+}
+.st-glyph svg {
+  translate: 1px 0;
+}
+.st-toggle[data-paused] .st-glyph,
+.st-toggle:focus-visible .st-glyph {
+  opacity: 1;
+  scale: 1;
+}
+
+/* a YouTube piece: its poster, dimmed, and the way out to the video */
+.st-yt {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  background: rgb(0 0 0 / 0.45);
+}
+
+/* ── the rig: behind the wall, so the beams light the haze around it and never the work ── */
+.st-truss {
+  position: absolute;
+  top: var(--ty);
+  left: 50%;
+  width: calc(var(--ww) + 34cqw);
+  height: var(--th);
+  translate: -50% 0;
+  background:
+    linear-gradient(#262626, #262626) top / 100% 1px no-repeat,
+    linear-gradient(#262626, #262626) bottom / 100% 1px no-repeat,
+    repeating-linear-gradient(60deg, transparent 0 5px, #1d1d1d 5px 6.5px);
+}
+/* A beam: a soft cone from its lamp, fading into the haze. The cone is painted once on the
+   pseudo-element; the beam itself only turns, on its own compositor layer: the sweep animates
+   `rotate`, which adds to the resting angle in `transform`. */
+.st-beam {
+  position: absolute;
+  top: calc(var(--ty) + var(--th));
+  left: var(--x);
+  width: 30cqh;
+  height: 125cqh;
+  margin-left: -15cqh;
+  transform-origin: 50% 0;
+  transform: rotate(var(--a));
+  will-change: transform;
+  pointer-events: none;
+}
+.st-beam::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: conic-gradient(from 175deg at 50% 0, transparent, rgb(255 255 255 / 0.36) 5deg, transparent 10deg);
+  mask-image: linear-gradient(to bottom, #000, rgb(0 0 0 / 0.35) 40%, transparent 80%);
+}
+/* the lamp itself */
+.st-beam::after {
+  --l: clamp(4px, 1.2cqh, 9px);
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: var(--l);
+  height: var(--l);
+  margin: calc(var(--l) / -2);
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 calc(var(--l) * 2) calc(var(--l) * 0.6) rgb(255 255 255 / 0.4);
+}
+/* the sweep restyles each beam every frame: phones keep them still, at their resting angles */
+@media (prefers-reduced-motion: no-preference) and (min-width: 768px) {
+  .st-beam {
+    animation: st-sweep var(--t) ease-in-out var(--d) infinite alternate;
+  }
+  .st:not([data-live]) .st-beam {
+    animation-play-state: paused;
+  }
+  /* chaos: the light show runs at four times the tempo */
+  html[data-chaos="on"] .st-beam {
+    animation-duration: calc(var(--t) / 4);
+  }
+}
+@keyframes st-sweep {
+  from {
+    rotate: -9deg;
+  }
+  to {
+    rotate: 9deg;
+  }
+}
+
+.st-crowd {
+  position: absolute;
+  z-index: 3;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 34cqh;
+  overflow: visible; /* raised hands may reach above the box */
+  pointer-events: none;
+}
+.st-phone {
+  fill: #d5d8dc;
+  opacity: 0.45;
+}
+
+/* ── under the stage (in a .frame): what's on screen, and the other loops ── */
+.st-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1.5rem;
+  padding-block: clamp(1rem, 2.5vh, 1.5rem);
+}
+.st-cap {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 1rem;
+  min-width: 0;
+}
+.st-cap-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.25rem, 2.2vw, 2rem);
+  font-weight: 900;
+  font-variation-settings: "wdth" 125;
+  line-height: 1;
+  text-transform: uppercase;
+}
+.st-cap-meta {
+  color: var(--dz-muted);
+}
+
+.st-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
+  column-gap: var(--gutter);
+  border-top: 1px solid var(--dz-line);
+}
+.st-pick {
+  position: relative;
+  display: grid;
+  grid-template-columns: 7.5rem minmax(0, 1fr);
+  grid-template-rows: auto auto 1fr;
+  align-items: start;
+  gap: 0.3rem 1rem;
+  width: 100%;
+  padding-block: 1rem;
+  text-align: left;
+  color: var(--dz-muted);
+  transition: color var(--dur-hover);
+}
+.st-thumb {
+  grid-row: span 3;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  background: #000;
+  filter: grayscale(1) brightness(0.7);
+  transition: filter var(--dur-hover);
+}
+.st-pick-title {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 900;
+  font-variation-settings: "wdth" 125;
+  line-height: 1.05;
+  text-transform: uppercase;
+}
+.st-pick-meta {
+  font-size: 0.9375rem;
+  line-height: 1.35;
+}
+/* the loop on the wall: in colour, in full white, with a bar on the rule above it */
+.st-pick[aria-pressed="true"] {
+  color: var(--dz-fg);
+}
+.st-pick[aria-pressed="true"]::before {
+  content: "";
+  position: absolute;
+  inset: -1px 0 auto;
+  height: 2px;
+  background: var(--dz-fg);
+}
+.st-pick[aria-pressed="true"] .st-thumb,
+.st-pick:focus-visible .st-thumb {
+  filter: none;
+}
+.st-pick:focus-visible {
+  color: var(--dz-fg);
+}
+@media (hover: hover) {
+  .st-pick:hover {
+    color: var(--dz-fg);
+  }
+  .st-pick:hover .st-thumb {
+    filter: none;
+  }
+}
+
+/* phones held upright: the wall fills the width at 16:9 (on its side, a phone gets the desktop
+   stage, or the wall would be taller than the screen) */
+@media (max-width: 767px) and (orientation: portrait) {
+  .st-stage {
+    --ww: 100cqw;
+    --wy: 12cqh;
+    --ty: 4cqh;
+    height: calc(100vw * 14 / 16);
+  }
+}
+
+/* phones: the loops become a strip that scrolls sideways */
+@media (max-width: 767px) {
+  /* the same pixels on a wall a third the size read as a screen door: lighter */
+  .st-wall::after {
+    opacity: 0.6;
+  }
+  .st-list {
+    display: flex;
+    gap: 1rem;
+    margin-inline: calc(50% - 50vw);
+    padding-inline: var(--margin);
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: var(--margin);
+  }
+  .st-list > li {
+    flex: 0 0 min(80vw, 19rem);
+    scroll-snap-align: start;
+  }
+  .st-pick {
+    grid-template-columns: 6.5rem minmax(0, 1fr);
+  }
+  .st-pick:focus-visible {
+    outline-offset: -2px; /* the strip clips anything outside it */
+  }
+}
