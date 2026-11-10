@@ -26,7 +26,7 @@ export function Terminal({ scene, title, slotRef }: { scene: LedgerScene; title:
   const ready = useSystem((s) => s.ready);
   const booted = useSystem((s) => s.booted);
   const lenis = useLenis();
-  const desk = useRef<HTMLDivElement>(null);
+  const desk = useRef<HTMLElement>(null);
   const analysis = useRef<HTMLDivElement>(null);
   const live = useOnScreen(desk);
   const byUser = useRef(false);
@@ -100,10 +100,10 @@ export function Terminal({ scene, title, slotRef }: { scene: LedgerScene; title:
   }, [said]);
 
   return (
-    <div id="preview" ref={desk} className="frame relative z-[1] mt-12 scroll-mt-24 md:mt-16">
+    <section id="preview" ref={desk} aria-labelledby="lg-desk" className="frame relative z-[1] mt-12 scroll-mt-24 md:mt-16">
       <div className="relative rounded-[12px] border border-(--lg-fg)/14 bg-[linear-gradient(180deg,rgb(242_238_231/0.045),rgb(242_238_231/0.012))] shadow-[inset_0_1px_0_rgb(242_238_231/0.07),0_40px_80px_-40px_rgb(0_0_0/0.9)]">
         <header className="flex items-center justify-between gap-x-6 border-b border-(--lg-fg)/12 px-4 py-3 md:px-5">
-          <h2 className="shrink-0 font-mono text-[0.75rem] font-semibold uppercase tracking-[0.16em] text-(--lg-signal)">› Score a borrower</h2>
+          <h2 id="lg-desk" className="shrink-0 font-mono text-[0.75rem] font-semibold uppercase tracking-[0.16em] text-(--lg-signal)">› Score a borrower</h2>
           <p className="flex min-w-0 items-center gap-2 font-mono text-[0.6875rem] uppercase tracking-[0.12em] text-(--lg-fg)/60">
             <Led tone={!borrower ? "fg" : x ? "go" : "signal"} pulse={!!borrower && !x} />
             <span className="truncate">{status}</span>
@@ -132,7 +132,7 @@ export function Terminal({ scene, title, slotRef }: { scene: LedgerScene; title:
             </div>
             <div ref={analysis} className="@container flex min-w-0 flex-col gap-7">
               <div className="grid items-start gap-6 @xl:grid-cols-2">
-                <Dial score={x?.score ?? null} band={x?.band ?? null} chaos={chaos} reduced={reduced} live={live} />
+                <Dial score={x?.score ?? null} band={x?.band ?? null} pending={!!borrower && !x} chaos={chaos} reduced={reduced} live={live} />
                 <Verdict
                   borrower={borrower}
                   x={x}
@@ -150,6 +150,6 @@ export function Terminal({ scene, title, slotRef }: { scene: LedgerScene; title:
           </div>
         </div>
       </div>
-    </div>
+    </section>
   );
 }

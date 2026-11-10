@@ -64,7 +64,17 @@ const Face = memo(function Face() {
   );
 });
 
-export function Dial({ score, band, chaos, reduced, live }: { score: number | null; band: Band | null; chaos: boolean; reduced: boolean; live: boolean }) {
+interface Props {
+  score: number | null;
+  band: Band | null;
+  /** a statement is printing: the gauge waits for it */
+  pending: boolean;
+  chaos: boolean;
+  reduced: boolean;
+  live: boolean;
+}
+
+export function Dial({ score, band, pending, chaos, reduced, live }: Props) {
   const needle = useRef<HTMLDivElement>(null);
   const spin = useRef<HTMLDivElement>(null);
   const trail = useRef<SVGPathElement>(null);
@@ -170,10 +180,10 @@ export function Dial({ score, band, chaos, reduced, live }: { score: number | nu
           <span
             className={cn(
               "block font-semibold",
-              band === "approved" ? "lg-up" : band === "declined" ? "lg-down" : band === "review" ? "text-(--lg-signal)" : "text-(--lg-fg)/45",
+              band === "approved" ? "lg-up" : band === "declined" ? "lg-down" : band === "review" ? "text-(--lg-signal)" : "text-(--lg-fg)/60",
             )}
           >
-            {band ? BAND_WORD[band] : "No file"}
+            {band ? BAND_WORD[band] : pending ? "Reading" : "No file"}
           </span>
           <span className="block text-(--lg-fg)/55">of {MAX}</span>
         </span>
