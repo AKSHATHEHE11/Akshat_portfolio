@@ -171,6 +171,12 @@ export function Panel({
     return () => document.removeEventListener("keydown", onKey);
   }, [open, wide]);
 
+  // stepping to another object starts it at the top, not halfway down the last one's list
+  const id = obj?.id;
+  useEffect(() => {
+    if (id) ref.current?.scrollTo({ top: 0 });
+  }, [id]);
+
   const i = obj ? OBJECTS.findIndex((o) => o.id === obj.id) : 0;
   const prev = OBJECTS[(i - 1 + OBJECTS.length) % OBJECTS.length];
   const next = OBJECTS[(i + 1) % OBJECTS.length];
@@ -180,8 +186,11 @@ export function Panel({
   };
   const go = (hash: string) => {
     onClose();
-    if (lenis) lenis.scrollTo(hash, { offset: -16 });
-    else document.querySelector(hash)?.scrollIntoView();
+    // the sheet holds Lenis stopped while it is open: scroll on the next frame, once it has let go
+    requestAnimationFrame(() => {
+      if (lenis) lenis.scrollTo(hash, { offset: -16, force: true });
+      else document.querySelector(hash)?.scrollIntoView();
+    });
   };
   const onKey = (e: KeyboardEvent) => {
     if (e.key === "ArrowLeft") step(prev);
@@ -222,7 +231,7 @@ export function Panel({
             onKeyDown={onKey}
             className={cn(
               "relative flex w-full flex-col overflow-y-auto overscroll-contain bg-surface text-fg outline-none",
-              wide ? "h-full border border-line-strong shadow-float" : "max-h-[86svh] rounded-t-[12px] pb-safe shadow-float",
+              wide ? "h-full border border-line-strong shadow-float" : "max-h-[86svh] rounded-t-[12px] shadow-float",
             )}
             initial={from}
             animate={{ opacity: 1, x: 0, y: 0 }}
@@ -268,15 +277,21 @@ export function Panel({
               </motion.div>
             </AnimatePresence>
 
-            <footer className="sticky bottom-0 mt-auto flex items-center justify-between gap-3 border-t border-line bg-surface px-4 py-2 md:px-6">
+            {/* the safe-area padding lives here: on the scroller it would show content under this bar */}
+            <footer
+              className={cn(
+                "sticky bottom-0 mt-auto flex items-center justify-between gap-3 border-t border-line bg-surface px-4 pt-2 md:px-6",
+                wide ? "pb-2" : "pb-safe",
+              )}
+            >
               <button type="button" onClick={() => step(prev)} data-cursor="hover" className="ab-step">
                 <ArrowLeft size={14} strokeWidth={2} aria-hidden />
                 <span className="sr-only">Previous: </span>
-                {prev.name}
+                {prev.topic}
               </button>
-              <button type="button" onClick={() => step(next)} data-cursor="hover" className="ab-step text-right">
+              <button type="button" onClick={() => step(next)} data-cursor="hover" className="ab-step">
                 <span className="sr-only">Next: </span>
-                {next.name}
+                {next.topic}
                 <ArrowRight size={14} strokeWidth={2} aria-hidden />
               </button>
             </footer>
