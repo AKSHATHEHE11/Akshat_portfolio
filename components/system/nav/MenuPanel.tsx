@@ -16,6 +16,7 @@ import { activeItem } from "./Links";
 import { Logo } from "./Logo";
 import { ChaosToggle, LightsToggle, SoundToggle } from "./Toggles";
 import type { WorldInfo } from "./useWorldInfo";
+import { WorkCta } from "./WorkCta";
 
 /** Where the panel irises out of (the MENU key) and how far it has to grow to cover the screen. */
 export interface Origin {
@@ -137,13 +138,7 @@ export function MenuPanel({
               <LightsToggle variant="panel" />
             </div>
             <div className="flex flex-wrap items-end justify-between gap-x-8 gap-y-3 pt-5">
-              <TLink
-                href={`mailto:${profile.email}`}
-                data-cursor="hover"
-                className="serif-accent text-[clamp(1.5rem,4.5vw,2.25rem)] leading-none transition-colors hover:text-(--n-accent)"
-              >
-                {profile.email}
-              </TLink>
+              <WorkCta size="md" onGo={() => onClose(true)} />
               <div className={cn(micro, "flex items-center gap-5 text-(--n-dim)")}>
                 <span>
                   {profile.location.city} · {profile.location.coords}

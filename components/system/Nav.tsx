@@ -16,6 +16,7 @@ import { MenuPanel, type Origin } from "./nav/MenuPanel";
 import { ChaosToggle, LightsToggle, ShortcutsKey, SoundToggle } from "./nav/Toggles";
 import { useBackdropTone } from "./nav/useBackdropTone";
 import { useWorldInfo, type WorldInfo } from "./nav/useWorldInfo";
+import { WorkCta } from "./nav/WorkCta";
 
 const GLITCH = "!<>-_\\/[]{}=+*^?#01";
 
@@ -71,6 +72,7 @@ export default function Nav() {
           <Logo />
           {world ? <Readout info={info} /> : <Links pathname={pathname} />}
           <div className="ml-auto flex shrink-0 items-center gap-2">
+            {!world && <WorkCta intro className="mr-1 max-[1365.98px]:hidden coarse:hidden" />}
             <div className="hidden items-center gap-2 lg:fine:flex">
               <ChaosToggle />
               <SoundToggle />
