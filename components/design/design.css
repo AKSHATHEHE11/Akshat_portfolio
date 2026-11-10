@@ -133,3 +133,123 @@
     translate: 0 0.6rem;
   }
 }
+
+/* ── what I do ── */
+.dz-section {
+  padding-block: clamp(4rem, 11vh, 8rem);
+}
+.dz-section + .dz-section {
+  padding-top: 0;
+}
+.dz-kicker {
+  margin-bottom: clamp(1.5rem, 4vh, 2.5rem);
+  color: var(--dz-muted);
+}
+.dz-list {
+  border-top: 1px solid var(--dz-line);
+}
+.dz-row {
+  display: grid;
+  grid-template-columns: 2.5rem minmax(0, 1fr);
+  gap: 0.5rem 1rem;
+  align-items: baseline;
+  padding-block: clamp(1.25rem, 3.5vh, 2.25rem);
+  border-bottom: 1px solid var(--dz-line);
+}
+.dz-num {
+  grid-row: span 2;
+  color: var(--dz-muted);
+}
+.dz-row-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 4.4vw, 4.25rem);
+  font-weight: 900;
+  font-variation-settings: "wdth" 125;
+  line-height: 0.95;
+  text-transform: uppercase;
+}
+.dz-row-line {
+  max-width: 46ch;
+  font-size: 1.0625rem;
+  line-height: 1.5;
+  color: var(--dz-muted);
+}
+@media (min-width: 1024px) {
+  .dz-row {
+    grid-template-columns: 4rem minmax(0, 1.5fr) minmax(0, 1fr);
+    align-items: center;
+  }
+  .dz-num {
+    grid-row: auto;
+  }
+}
+
+/* ── the way to the full portfolio ── */
+.dz-behance {
+  display: grid;
+  gap: clamp(1rem, 3vh, 1.75rem);
+  padding: clamp(1.75rem, 4vw, 3.5rem);
+  border: 1px solid var(--dz-line);
+  border-radius: 14px;
+  color: var(--dz-fg);
+  transition:
+    background-color 0.35s,
+    color 0.35s;
+}
+.dz-behance > .label:first-child {
+  color: var(--dz-muted);
+}
+.dz-behance-title {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 6vw, 5.5rem);
+  font-weight: 900;
+  font-variation-settings: "wdth" 115;
+  line-height: 0.92;
+  text-transform: uppercase;
+}
+.dz-behance-title .dz-script,
+.dz-cta-title .dz-script {
+  display: block;
+  font-size: 1.3em;
+  line-height: 0.95;
+}
+.dz-behance-go {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+@media (hover: hover) {
+  .dz-behance:hover {
+    background: var(--dz-fg);
+    color: var(--dz-bg);
+  }
+  .dz-behance:hover > .label:first-child {
+    color: inherit;
+  }
+}
+.dz-behance:focus-visible {
+  outline: 2px solid var(--signal);
+  outline-offset: 4px;
+}
+
+/* ── the way to the contact terminal ── */
+.dz-cta {
+  display: grid;
+  justify-items: center;
+  gap: clamp(1.25rem, 3vh, 2rem);
+  text-align: center;
+}
+.dz-cta-title {
+  font-family: var(--font-display);
+  font-size: clamp(2.2rem, 7vw, 6.5rem);
+  font-weight: 900;
+  font-variation-settings: "wdth" 125;
+  line-height: 0.92;
+  text-transform: uppercase;
+}
+.dz-cta-line {
+  max-width: 52ch;
+  font-size: 1.0625rem;
+  line-height: 1.55;
+  color: var(--dz-muted);
+}
