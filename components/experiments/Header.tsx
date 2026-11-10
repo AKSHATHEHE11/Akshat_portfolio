@@ -42,7 +42,7 @@ export function Header({
           <span aria-live="polite">{active ? `${items.find((x) => x.slug === active)?.id} running` : "All still"}</span>
         </p>
         <ol>
-          {items.map((x) => (
+          {items.map((x, i) => (
             <li key={x.slug}>
               <a
                 href={`#${x.slug}`}
@@ -52,7 +52,9 @@ export function Header({
                 onPointerEnter={() => play("tick")}
                 onClick={(e) => onPick(x.slug, e)}
               >
-                <span className="label xp-row-id">{x.id}</span>
+                <span className="label xp-row-id xp-glitch" style={{ "--gd": `${((i * 0.43) % 2.4).toFixed(2)}s` } as CSSProperties}>
+                  {x.id}
+                </span>
                 <span className="xp-row-name">
                   <span className="truncate">{x.title}</span>
                 </span>

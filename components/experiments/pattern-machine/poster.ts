@@ -158,7 +158,8 @@ export function drawPoster(ctx: CanvasRenderingContext2D, W: number, H: number, 
   ctx.textBaseline = "alphabetic";
   ctx.font = `800 ${big}px ${s.fonts.display}`;
   ctx.fillText(`No.${pad(s.seed, 4)}`, m - big * 0.04, H - m * 0.62);
-  const small = Math.max(7, W * 0.0175);
+  // fine print, never smaller than 7px — unless the footer is too short for its four lines (small posters)
+  const small = Math.min(Math.max(7, W * 0.0175), foot / 7.1);
   ctx.font = `500 ${small}px ${s.fonts.mono}`;
   ctx.textAlign = "right";
   const lines = [
