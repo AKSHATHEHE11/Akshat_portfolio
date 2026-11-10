@@ -12,6 +12,7 @@ import { play } from "@/lib/sound";
 import { emit, useSystem } from "@/lib/system";
 import { seeded } from "@/lib/utils";
 import BugHunt from "./bugs/BugHunt";
+import { INTRO } from "./copy";
 import Settings from "./form/Settings";
 import Keycap from "./keycap/Keycap";
 import { lab } from "./lab";
@@ -122,6 +123,7 @@ export default function Playground() {
                 </span>
               </span>
             </h1>
+            <p className="pg-intro">{INTRO}</p>
             <div className="pg-head-keys">
               <Legend />
               <Button variant="key" size="sm" magnetic={false} icon={<RotateCcw size={14} strokeWidth={1.75} />} onClick={reset} aria-keyshortcuts="R">
