@@ -40,7 +40,12 @@ export default function ParticleField({ active, chaos, reduced, coarse }: PieceP
     const el = host.current;
     const c = still.current;
     if (!el || !c) return;
+    let built = "";
     const size = () => {
+      // the observer's first call repeats the mount size: rebuilding (and clearing the canvas) would be wasted
+      const key = `${c.clientWidth}×${c.clientHeight}`;
+      if (key === built) return;
+      built = key;
       const { w, h } = fitCanvas(c, dprCap(coarse));
       if (w < 2 || h < 2) return;
       sim.current = createSim(w, h, n);
@@ -57,10 +62,12 @@ export default function ParticleField({ active, chaos, reduced, coarse }: PieceP
 
   // switched off: freeze the field as a still, exactly where it was
   useEffect(() => {
-    if (active) return;
+    const el = host.current;
+    // (never ran → the still is already right)
+    if (active || !el?.dataset.live) return;
     paint();
     gusts.current.length = 0;
-    if (host.current) delete host.current.dataset.live;
+    delete el.dataset.live;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active]);
 
@@ -100,7 +107,8 @@ export default function ParticleField({ active, chaos, reduced, coarse }: PieceP
 
   const onFrame = (s: Sim) => {
     const C = clock.current;
-    if (++C.frame % 4) return;
+    // every 4th frame while the field moves — and always the frame it settles on
+    if (++C.frame % 4 && s.awake) return;
     const text = `${pad(s.displaced, 5)} / ${s.n}`;
     const node = count.current?.firstChild;
     if (node && text !== C.shown) (node as Text).data = C.shown = text;

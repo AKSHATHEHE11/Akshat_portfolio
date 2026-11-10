@@ -132,8 +132,6 @@ export default function MagneticDots({ active, chaos, reduced, coarse }: PiecePr
     const ro = new ResizeObserver(size);
     ro.observe(c);
     return () => ro.disconnect();
-    // draw only reads refs
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [coarse]);
 
   // the loop
@@ -234,8 +232,6 @@ export default function MagneticDots({ active, chaos, reduced, coarse }: PiecePr
     };
     gsap.ticker.add(tick);
     return () => gsap.ticker.remove(tick);
-    // draw/stone only read refs
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active, chaos, reduced, local]);
 
   // a click (or a tap — a swipe that scrolls never becomes one) drops a stone where it landed
