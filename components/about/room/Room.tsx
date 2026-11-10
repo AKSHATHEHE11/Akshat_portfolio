@@ -58,28 +58,28 @@ export function Room() {
   const lit = hot ?? open;
   const picked = OBJECTS.find((o) => o.id === open) ?? null;
 
-  // desk assembles once the boot sequence is done (and again after RESTART replays it)
+  // desk assembles once the boot sequence is done (and again after RESTART replays it). from() tweens
+  // end on the CSS values (the floor is faint ink) and clear afterwards, so hover/chaos CSS owns them
+  // again; the parts' own CSS transitions are off meanwhile, or they would smear the drop.
   useGSAP(
     () => {
       if (reduced) return;
       const q = gsap.utils.selector(root);
       const bodies = q(".ab-obj-body");
       const shadows = q(".ab-obj-shadow");
-      const desk = q(".ab-desk, .ab-floor");
-      const tags = q(".ab-tag, .ab-leaders");
-      const all = [...bodies, ...shadows, ...desk, ...tags];
-      gsap.set(all, { autoAlpha: 0 });
-      const run = () =>
-        gsap
-          .timeline({ delay: 0.25, onComplete: () => gsap.set(bodies, { clearProps: "transform" }) })
-          .fromTo(desk, { autoAlpha: 0, y: 34 }, { autoAlpha: 1, y: 0, duration: 1, ease: "expo.out", clearProps: "transform" })
-          .fromTo(bodies, { autoAlpha: 0, y: -110 }, { autoAlpha: 1, y: 0, duration: 0.75, stagger: 0.075, ease: "back.out(1.5)" }, 0.3)
-          .fromTo(shadows, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.5, stagger: 0.075 }, 0.45)
-          .call(() => play("drop"), [], 0.95)
-          .fromTo(tags, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.6, stagger: 0.03 }, 1.1);
+      const clearProps = "opacity,visibility,transform,transition";
+      const tl = gsap
+        .timeline({ paused: true })
+        .set([...bodies, ...shadows], { transition: "none" })
+        .from(q(".ab-desk"), { autoAlpha: 0, y: 34, duration: 1, ease: "expo.out", clearProps })
+        .from(q(".ab-floor"), { autoAlpha: 0, duration: 1, clearProps: "opacity,visibility" }, 0) // useTilt owns its transform
+        .from(bodies, { autoAlpha: 0, y: -110, duration: 0.75, stagger: 0.075, ease: "back.out(1.5)", clearProps }, 0.3)
+        .from(shadows, { autoAlpha: 0, duration: 0.5, stagger: 0.075, clearProps }, 0.45)
+        .call(() => play("drop"), [], 0.95)
+        .from(q(".ab-tag, .ab-leaders"), { autoAlpha: 0, duration: 0.6, stagger: 0.03, clearProps }, 1.1);
       if (!ready) return; // system not initialised yet: stay assembled-off, decide on the next pass
-      if (booted) return void run();
-      gsap.delayedCall(8, run); // boot overlay is up; never leave the desk empty if it hangs
+      // boot overlay up: wait for it, but never leave the desk empty if it hangs
+      gsap.delayedCall(booted ? 0.25 : 8, () => void tl.play());
     },
     { scope: root, dependencies: [ready, booted, reduced], revertOnUpdate: true },
   );
@@ -106,16 +106,11 @@ export function Room() {
     gsap.delayedCall(0.5, () => play("drop"));
   }, [chaos, reduced]);
 
-  const pick = useCallback((id: ObjectId) => {
-    setOpen((cur) => {
-      if (cur === id) {
-        play("close");
-        return null;
-      }
-      play(cur ? "click" : "open");
-      return id;
-    });
-  }, []);
+  // the sound stays out of the state updater (StrictMode runs updaters twice)
+  const pick = (id: ObjectId) => {
+    play(open === id ? "close" : open ? "click" : "open");
+    setOpen(open === id ? null : id);
+  };
 
   const close = useCallback(() => {
     const panel = document.getElementById("ab-panel");
@@ -129,7 +124,14 @@ export function Room() {
   const leave = (id: ObjectId) => setHot((h) => (h === id ? null : h));
 
   return (
-    <section ref={root} id="desk" data-rail="Desk" aria-labelledby="ab-title" className="ab-room relative overflow-clip">
+    <section
+      ref={root}
+      id="desk"
+      data-rail="Desk"
+      data-live={visible || undefined}
+      aria-labelledby="ab-title"
+      className="ab-room relative overflow-clip"
+    >
       <svg width="0" height="0" className="absolute" aria-hidden focusable="false">
         <defs>
           <radialGradient id="ab-soft">
@@ -164,7 +166,7 @@ export function Room() {
             </span>
           </h1>
           <p className="mt-4 max-w-[30ch] text-lede leading-snug text-fg-muted">
-            Nothing on this desk is decoration. <span className="text-fg">Pick something up.</span>
+            {profile.about.desk[0]} <span className="text-fg">{profile.about.desk[1]}</span>
           </p>
 
           {/* the drawing's parts list (mouse convenience; the objects themselves are the buttons) */}

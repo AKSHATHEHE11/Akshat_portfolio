@@ -64,6 +64,11 @@
   opacity: 0.6;
 }
 
+/* scrolled away: every loop on the desk (caret, bubbles, chaos float) holds still */
+.ab-room:not([data-live]) * {
+  animation-play-state: paused;
+}
+
 /* little lives: only while looked at (idle = nothing animates) */
 .ab-caret {
   animation: ab-caret 1.05s steps(1, end) infinite;
@@ -192,7 +197,7 @@
   }
   .ab-floor {
     color: var(--fg);
-    opacity: 0.13;
+    opacity: 0.4;
     pointer-events: none;
   }
   .ab-leaders {
@@ -304,6 +309,13 @@
 .ab-tag[data-on] .ab-tag-text {
   clip-path: inset(0 0 0 0);
 }
+/* tablet: the desk spans the whole width, so a callout prints only its topic (the object's name would
+   run off the screen edge) */
+@media (min-width: 768px) and (max-width: 1023.98px) {
+  .ab-tag-text > .label {
+    display: none;
+  }
+}
 
 /* parts list rows (desktop) */
 .ab-part {
@@ -339,6 +351,7 @@
   font-size: 0.6875rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
+  white-space: nowrap;
   color: var(--fg-muted);
   transition: color 200ms;
 }
