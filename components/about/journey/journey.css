@@ -41,12 +41,18 @@
   font-variant-numeric: tabular-nums;
   color: var(--fg-muted);
 }
+/* a stop is a point on the line: the station ring is drawn around it, the kind sits above */
 .ab-jr-stop {
   position: absolute;
   top: 3.5rem;
+}
+.ab-jr-stop::before {
+  content: "";
+  position: absolute;
+  left: -7px;
+  top: -7px;
   width: 14px;
   height: 14px;
-  translate: -50% -50%;
   border: 2px solid var(--fg);
   border-radius: 50%;
   background: var(--bg);
@@ -55,21 +61,21 @@
     border-color 220ms,
     scale 360ms var(--ab-snap);
 }
-.ab-jr-stop[data-kind="future"] {
+.ab-jr-stop[data-kind="future"]::before {
   border-style: dashed;
 }
-.ab-jr-stop[data-on] {
+.ab-jr-stop[data-on]::before {
   border-color: var(--signal);
   background: var(--signal);
   scale: 1.35;
 }
-.ab-jr-stop[data-kind="future"][data-on] {
+.ab-jr-stop[data-kind="future"][data-on]::before {
   background: var(--bg);
 }
 .ab-jr-kind {
   position: absolute;
-  bottom: calc(100% + 1.1rem);
-  left: 50%;
+  bottom: 1.6rem;
+  left: 0;
   translate: -50% 0;
   white-space: nowrap;
   color: var(--fg-muted);
@@ -82,7 +88,7 @@
 /* the scanner: a head with the coordinate, a 1px line and a soft beam; moved by transform only */
 .ab-jr-scan {
   position: absolute;
-  top: -0.75rem;
+  top: -1.4rem;
   bottom: 0;
   left: 0;
   width: 0;
@@ -92,7 +98,7 @@
 .ab-jr-scan::before {
   content: "";
   position: absolute;
-  top: 1.75rem;
+  top: 1.4rem;
   bottom: 0;
   left: -28px;
   width: 56px;
@@ -101,7 +107,7 @@
 .ab-jr-scan::after {
   content: "";
   position: absolute;
-  top: 1.75rem;
+  top: 1.4rem;
   bottom: 0;
   left: -0.5px;
   width: 1px;
@@ -160,10 +166,11 @@
 }
 
 /* ── phones: a vertical rail, scanned by scrolling past a line held mid-screen ── */
+/* the line runs through the year column and the rail, then fades out where the text starts, so it
+   never strikes through what you are reading; its year tag sits on top, in the year column */
 .ab-jr-mscan {
   position: sticky;
   top: 50svh;
-  z-index: 2;
   height: 0;
   pointer-events: none;
 }
@@ -171,12 +178,14 @@
   content: "";
   position: absolute;
   left: 0;
-  right: 0;
-  border-top: 1px solid var(--signal);
+  width: calc(5.25rem + 14px);
+  height: 1px;
+  background: linear-gradient(90deg, var(--signal) 70%, transparent);
 }
 .ab-jr-mhead {
   position: absolute;
-  right: 0;
+  z-index: 2;
+  left: 0;
   translate: 0 -50%;
   padding: 0.25rem 0.4rem;
   border-radius: 2px;

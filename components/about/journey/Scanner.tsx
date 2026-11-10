@@ -28,7 +28,7 @@ export function Scanner({ on, className }: { on: boolean; className?: string }) 
   const track = useRef<HTMLDivElement>(null);
   const scan = useRef<HTMLDivElement>(null);
   const coord = useRef<HTMLSpanElement>(null);
-  const api = useRef<{ go: (i: number) => void } | null>(null);
+  const api = useRef<{ step: (to: (i: number) => number) => void } | null>(null);
   const [idx, setIdx] = useState(LAST);
   const reduced = useReducedMotion();
   const coarse = useCoarse();
@@ -50,6 +50,7 @@ export function Scanner({ on, className }: { on: boolean; className?: string }) 
     let at = -1;
     let running = false;
     let drag = false;
+    let sweep: gsap.core.Tween | null = null;
 
     const xOf = (i: number) => w * fx(journey[i].year);
     const nearest = (x: number) => {
@@ -81,6 +82,8 @@ export function Scanner({ on, className }: { on: boolean; className?: string }) 
       }
     };
     const aim = (x: number, ease = 0.16) => {
+      sweep?.kill(); // any input takes over from the intro sweep
+      sweep = null;
       target = Math.min(xOf(journey.length - 1), Math.max(xOf(0), x));
       k = reduced ? 1 : ease;
       if (running) return;
@@ -88,7 +91,8 @@ export function Scanner({ on, className }: { on: boolean; className?: string }) 
       gsap.ticker.add(tick);
     };
     const snap = () => aim(xOf(nearest(target)), 0.14);
-    api.current = { go: (i) => aim(xOf(i), 0.14) };
+    // keys step from where the scanner is heading, so quick repeats keep stepping
+    api.current = { step: (to) => aim(xOf(Math.max(0, Math.min(journey.length - 1, to(nearest(target))))), 0.14) };
 
     const measure = () => {
       const r = el.getBoundingClientRect();
@@ -123,7 +127,8 @@ export function Scanner({ on, className }: { on: boolean; className?: string }) 
     el.addEventListener("pointercancel", up);
     el.addEventListener("pointerleave", up);
 
-    // the first time it comes into view: sweep from the first stop to the latest
+    // the first time it comes into view: sweep from the first stop to the latest at an even pace
+    // (tweened in track fractions, so a resize mid-sweep stays on course)
     const st = reduced
       ? null
       : ScrollTrigger.create({
@@ -131,15 +136,23 @@ export function Scanner({ on, className }: { on: boolean; className?: string }) 
           start: "top 80%",
           once: true,
           onEnter: () => {
-            cur = xOf(0);
-            write();
-            aim(xOf(LAST), 0.035);
+            const p = { f: fx(Y0) };
+            sweep = gsap.to(p, {
+              f: fx(journey[LAST].year),
+              duration: 2.4,
+              ease: "sine.inOut",
+              onUpdate: () => {
+                cur = target = p.f * w;
+                write();
+              },
+            });
           },
         });
 
     return () => {
       ro.disconnect();
       st?.kill();
+      sweep?.kill();
       gsap.ticker.remove(tick);
       api.current = null;
       el.removeEventListener("pointermove", move);
@@ -151,11 +164,18 @@ export function Scanner({ on, className }: { on: boolean; className?: string }) 
   }, [on, reduced, booted]);
 
   const onKey = (e: KeyboardEvent) => {
-    const keys: Record<string, number> = { ArrowLeft: idx - 1, ArrowRight: idx + 1, Home: 0, End: journey.length - 1 };
+    const keys: Record<string, (i: number) => number> = {
+      ArrowLeft: (i) => i - 1,
+      ArrowDown: (i) => i - 1,
+      ArrowRight: (i) => i + 1,
+      ArrowUp: (i) => i + 1,
+      Home: () => 0,
+      End: () => journey.length - 1,
+    };
     const to = keys[e.key];
-    if (to === undefined) return;
+    if (!to) return;
     e.preventDefault();
-    api.current?.go(Math.max(0, Math.min(journey.length - 1, to)));
+    api.current?.step(to);
   };
 
   const stop = journey[idx];
@@ -207,11 +227,12 @@ export function Scanner({ on, className }: { on: boolean; className?: string }) 
         </div>
       </div>
 
-      <div className="mt-14 grid gap-x-(--gutter) lg:grid-cols-12">
-        <p aria-hidden key={`y${stop.year}`} className={cn("ab-swap ab-jr-big lg:col-span-5", future && "ab-jr-big-future")}>
+      {/* side by side from the tablet up: on a short landscape phone the stop still sits beside its year */}
+      <div className="mt-14 grid grid-cols-12 gap-x-(--gutter)">
+        <p aria-hidden key={`y${stop.year}`} className={cn("ab-swap ab-jr-big col-span-5", future && "ab-jr-big-future")}>
           {yearLabel(stop)}
         </p>
-        <StopText key={stop.year} stop={stop} i={idx} total={journey.length} className="ab-swap mt-6 lg:col-span-7 lg:mt-3" />
+        <StopText key={stop.year} stop={stop} i={idx} total={journey.length} className="ab-swap col-span-7 mt-3" />
       </div>
     </div>
   );

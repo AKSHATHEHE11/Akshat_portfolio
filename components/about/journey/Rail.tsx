@@ -21,21 +21,37 @@ export function Rail({ on, className }: { on: boolean; className?: string }) {
   const visible = useOnScreen(root, "0px");
   useGlitch(scan, year, on && chaos && !reduced && visible);
 
+  // one trigger for the whole rail: row tops are cached on refresh, the stop under the line is the
+  // last one whose top has crossed it (robust to fast flicks that skip a row entirely)
   useGSAP(
     () => {
-      if (!on) return;
+      const el = root.current;
       const text = year.current?.firstChild;
-      root.current?.querySelectorAll<HTMLElement>("[data-stop]").forEach((li) =>
-        ScrollTrigger.create({
-          trigger: li,
-          start: "top 50%",
-          end: "bottom 50%",
-          onToggle: (self) => {
-            li.toggleAttribute("data-on", self.isActive);
-            if (self.isActive && text instanceof Text) text.data = li.dataset.stop ?? "";
-          },
-        }),
-      );
+      if (!on || !el || !(text instanceof Text)) return;
+      const rows = Array.from(el.querySelectorAll<HTMLElement>("[data-stop]"));
+      let tops: number[] = [];
+      let mid = 0;
+      let at = -2;
+      const pick = (scroll: number) => {
+        const i = tops.reduce((a, t, k) => (t <= scroll + mid ? k : a), -1);
+        if (i === at) return;
+        rows[at]?.removeAttribute("data-on");
+        rows[i]?.setAttribute("data-on", "");
+        text.data = rows[Math.max(0, i)].dataset.stop ?? "";
+        at = i;
+      };
+      ScrollTrigger.create({
+        trigger: el,
+        start: "top bottom",
+        end: "bottom top",
+        onRefresh: (self) => {
+          const y = self.scroll();
+          tops = rows.map((r) => r.getBoundingClientRect().top + y);
+          mid = window.innerHeight / 2;
+          pick(y);
+        },
+        onUpdate: (self) => pick(self.scroll()),
+      });
     },
     { scope: root, dependencies: [on], revertOnUpdate: true },
   );
