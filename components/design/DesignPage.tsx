@@ -38,7 +38,7 @@ export default function DesignPage() {
             height={design.photo.height}
             alt={design.photo.alt}
             sizes="(max-width: 767px) 94vw, 53vw"
-            priority
+            preload
           />
           <p aria-hidden className="dz-name dz-name-outline">
             {NAME.map((n, i) => (
