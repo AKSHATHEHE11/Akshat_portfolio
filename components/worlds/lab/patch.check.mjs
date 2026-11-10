@@ -31,7 +31,7 @@ assert.equal(scene.patchNotes.length, nullField.process.length, "one patch note 
 assert.equal(scene.meters.length, nullField.metrics.length, "one meter per metric");
 assert.equal(scene.story.length, 3, "challenge, solution, outcome");
 for (const k of scene.story.flatMap((b) => Object.keys(b.tweak))) assert.ok(spec[k], `story tweak on unknown control ${k}`);
-// the flow screens are drawn by stage index in PREVIEW_FRAG: the order is part of the shader
+// the flow screens are drawn by stage index in FLOW_FRAG: the order is part of the shader
 assert.deepEqual(
   scene.flow.map((s) => s.id),
   ["uniforms", "noise", "warp", "palette", "feedback", "crush", "output"],

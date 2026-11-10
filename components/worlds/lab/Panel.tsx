@@ -3,8 +3,9 @@
 // the three groups (tone · texture · memory) become swipeable pages under the display, so the panel
 // stays short enough to keep the field in view while you play.
 import { useEffect, useRef, useState } from "react";
+import { Kbd } from "@/components/ui/marks";
 import { ignoreShortcut } from "@/components/work/keys";
-import { useReducedMotion } from "@/lib/hooks";
+import { useCoarse, useReducedMotion } from "@/lib/hooks";
 import { play } from "@/lib/sound";
 import { cn } from "@/lib/utils";
 import { Actions, flash, Memory, Presets, record } from "./Bank";
@@ -14,6 +15,37 @@ import { Lcd } from "./Lcd";
 import { PARAMS, SWITCHES } from "./patch";
 
 const PAGES = ["Tone", "Texture", "Memory"];
+
+/** How to play it, written on the field above the panel (keys on a desk, gestures on glass). */
+export function PanelHint() {
+  const coarse = useCoarse();
+  return (
+    <p
+      data-chaos-drift
+      className="nf-hint mb-3 ml-auto flex w-fit max-w-full flex-wrap items-center justify-end gap-x-3 gap-y-2 font-mono text-[0.6875rem] uppercase tracking-[0.12em]"
+    >
+      {coarse ? (
+        <span>Drag a knob up or down · double-tap resets it · swipe the panel</span>
+      ) : (
+        <>
+          <span>
+            <Kbd>1</Kbd>–<Kbd>8</Kbd> presets
+          </span>
+          <span>
+            <Kbd>N</Kbd> taste
+          </span>
+          <span>
+            <Kbd>F</Kbd> LFO
+          </span>
+          <span>
+            <Kbd>R</Kbd> rec
+          </span>
+          <span className="text-(--fg)/70">Drag a control · double-click resets</span>
+        </>
+      )}
+    </p>
+  );
+}
 
 export function Panel({ model, serial }: { model: string; serial: string }) {
   const { field, panel, stageOn } = useFieldHost();
@@ -101,7 +133,14 @@ export function Panel({ model, serial }: { model: string; serial: string }) {
 
         <div className="nf-tabs" aria-label="Control pages">
           {PAGES.map((p, i) => (
-            <button key={p} type="button" aria-current={page === i || undefined} className={cn("nf-tab", page === i && "is-on")} onClick={() => go(i)}>
+            <button
+              key={p}
+              type="button"
+              aria-current={page === i || undefined}
+              data-cursor="hover"
+              className={cn("nf-tab", page === i && "is-on")}
+              onClick={() => go(i)}
+            >
               {p}
             </button>
           ))}

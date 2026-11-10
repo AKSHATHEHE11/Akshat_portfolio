@@ -152,7 +152,12 @@ export function Actions() {
         }}
       >
         <span className="nf-act-name">Taste</span>
-        <span className="nf-act-sub">random · N</span>
+        <span className="nf-act-sub">
+          random
+          <b aria-hidden className="nf-kbd">
+            N
+          </b>
+        </span>
       </button>
       <button
         type="button"
@@ -175,7 +180,12 @@ export function Actions() {
           <span className="nf-led nf-led-lfo" data-on={(ui.lfo && !reduced) || undefined} />
           LFO
         </span>
-        <span className="nf-act-sub">{ui.lfo && !reduced ? "on · F" : "off · F"}</span>
+        <span className="nf-act-sub">
+          {reduced ? "rests" : ui.lfo ? "warp · hue" : "off"}
+          <b aria-hidden className="nf-kbd">
+            F
+          </b>
+        </span>
       </button>
       <button
         type="button"
@@ -192,7 +202,12 @@ export function Actions() {
           <span aria-hidden className="nf-rec-dot" />
           REC
         </span>
-        <span className="nf-act-sub">png + keep · R</span>
+        <span className="nf-act-sub">
+          png + keep
+          <b aria-hidden className="nf-kbd">
+            R
+          </b>
+        </span>
       </button>
     </div>
   );
