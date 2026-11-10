@@ -6,6 +6,13 @@ export const contact = {
   accent: "build?",
   intents: [
     {
+      id: "work",
+      label: "I want to work with you",
+      prompt: "what are we making? scope, timeline, budget",
+      subject: "Let's work together",
+      reply: "BRIEF RECEIVED. Let's make it real.",
+    },
+    {
       id: "idea",
       label: "I have an idea",
       prompt: "describe your idea",
