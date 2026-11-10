@@ -75,13 +75,15 @@ export function Station({ x, index, active, chaos, reduced, coarse, onActivate, 
     document.addEventListener("fullscreenchange", sync);
     return () => document.removeEventListener("fullscreenchange", sync);
   }, []);
+  // Fullscreen either way, the page underneath must not scroll: a wheel over the piece would roll the
+  // bench and switch another station on, freezing the one on screen. Esc is native for the API.
   useEffect(() => {
-    if (full !== "css") return;
+    if (!full) return;
     lenis?.stop();
     const esc = (e: KeyboardEvent) => {
       if (e.key === "Escape") setFull("");
     };
-    window.addEventListener("keydown", esc);
+    if (full === "css") window.addEventListener("keydown", esc);
     return () => {
       lenis?.start();
       window.removeEventListener("keydown", esc);
@@ -104,7 +106,15 @@ export function Station({ x, index, active, chaos, reduced, coarse, onActivate, 
   const glitch = { "--gd": `${(seeded(index * 17 + 5) * 2.4).toFixed(2)}s` } as CSSProperties;
 
   return (
-    <section ref={root} id={x.slug} data-rail={x.title} data-side={side} className="frame xp-station" aria-labelledby={`${x.slug}-t`}>
+    <section
+      ref={root}
+      id={x.slug}
+      data-rail={x.title}
+      data-side={side}
+      data-long={x.title.length > 15 || undefined}
+      className="frame xp-station"
+      aria-labelledby={`${x.slug}-t`}
+    >
       <h2 ref={head} id={`${x.slug}-t`} className="xp-title" aria-label={x.title} data-chaos-type>
         <span className="block overflow-clip pb-[0.05em]">
           <span data-rise className="display block">

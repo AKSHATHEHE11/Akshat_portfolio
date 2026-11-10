@@ -12,15 +12,11 @@ import "./lab.css";
 
 type Slug = Experiment["slug"];
 
-const readHash = (): Slug | null => {
-  const h = decodeURIComponent(window.location.hash.slice(1));
-  return experiments.find((x) => x.slug === h)?.slug ?? null;
-};
-
 /**
  * /experiments — the lab bench. Six specimen stations; exactly one is switched on at a time: the one
- * under the middle of the viewport, or the one you last touched. /experiments#<slug> (the home lab
- * strip links here) rolls the bench to that station once fonts and layout have settled.
+ * under the middle of the viewport, or the one you last touched. Arriving at /experiments#<slug> (the
+ * home lab strip links here) is handled by Providers, which lands on the section and holds it while the
+ * page settles; the station there switches on through its scroll trigger like any other.
  */
 export default function ExperimentsLab() {
   const [active, setActive] = useState<Slug | null>(null);
@@ -30,7 +26,6 @@ export default function ExperimentsLab() {
   const lenis = useLenis();
   /** a programmatic roll is under way: stations it passes must not switch on */
   const rolling = useRef(0);
-  const handled = useRef<Slug | null>(null);
 
   const roll = useCallback(
     (slug: Slug) => {
@@ -52,35 +47,10 @@ export default function ExperimentsLab() {
     [lenis],
   );
 
-  // Hash on arrival: wait for the route's own scroll reset, fonts and two frames of layout, then roll.
-  useEffect(() => {
-    const slug = readHash();
-    if (!lenis || !slug || handled.current === slug) return;
-    setActive(slug);
-    let dead = false;
-    void document.fonts.ready.then(() =>
-      requestAnimationFrame(() =>
-        requestAnimationFrame(() => {
-          if (dead) return;
-          handled.current = slug;
-          roll(slug);
-        }),
-      ),
-    );
-    return () => {
-      dead = true;
-    };
-  }, [lenis, roll]);
-
-  // Back/forward between hashes on this page
-  useEffect(() => {
-    const onHash = () => {
-      const slug = readHash();
-      if (slug) roll(slug);
-    };
-    window.addEventListener("hashchange", onHash);
-    return () => window.removeEventListener("hashchange", onHash);
-  }, [roll]);
+  // No hashchange handler on purpose: a fragment change (back/forward, an edited URL) has already
+  // jumped natively by the time the event fires, and Lenis — not yet synced to that jump — would
+  // compute its target from the old position and drag the page back. The jump lands right
+  // (scroll-margin-top) and the scroll triggers switch the right station on.
 
   const onScroll = useCallback((slug: Slug, inView: boolean) => {
     if (rolling.current) return;
