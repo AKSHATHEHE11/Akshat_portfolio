@@ -5,9 +5,14 @@ import { useIsomorphicLayoutEffect } from "@/lib/hooks";
 /** Every demo is the same mini UI with its rule off (the problem) or on (the rule applied). */
 export interface DemoProps {
   on: boolean;
+  /** chaos is throwing the levers: changes it causes are not read out (live regions go "off") */
+  quiet?: boolean;
   /** the one big moment on the board — Calm uses it to shake the whole channel */
   onSurprise?: () => void;
 }
+
+/** aria-live for a demo's readouts: polite, unless the board is moving on its own */
+export const liveness = (quiet?: boolean) => (quiet ? "off" : "polite");
 
 /** Runs `fn` `delay` ms after `on` goes false → true: the lever was just thrown, so demonstrate. */
 export function useThrownOn(on: boolean, fn: () => void, delay = 480) {
