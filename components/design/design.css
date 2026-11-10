@@ -134,11 +134,12 @@
   }
 }
 
-/* ── what I do ── */
+/* ── what I do: every field; a field with work links down to its section ── */
 .dz-section {
   padding-block: clamp(4rem, 11vh, 8rem);
 }
-.dz-section + .dz-section {
+.dz-section + .dz-section,
+.dz-work + .dz-section {
   padding-top: 0;
 }
 .dz-kicker {
@@ -148,17 +149,57 @@
 .dz-list {
   border-top: 1px solid var(--dz-line);
 }
-.dz-row {
+/* A field row and a field's section header share one grid: index · title (script under it) · line + count */
+.dz-row,
+.dz-field-head {
   display: grid;
   grid-template-columns: 2.5rem minmax(0, 1fr);
-  gap: 0.5rem 1rem;
-  align-items: baseline;
-  padding-block: clamp(1.25rem, 3.5vh, 2.25rem);
-  border-bottom: 1px solid var(--dz-line);
+  gap: 1rem;
 }
 .dz-num {
   grid-row: span 2;
   color: var(--dz-muted);
+}
+.dz-row-title .dz-script,
+.dz-field-title .dz-script {
+  display: block;
+  margin-top: -0.04em;
+  padding-left: 0.35em;
+  font-size: max(0.5em, 1.5rem); /* the script has a tiny x-height: below ~24px it stops reading */
+  line-height: 1;
+}
+.dz-aside {
+  display: grid;
+  gap: 0.75rem;
+  justify-items: start;
+}
+.dz-blurb {
+  max-width: 46ch;
+  font-size: 1.0625rem;
+  line-height: 1.5;
+  color: var(--dz-muted);
+}
+.dz-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--dz-muted);
+  transition: color 0.3s;
+}
+@media (min-width: 1024px) {
+  .dz-row,
+  .dz-field-head {
+    grid-template-columns: 4rem minmax(0, 1.5fr) minmax(0, 1fr);
+  }
+  .dz-num {
+    grid-row: auto;
+  }
+}
+
+.dz-row {
+  align-items: baseline;
+  padding-block: clamp(1.25rem, 3.5vh, 2.25rem);
+  border-bottom: 1px solid var(--dz-line);
 }
 .dz-row-title {
   font-family: var(--font-display);
@@ -167,20 +208,28 @@
   font-variation-settings: "wdth" 125;
   line-height: 0.95;
   text-transform: uppercase;
+  transition: translate 0.5s var(--ease-out-expo);
 }
-.dz-row-line {
-  max-width: 46ch;
-  font-size: 1.0625rem;
-  line-height: 1.5;
+.dz-row-title .dz-script {
   color: var(--dz-muted);
+}
+.dz-count svg {
+  transition: translate 0.5s var(--ease-out-expo);
+}
+@media (hover: hover) {
+  a.dz-row:hover .dz-row-title {
+    translate: 0.5rem 0;
+  }
+  a.dz-row:hover .dz-count {
+    color: var(--dz-fg);
+  }
+  a.dz-row:hover .dz-count svg {
+    translate: 0 0.25rem;
+  }
 }
 @media (min-width: 1024px) {
   .dz-row {
-    grid-template-columns: 4rem minmax(0, 1.5fr) minmax(0, 1fr);
     align-items: center;
-  }
-  .dz-num {
-    grid-row: auto;
   }
 }
 
