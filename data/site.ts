@@ -15,6 +15,7 @@ export const site = {
     { id: "03", label: "Think", href: "/think", key: "t" },
     { id: "04", label: "Experiment", href: "/experiments", key: "e" },
     { id: "05", label: "About", href: "/about", key: "a" },
+    { id: "06", label: "Design", href: "/design", key: "d" },
   ],
 
   /** Keyboard shortcuts — the shortcuts sheet (press ?) renders this list. */
@@ -28,6 +29,7 @@ export const site = {
     { keys: ["T"], label: "Think" },
     { keys: ["E"], label: "Experiments" },
     { keys: ["A"], label: "About" },
+    { keys: ["D"], label: "Design" },
     { keys: ["←", "→"], label: "Previous / next world" },
     { keys: ["Esc"], label: "Exit a world" },
     { keys: ["?"], label: "This sheet" },

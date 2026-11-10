@@ -92,11 +92,11 @@ function Item({
           <span
             ref={index}
             data-glitch={item.id}
-            className={cn("relative tabular-nums", on ? "text-(--n-accent-ink)" : "text-(--n-index)")}
+            className={cn("relative tabular-nums max-xl:hidden", on ? "text-(--n-accent-ink)" : "text-(--n-index)")}
           >
             {item.id}
           </span>
-          <span aria-hidden className={cn("relative", on ? "text-(--n-accent-ink)/45" : "text-(--n-dim)")}>
+          <span aria-hidden className={cn("relative max-xl:hidden", on ? "text-(--n-accent-ink)/45" : "text-(--n-dim)")}>
             /
           </span>
           <span data-glitch={item.label} className={cn("relative", on ? "text-(--n-accent-ink)" : underline)}>
