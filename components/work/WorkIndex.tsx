@@ -7,7 +7,6 @@ import { InertiaPlugin } from "gsap/InertiaPlugin";
 import { ArrowLeft, ArrowRight, Shuffle } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Kbd } from "@/components/ui/marks";
-import { getProject } from "@/data/projects";
 import { gsap, useGSAP } from "@/lib/gsap";
 import { useChaos, useCoarse, useIsomorphicLayoutEffect, useReducedMotion, useSystemReady } from "@/lib/hooks";
 import { play } from "@/lib/sound";
@@ -35,8 +34,12 @@ const PERM: Record<ProjectSummary["status"], string> = {
 
 type FlipJob = { state: Flip.FlipState; kind: "mode" | "active" };
 
+/** A summary plus the two listing columns the server derives from the full project (tags, file size),
+ *  so the full project data never ships to the browser. */
+export type IndexProject = ProjectSummary & { tags: string[]; size: string };
+
 /** Static per-project data: tags, ls columns, timeline slots (grouped by year, alternating sides). */
-function build(projects: ProjectSummary[]) {
+function build(projects: IndexProject[]) {
   const order = projects.map((p, i) => ({ p, i })).sort((a, b) => a.p.year - b.p.year || a.i - b.i);
   const slot = new Map<string, { at: number; side: 0 | 1 }>();
   const stations: Station[] = [];
@@ -52,16 +55,13 @@ function build(projects: ProjectSummary[]) {
   });
 
   const entries: Entry[] = projects.map((p, i) => {
-    const full = getProject(p.slug);
-    const tags = full ? full.technologies.slice(0, 3).map((t) => t.name) : [];
-    const bytes = full ? JSON.stringify(full).length : 4096;
     const { at, side } = slot.get(p.slug) ?? { at: i, side: 0 };
     return {
       p,
-      tags,
+      tags: p.tags,
       perm: PERM[p.status],
-      size: `${(bytes / 1024).toFixed(1)}K`,
-      hay: [p.title, p.slug, p.category, p.status, p.year, p.environment, ...tags].join(" ").toLowerCase(),
+      size: p.size,
+      hay: [p.title, p.slug, p.category, p.status, p.year, p.environment, ...p.tags].join(" ").toLowerCase(),
       side,
       vars: {
         "--p-bg": p.color.bg,
@@ -90,7 +90,7 @@ function scatter(i: number, n: number, seed: number, cols: number) {
 }
 const tilt = (i: number, seed: number) => (seeded(seed * 3301 + i * 211) - 0.5) * 26;
 
-export default function WorkIndex({ projects }: { projects: ProjectSummary[] }) {
+export default function WorkIndex({ projects }: { projects: IndexProject[] }) {
   const { entries, stations, span } = useMemo(() => build(projects), [projects]);
   const [mode, setMode] = useState<Mode>("list");
   const [active, setActive] = useState<string | null>(projects[0]?.slug ?? null);
