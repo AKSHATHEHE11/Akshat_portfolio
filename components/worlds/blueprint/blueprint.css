@@ -6,7 +6,7 @@
    ─────────────────────────────────────────────────────────────────────────── */
 .bp {
   --bp-line: color-mix(in oklab, var(--bp-fg) 86%, transparent);
-  --bp-dim: color-mix(in oklab, var(--bp-fg) 62%, transparent);
+  --bp-dim: color-mix(in oklab, var(--bp-fg) 72%, transparent); /* ≈4.9:1 on the blue: small labels stay AA */
   --bp-faint: color-mix(in oklab, var(--bp-fg) 28%, transparent);
   --bp-wash: color-mix(in oklab, var(--bp-fg) 7%, transparent);
   --bp-grid: color-mix(in oklab, var(--bp-fg) 6%, transparent);
@@ -165,11 +165,12 @@
   min-height: 100svh;
   padding: calc(var(--nav-h) + 10px) 0 clamp(24px, 3vw, 40px);
 }
-/* before hydration the plan is blank paper (no flash of the finished drawing); 3 s failsafe */
+/* Before hydration the plan is blank paper (no flash of the finished drawing). Failsafe: if JS is late
+   or never comes, the finished plan fades in by 3 s, and Cover.tsx then leaves it drawn. */
 @media (prefers-reduced-motion: no-preference) {
   .bp-cover[data-draft] :is([data-bd], [data-bi]) {
     opacity: 0;
-    animation: bp-show 0s 3s forwards;
+    animation: bp-show 0.6s 2.4s forwards;
   }
 }
 @keyframes bp-show {
@@ -333,10 +334,17 @@
   font-size: 6.4px;
   font-weight: 600;
 }
+/* labels break the linework behind them, the way a drafter stops a line for text */
+.bp-siteplan .bp-plan-label text {
+  paint-order: stroke;
+  stroke: var(--bp-bg);
+  stroke-width: 2.4px;
+  stroke-linejoin: round;
+}
 .bp-plan-use {
   font-size: 5px !important;
   font-weight: 400 !important;
-  opacity: 0.72;
+  fill-opacity: 0.72; /* not opacity: the label's halo stays solid */
 }
 .bp-cut {
   stroke-width: 1.4;
@@ -476,7 +484,7 @@
   pointer-events: none;
   translate: -50% -50%;
   rotate: -14deg;
-  mix-blend-mode: screen;
+  background: color-mix(in oklab, var(--bp-bg) 70%, transparent);
   animation: bp-stamp 0.5s var(--ease-snap) 0.2s both;
 }
 @keyframes bp-stamp {
@@ -508,12 +516,18 @@
     font-size: clamp(3.5rem, 15vw, 13rem);
   }
 }
+/* a phone on its side: the title leaves room for the plan */
+@media (max-height: 500px) and (orientation: landscape) {
+  .bp-title {
+    font-size: max(3.5rem, 24svh);
+  }
+}
 @media (min-width: 1024px) {
   .bp-cover {
     display: flex;
     flex-direction: column;
-    /* the world bar is fixed over the bottom ~84px: the sheet ends above it */
-    padding-bottom: 112px;
+    /* the world bar (~84px) and the HUD line above it are fixed over the bottom: the sheet ends above both */
+    padding-bottom: 134px;
   }
   .bp-cover-in {
     flex: 1;
@@ -635,6 +649,10 @@
 }
 .bp-story-fig {
   min-width: 0;
+}
+/* the server-rendered figure shows the Existing state until the timeline takes over */
+.bp-story-svg:not([data-live]) :is([data-sid], [data-hatch], [data-sid-ink], [data-one], [data-service], [data-retire], [data-x]) {
+  visibility: hidden;
 }
 .bp-story-svg {
   width: 100%;
@@ -771,6 +789,7 @@
   --bp-bezel: 9px;
   --bp-screen-r: 36px;
   position: relative;
+  isolation: isolate; /* the screen and its note marks layer inside the device, not on the page */
   width: clamp(280px, 86vw, 340px);
   aspect-ratio: 71.6 / 147.6;
   border: 1.5px solid var(--bp-line);
@@ -956,7 +975,8 @@
     gap: 0;
   }
   .bp-device {
-    width: clamp(300px, min(24vw, (100svh - var(--nav-h) - 110px) * 0.485), 350px);
+    /* the whole phone fits between the nav and the world bar */
+    width: clamp(290px, min(24vw, (100svh - var(--nav-h) - 170px) * 0.485), 350px);
   }
   .bp-callouts {
     position: relative;
@@ -1024,6 +1044,9 @@ html[data-chaos="on"] .bp-room {
 }
 html[data-chaos="on"] .bp-spin {
   animation: bp-spin 1.4s linear infinite;
+}
+html[data-chaos="on"] .bp-compass:not([data-on]) .bp-spin {
+  animation-play-state: paused;
 }
 html[data-chaos="on"] .bp-device {
   rotate: -3deg;
