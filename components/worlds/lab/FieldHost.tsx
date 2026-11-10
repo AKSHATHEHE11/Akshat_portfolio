@@ -36,6 +36,10 @@ function hasWebGL() {
   return webgl;
 }
 const never = () => () => {};
+const onVisibility = (cb: () => void) => {
+  document.addEventListener("visibilitychange", cb);
+  return () => document.removeEventListener("visibilitychange", cb);
+};
 
 /** A failed chunk or GL context leaves the art-directed posters up instead of taking the page down. */
 class Guard extends Component<{ onError: () => void; children: ReactNode }, { failed: boolean }> {
@@ -64,9 +68,12 @@ interface Ctx {
   slot: (i: number) => (el: HTMLElement | null) => void;
   /** the instrument's control surface */
   panel: (el: HTMLElement | null) => void;
-  /** dim the stage behind text: story beats, patch notes */
-  scrim: (kind: "none" | "story" | "notes") => void;
+  /** dim the stage behind text: story beats (text on the left / right), patch notes. With `ifCurrent`,
+   *  only when the scrim is one of those right now (so a section never clears another one's scrim). */
+  scrim: (kind: Scrim, ifCurrent?: Scrim[]) => void;
 }
+
+export type Scrim = "none" | "story" | "story-r" | "notes";
 
 const FieldContext = createContext<Ctx | null>(null);
 
@@ -85,6 +92,7 @@ export function FieldProvider({ field, accent, children }: { field: Field; accen
   const ready = useSystem((s) => s.ready);
   const booted = useSystem((s) => s.booted);
   const gl = useSyncExternalStore(never, hasWebGL, () => null);
+  const shown = useSyncExternalStore(onVisibility, () => document.visibilityState === "visible", () => true);
   const [failed, setFailed] = useState(false);
   const [drawn, setDrawn] = useState(false);
   // which hosts are on screen, and where the canvas sits (it stays put while neither is visible)
@@ -104,7 +112,8 @@ export function FieldProvider({ field, accent, children }: { field: Field; accen
   });
 
   const { placed } = vis;
-  const running = vis[placed];
+  // the frameloop stops when neither host is on screen, and while the tab is hidden
+  const running = vis[placed] && shown;
 
   const cb = useMemo(
     () => ({
@@ -114,9 +123,11 @@ export function FieldProvider({ field, accent, children }: { field: Field; accen
       },
       slot: Array.from({ length: SLOTS }, (_, i) => (el: HTMLElement | null) => void (slotEls.current[i] = el)),
       panel: (el: HTMLElement | null) => void (panelEl.current = el),
-      scrim: (kind: "none" | "story" | "notes") => {
+      scrim: (kind: Scrim, ifCurrent?: Scrim[]) => {
         const el = hosts.current.stage;
-        if (el && el.dataset.scrim !== kind) el.dataset.scrim = kind;
+        if (!el) return;
+        const cur = (el.dataset.scrim ?? "none") as Scrim;
+        if (cur !== kind && (!ifCurrent || ifCurrent.includes(cur))) el.dataset.scrim = kind;
       },
     }),
     [],

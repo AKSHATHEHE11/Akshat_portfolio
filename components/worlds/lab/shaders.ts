@@ -1,7 +1,10 @@
-// GLSL for the field. Three programs share one set of field functions:
-//  FIELD    — the field at fat-pixel resolution, mixed with its own last frame (feedback) → render target
+// GLSL for the field. Three programs share one set of field functions. The noise is only ever shaded
+// once per CELL (never per screen pixel), and the per-pixel passes only read cells back:
+//  FIELD    — the field at cell resolution, mixed with its own last frame (feedback) → render target.
+//             With uRaw on it writes the raw stages instead (noise, warped field, the two warp terms the
+//             palette reads) — the signal-flow screens' second target.
 //  DISPLAY  — that target to the screen: nearest-neighbour cells, ordered-dither crush, grain, chaos tears
-//  PREVIEW  — one pipeline stage at a time inside a scissor box (the signal-flow screens)
+//  FLOW     — one signal-flow screen: its pipeline stage read back from the two cell targets
 // Colour is authored in display space: no colorspace include, and the canvas runs flat + linear.
 
 export const VERT = /* glsl */ `
@@ -29,6 +32,9 @@ vec3 crush(vec3 c, vec2 cell, float amt) {
   return floor(c * lv + bayer8(cell)) / lv;
 }`;
 
+/** Side of the value-noise lattice texture (random bytes; linear filtering, repeat). */
+export const NOISE_SIZE = 256;
+
 const FIELD = /* glsl */ `
 uniform float uTime;
 uniform float uWarp;
@@ -43,18 +49,17 @@ uniform vec3 uPb;
 uniform vec3 uPc;
 uniform vec3 uPd;
 uniform vec4 uStir; // xy: pointer in centred field space, z: strength, w: radius
+uniform sampler2D uNoise;
 
 ${HASH}
 
+// value noise, quintic fade: the sampler blends the four lattice corners in one fetch (sampling at
+// i + fade(f) + 0.5). On Intel UHD the field pass takes a third less time than with four hashes.
 float vnoise(vec2 p) {
   vec2 i = floor(p);
   vec2 f = fract(p);
   vec2 u = f * f * f * (f * (f * 6.0 - 15.0) + 10.0);
-  float a = hash12(i);
-  float b = hash12(i + vec2(1.0, 0.0));
-  float c = hash12(i + vec2(0.0, 1.0));
-  float d = hash12(i + vec2(1.0, 1.0));
-  return mix(mix(a, b, u.x), mix(c, d, u.x), u.y);
+  return textureLod(uNoise, (i + u + 0.5) / ${NOISE_SIZE}.0, 0.0).r;
 }
 
 // fbm with a fractional octave count: the last layer fades in, so DETAIL never steps
@@ -103,9 +108,10 @@ vec3 palette(float x) {
   return uPa + uPb * cos(6.2831853 * (uPc * x + uPd + uHue));
 }
 
-vec3 shade(float f, vec2 q, vec2 r) {
+// colour from the field and the two warp terms that tint it
+vec3 shade(float f, float qx, float ry) {
   float s = smoothstep(0.18, 0.82, f);
-  float x = s * uSpread + 0.3 * (q.x - 0.5) * uSpread + 0.15 * (r.y - 0.5);
+  float x = s * uSpread + 0.3 * (qx - 0.5) * uSpread + 0.15 * (ry - 0.5);
   vec3 col = palette(x);
   col *= 0.42 + 0.78 * s;
   return clamp(col, 0.0, 1.0);
@@ -116,6 +122,7 @@ uniform sampler2D uPrev;
 uniform vec2 uRes;
 uniform float uFeed;
 uniform float uSpin;
+uniform float uRaw;
 varying vec2 vUv;
 ${FIELD}
 void main() {
@@ -123,7 +130,11 @@ void main() {
   vec2 q;
   vec2 r;
   float f = field(p, uTime, q, r);
-  vec3 col = shade(f, q, r);
+  if (uRaw > 0.5) {
+    gl_FragColor = vec4(fbm(p), f, q.x, r.y);
+    return;
+  }
+  vec3 col = shade(f, q.x, r.y);
   if (uFeed > 0.001) {
     vec2 c = (vUv - 0.5) * (1.0 - 0.014 * uFeed);
     float s = sin(uSpin);
@@ -164,12 +175,11 @@ void main() {
   gl_FragColor = vec4(clamp(c, 0.0, 1.0), 1.0);
 }`;
 
-export const PREVIEW_FRAG = /* glsl */ `
+export const FLOW_FRAG = /* glsl */ `
+uniform sampler2D uStages; // the raw stages: noise, warped field, q.x, r.y
+uniform sampler2D uField;  // the field with feedback (what the stage's display pass reads)
+uniform vec2 uCells;
 uniform float uStage;
-uniform vec2 uOrigin;
-uniform vec2 uSlot;
-uniform float uPix;
-uniform float uFeed;
 uniform float uCrush;
 uniform float uGrain;
 uniform float uSeed;
@@ -178,45 +188,24 @@ varying vec2 vUv;
 ${FIELD}
 ${BAYER}
 void main() {
-  vec2 cells = max(floor(uSlot / uPix), vec2(1.0));
-  vec2 cell = floor((gl_FragCoord.xy - uOrigin) / uPix);
-  vec2 uv = (cell + 0.5) / cells;
-  float aspect = uSlot.x / uSlot.y;
-  vec2 p = fieldSpace(uv, aspect);
+  // each screen is drawn in its own viewport, so vUv spans it: one texel of the cell targets per cell
+  vec2 cell = min(floor(vUv * uCells), uCells - 1.0);
+  vec2 uv = (cell + 0.5) / uCells;
   vec3 col;
   if (uStage < 0.5) {
-    // uniforms: the coordinate space every later stage samples (scale, mirror, polar, stir)
+    // uniforms: the coordinate space every later stage samples (scale, mirror, polar)
+    vec2 p = fieldSpace(uv, uCells.x / uCells.y);
     vec2 g = abs(fract(p) - 0.5);
-    float line = step(0.42, max(g.x, g.y));
-    float dot2 = step(length(fract(p * 2.0) - 0.5), 0.12);
-    col = mix(vec3(0.045), uLed, max(line, dot2 * 0.5));
-  } else if (uStage < 1.5) {
-    col = vec3(smoothstep(0.18, 0.82, fbm(p)));
+    float line = step(0.465, max(g.x, g.y));
+    float dot2 = step(length(fract(p * 2.0) - 0.5), 0.09);
+    col = mix(vec3(0.045), uLed, max(line * 0.9, dot2 * 0.4));
+  } else if (uStage < 3.5) {
+    vec4 s = texture2D(uStages, uv);
+    col = uStage < 2.5 ? vec3(smoothstep(0.18, 0.82, uStage < 1.5 ? s.r : s.g)) : shade(s.g, s.b, s.a);
   } else {
-    vec2 q;
-    vec2 r;
-    float f = field(p, uTime, q, r);
-    if (uStage < 2.5) {
-      col = vec3(smoothstep(0.18, 0.82, f));
-    } else {
-      col = shade(f, q, r);
-      if (uStage > 3.5 && uFeed > 0.001) {
-        // feedback, re-created: the same field a few frames back, zoomed like the real pass
-        vec3 acc = col;
-        float k = uFeed;
-        for (int i = 1; i < 4; i++) {
-          vec2 uv2 = (uv - 0.5) * (1.0 + 0.05 * float(i)) + 0.5;
-          vec2 q2;
-          vec2 r2;
-          float f2 = field(fieldSpace(uv2, aspect), uTime - 0.14 * float(i), q2, r2);
-          acc = max(acc, shade(f2, q2, r2) * k);
-          k *= uFeed;
-        }
-        col = mix(col, acc, uFeed);
-      }
-      if (uStage > 4.5) col = crush(col, cell, uCrush);
-      if (uStage > 5.5) col += (hash12(gl_FragCoord.xy + uSeed * 131.7) - 0.5) * uGrain * 0.3;
-    }
+    col = texture2D(uField, uv).rgb;
+    if (uStage > 4.5) col = crush(col, cell, uCrush);
+    if (uStage > 5.5) col += (hash12(gl_FragCoord.xy + uSeed * 131.7) - 0.5) * uGrain * 0.3;
   }
   gl_FragColor = vec4(clamp(col, 0.0, 1.0), 1.0);
 }`;
