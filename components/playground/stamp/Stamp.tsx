@@ -1,5 +1,5 @@
 "use client";
-import { memo, useEffect, useRef, useState } from "react";
+import { memo, useEffect, useEffectEvent, useRef, useState } from "react";
 import { Eraser } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { ignoreShortcut } from "@/components/work/keys";
@@ -18,8 +18,9 @@ interface Placed {
 }
 
 const MAX = 80;
-/** Anything that is not bare mat: a click there is not a stamp. */
-export const SOLID = "[data-pg-in], [data-pg-solid], a, button, input, textarea, select, label, .pg-bug";
+/** Anything that is not bare mat: a click there is not a stamp. (The windows' layer is mostly
+ *  bare mat between the windows, so only the windows themselves count.) */
+export const SOLID = "[data-pg-in]:not(.pg-wins), .pg-win, [data-pg-solid], a, button, input, textarea, select, label, .pg-bug";
 
 /**
  * Stamp: click bare mat and a numbered, seeded shape lands there (print 7 is always the same print).
@@ -83,23 +84,22 @@ export default function Stamp() {
       if (hit && mat.contains(hit) && !hit.closest(SOLID)) return stampAt(vx - r.left, vy - r.top);
     }
     const pr = root.current!.getBoundingClientRect();
-    stampAt(Math.min(pr.right + 70, r.width - 60) - r.left, pr.top + pr.height * 0.4 - r.top);
+    stampAt(Math.min(pr.right + 70 - r.left, r.width - 60), pr.top + pr.height * 0.4 - r.top);
   }
 
   // bare mat → a print (not during a bug hunt: then a click is a swat)
+  const onMatClick = useEffectEvent((e: MouseEvent, mat: HTMLElement) => {
+    if (lab.hunting || e.button !== 0 || !(e.target instanceof Element) || e.target.closest(SOLID)) return;
+    if (window.getSelection()?.toString()) return;
+    const r = mat.getBoundingClientRect();
+    stampAt(e.clientX - r.left, e.clientY - r.top);
+  });
   useEffect(() => {
     const mat = root.current?.closest<HTMLElement>(".pg-mat");
     if (!mat) return;
-    const onClick = (e: MouseEvent) => {
-      if (lab.hunting || e.button !== 0 || !(e.target instanceof Element) || e.target.closest(SOLID)) return;
-      if (window.getSelection()?.toString()) return;
-      const r = mat.getBoundingClientRect();
-      stampAt(e.clientX - r.left, e.clientY - r.top);
-    };
+    const onClick = (e: MouseEvent) => onMatClick(e, mat);
     mat.addEventListener("click", onClick);
     return () => mat.removeEventListener("click", onClick);
-    // stampAt only touches refs and setters
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // X wipes the mat
@@ -118,7 +118,7 @@ export default function Stamp() {
   const next = printFor(n, chaos);
   return (
     <>
-      <div ref={root} className="pg-stamp" data-pg-in>
+      <div ref={root} className="pg-stamp" data-pg-in data-chaos-drift>
         <button
           type="button"
           className="pg-stamper"
@@ -158,7 +158,7 @@ const Prints = memo(function Prints({ prints, clearing }: { prints: Placed[]; cl
           key={n}
           className="pg-printed"
           data-tone={p.tone}
-          style={{ width: p.size, height: p.size, transform: `translate3d(${Math.round(x - p.size / 2)}px,${Math.round(y - p.size / 2)}px,0) rotate(${p.rot}deg)` }}
+          style={{ width: p.size, height: p.size, transform: `translate(${Math.round(x - p.size / 2)}px,${Math.round(y - p.size / 2)}px) rotate(${p.rot}deg)` }}
         >
           {chaos ? <Shape p={p} className="pg-misreg" /> : null}
           <Shape p={p} />
