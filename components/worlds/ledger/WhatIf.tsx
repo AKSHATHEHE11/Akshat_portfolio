@@ -92,6 +92,7 @@ export function WhatIf({ profile, base, flips, onChange, onApply }: Props) {
                   step={l.step}
                   value={v}
                   disabled={!profile}
+                  data-cursor={profile ? "drag" : undefined}
                   aria-valuetext={SPOKEN[l.key](v)}
                   style={{ "--p": pct(v) } as CSSProperties}
                   onChange={(e) => {
@@ -145,7 +146,7 @@ export function WhatIf({ profile, base, flips, onChange, onApply }: Props) {
             </ul>
           </>
         ) : (
-          <p className="font-mono text-[0.75rem] uppercase tracking-[0.12em] text-(--lg-fg)/35">The faders unlock once a statement is read</p>
+          <p className="font-mono text-[0.75rem] uppercase tracking-[0.12em] text-(--lg-fg)/55">The faders unlock once a statement is read</p>
         )}
       </div>
     </div>

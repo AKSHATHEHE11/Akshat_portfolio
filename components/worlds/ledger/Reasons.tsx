@@ -25,11 +25,11 @@ export function Reasons({ x, reduced }: { x: Explanation | null; reduced: boolea
                 key={f.key}
                 layout={!reduced}
                 transition={{ layout: { duration: 0.5, ease: BEZIER.out } }}
-                className="grid grid-cols-[4.75rem_minmax(0,1fr)_3rem] items-center gap-x-3 gap-y-1.5 border-b border-(--lg-fg)/12 py-2.5 sm:grid-cols-[5.25rem_minmax(0,1fr)_9rem_3rem]"
+                className="grid grid-cols-[4.75rem_minmax(0,1fr)_3rem] items-center gap-x-3 gap-y-1.5 border-b border-(--lg-fg)/12 py-2.5 @md:grid-cols-[5.25rem_minmax(0,1fr)_9rem_3rem]"
               >
                 <span className="font-mono text-[0.6875rem] tracking-[0.08em] text-(--lg-fg)/70">{f.code}</span>
                 <span className="text-[0.875rem] leading-snug first-letter:uppercase">{f.text}</span>
-                <span aria-hidden className="relative col-span-3 col-start-1 row-start-2 h-2 sm:col-span-1 sm:col-start-3 sm:row-start-1">
+                <span aria-hidden className="relative col-span-3 col-start-1 row-start-2 h-2 @md:col-span-1 @md:col-start-3 @md:row-start-1">
                   <span className="absolute inset-y-[-3px] left-1/2 w-px bg-(--lg-fg)/35" />
                   <motion.span
                     className={cn("absolute inset-y-0 w-1/2", f.points >= 0 ? "left-1/2 bg-(--lg-up)" : "right-1/2 bg-(--lg-down)")}
@@ -41,7 +41,7 @@ export function Reasons({ x, reduced }: { x: Explanation | null; reduced: boolea
                 </span>
                 <span
                   className={cn(
-                    "col-start-3 row-start-1 text-right font-mono text-[0.875rem] tabular-nums sm:col-start-4",
+                    "col-start-3 row-start-1 text-right font-mono text-[0.875rem] tabular-nums @md:col-start-4",
                     f.points >= 0 ? "lg-up" : "lg-down",
                   )}
                 >
@@ -50,7 +50,7 @@ export function Reasons({ x, reduced }: { x: Explanation | null; reduced: boolea
               </motion.li>
             ))
           : Array.from({ length: 5 }, (_, i) => (
-              <li key={i} className="flex h-[2.75rem] items-center border-b border-(--lg-fg)/12 font-mono text-[0.75rem] text-(--lg-fg)/30">
+              <li key={i} className="flex h-[2.75rem] items-center border-b border-(--lg-fg)/12 font-mono text-[0.75rem] text-(--lg-fg)/50">
                 R{i + 1} · awaiting statement
               </li>
             ))}

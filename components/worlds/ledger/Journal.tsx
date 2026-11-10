@@ -18,9 +18,11 @@ type Voucher = LedgerScene["journal"][number];
 // postings are written in: ink settling into the paper
 const ENTER = { opacity: 0, y: 8, filter: "blur(3px)" };
 const SHOWN = { opacity: 1, y: 0, filter: "blur(0px)" };
+const WORDS = ["no", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"];
 
 export function Journal({ decisions, journal }: { decisions: Decision[]; journal: LedgerScene["journal"] }) {
   const chaos = useChaos();
+  const count = WORDS[decisions.length] ?? String(decisions.length);
   const [posted, setPosted] = useState<(number | null)[]>(() => decisions.map(() => null));
   const shipped = decisions.filter((d, i) => posted[i] === d.chosen).length;
   const balanced = shipped === decisions.length && !chaos;
@@ -41,7 +43,8 @@ export function Journal({ decisions, journal }: { decisions: Decision[]; journal
           Journal
         </h2>
         <p className="max-w-[36ch] text-[1.0625rem] leading-snug text-(--lg-fg)/70">
-          Four calls, four vouchers. Post either side: what it cost is debited, what it bought is credited.
+          <span className="capitalize">{count}</span> calls, {count} vouchers. Post either side: what it cost is debited, what it
+          bought is credited.
         </p>
       </div>
 
@@ -140,7 +143,7 @@ function Entry({ d, v, index, pick, chaos, onPost }: EntryProps) {
 
         <div role="status" className="col-span-2 min-h-[4.5rem] lg:col-start-2 lg:col-end-5 lg:min-h-[5.25rem]">
           {pick === null ? (
-            <p className="font-mono text-[0.75rem] uppercase tracking-[0.12em] text-(--lg-fg)/45">
+            <p className="font-mono text-[0.75rem] uppercase tracking-[0.12em] text-(--lg-fg)/55">
               Unposted<span className="animate-blink">_</span>
             </p>
           ) : (
