@@ -2,7 +2,7 @@
 // ponytail: lives beside the toys; move to data/ if it ever needs editing without touching code.
 
 export const LEGEND: { id: string; name: string; line: string; keys: string[] }[] = [
-  { id: "tray", name: "Tray", line: "Throw things. Gravity has three settings; the magnet only likes metal.", keys: ["G", "M"] },
+  { id: "tray", name: "Tray", line: "Throw things. Gravity has three settings; the magnet only likes metal. Focused, arrows tilt it and Space shakes it.", keys: ["G", "M"] },
   { id: "win", name: "Windows", line: "Drag them by the bar. Focus a bar and the arrows move it.", keys: ["←", "→"] },
   { id: "key", name: "Keycap", line: "Spin it, press it. Focus it and type: it becomes that key.", keys: ["⏎"] },
   { id: "bug", name: "Bug hunt", line: "Twenty seconds. Squash what crawls. Your best stays on this device.", keys: ["B"] },

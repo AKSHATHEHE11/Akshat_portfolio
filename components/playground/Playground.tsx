@@ -7,7 +7,7 @@ import { useRise } from "@/components/home/worlds/useRise";
 import { Button } from "@/components/ui/Button";
 import { ignoreShortcut } from "@/components/work/keys";
 import { gsap, useGSAP } from "@/lib/gsap";
-import { useIsomorphicLayoutEffect, useReducedMotion } from "@/lib/hooks";
+import { useReducedMotion } from "@/lib/hooks";
 import { play } from "@/lib/sound";
 import { emit, useSystem } from "@/lib/system";
 import { seeded } from "@/lib/utils";
@@ -20,7 +20,6 @@ import { Mat, measureMat } from "./Mat";
 import Stamp from "./stamp/Stamp";
 import Tray from "./tray/Tray";
 import Well from "./well/Well";
-import { accentAt } from "./windows/Accent";
 import Windows from "./windows/Windows";
 import { Zone } from "./Zone";
 
@@ -28,15 +27,14 @@ import { Zone } from "./Zone";
  * /playground — THE LAB. One cutting mat the size of the page with seven toys on it: a physics
  * tray, four paper windows, a 3D keycap, Bug Hunt, a rubber stamp, a gravity well and a settings
  * form with opinions. Each toy mounts its heavy part when it is about a screen away and runs only
- * while on screen. R resets the bench (everything remounts and drops back in); the accent window
- * retints this page's accent until you leave.
+ * while on screen. R resets the bench (everything remounts and drops back in, which also hands the
+ * page its house accent back).
  */
 export default function Playground() {
   const root = useRef<HTMLDivElement>(null);
   const head = useRef<HTMLElement>(null);
   const [mat, setMat] = useState<HTMLDivElement | null>(null);
   const [gen, setGen] = useState(0);
-  const [hue, setHue] = useState<number | null>(null);
   const reduced = useReducedMotion();
   const ready = useSystem((s) => s.ready);
   const booted = useSystem((s) => s.booted);
@@ -64,17 +62,8 @@ export default function Playground() {
     };
   }, [mat]);
 
-  // the accent window retints the page (nav included) until reset or until you leave
-  useIsomorphicLayoutEffect(() => {
-    const st = document.documentElement.style;
-    if (hue === null) st.removeProperty("--accent");
-    else st.setProperty("--accent", accentAt(hue));
-  }, [hue]);
-  useEffect(() => () => document.documentElement.style.removeProperty("--accent"), []);
-
   function reset() {
     setGen((g) => g + 1);
-    setHue(null);
     lab.hunting = false;
     play("whoosh");
     emit("toast", { text: "BENCH RESET" });
@@ -147,7 +136,7 @@ export default function Playground() {
           <Zone area="key">{({ near, active }) => <Keycap near={near} active={active} gen={gen} />}</Zone>
           <Zone area="stamp">{() => <Stamp key={gen} />}</Zone>
           <Zone area="win" rail="Windows">
-            {({ near, active }) => <Windows key={gen} near={near} active={active} bounds={mat} onHue={setHue} />}
+            {({ near, active }) => <Windows key={gen} near={near} active={active} bounds={mat} />}
           </Zone>
           <Zone area="hunt" rail="Bug hunt">
             {() => <BugHunt key={gen} />}
