@@ -75,7 +75,7 @@ export function MaterialDemo({ on }: DemoProps) {
           />
           <div aria-hidden className="flex justify-between px-[1.1rem]">
             {TICKS.map((t) => (
-              <span key={t} className={cn("font-mono text-[0.625rem] tabular-nums", t <= tip ? "text-ink" : "text-smoke/60")}>
+              <span key={t} className={cn("font-mono text-[0.6875rem] tabular-nums", t <= tip ? "text-ink" : "text-smoke")}>
                 {t}
               </span>
             ))}
@@ -114,13 +114,15 @@ export function MaterialDemo({ on }: DemoProps) {
             aria-label="Try to drag the slider in the frame"
             data-cursor="hover"
             data-cursor-label="DRAG?"
-            className="absolute inset-0 cursor-not-allowed"
+            className="absolute inset-0 cursor-not-allowed focus-visible:outline-offset-[-6px]"
           />
-          {poked > 0 && (
-            <p key={poked} aria-live="polite" className={cn(micro, "tk-pop absolute bottom-4 left-4 max-w-[60%] normal-case tracking-[0.04em]")}>
-              It is a picture of a slider. Nothing moves.
-            </p>
-          )}
+          <p aria-live="polite" className={cn(micro, "pointer-events-none absolute bottom-4 left-4 max-w-[60%] normal-case tracking-[0.04em]")}>
+            {poked > 0 && (
+              <span key={poked} className="tk-pop block">
+                It is a picture of a slider. Nothing moves.
+              </span>
+            )}
+          </p>
         </div>
       )}
     </div>

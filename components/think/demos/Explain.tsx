@@ -75,8 +75,10 @@ export function ExplainDemo({ on }: DemoProps) {
           >
             Why?
           </button>
-          <p key={asked} aria-live="polite" className={cn("text-[0.8125rem] text-smoke", asked > 0 && "tk-pop")}>
-            {asked > 0 ? ANSWERS[(asked - 1) % ANSWERS.length] : "No reasons given."}
+          <p aria-live="polite" className="text-[0.8125rem] text-smoke">
+            <span key={asked} className={asked > 0 ? "tk-pop inline-block" : undefined}>
+              {asked > 0 ? ANSWERS[(asked - 1) % ANSWERS.length] : "No reasons given."}
+            </span>
           </p>
         </div>
       </div>
@@ -88,13 +90,19 @@ export function ExplainDemo({ on }: DemoProps) {
     <div role="group" aria-label="Demo: the same risk score with its reasons" className="flex h-full flex-col px-[clamp(0.75rem,4cqw,1.4rem)] py-3">
       <div className="flex items-end justify-between gap-4 border-b border-ink/15 pb-2">
         <p className={micro}>Late-delivery risk</p>
-        <p aria-live="polite" className="font-display text-[2.1rem] font-[860] leading-[0.8] tracking-[-0.04em]">
-          <span ref={num}>{total}</span>%
+        <p className="font-display text-[2.1rem] font-[860] leading-[0.8] tracking-[-0.04em]">
+          {/* the roll writes every in-between value: only the settled number is read out */}
+          <span aria-hidden>
+            <span ref={num}>{total}</span>%
+          </span>
+          <span aria-live="polite" className="sr-only">
+            {total}%
+          </span>
         </p>
       </div>
       <ul className="mt-1 flex flex-1 flex-col justify-around">
-        <li className="tk-rise grid grid-cols-[minmax(0,1fr)_3ch_4.5rem] items-center gap-3 py-0.5 pl-7 text-[0.8125rem] text-smoke">
-          <span className="truncate">{BASE.label}</span>
+        <li className="tk-rise grid grid-cols-[minmax(0,1fr)_3ch_clamp(2rem,16cqw,4.5rem)] items-center gap-3 py-0.5 pl-[2.125rem] text-[0.8125rem] text-smoke">
+          <span className="line-clamp-2 leading-[1.15]">{BASE.label}</span>
           <span className="text-right font-mono tabular-nums">{signed(BASE.value)}</span>
           <span aria-hidden className="h-2 rounded-[1px] bg-ink/30" style={{ width: bar(BASE.value) }} />
         </li>
@@ -109,14 +117,15 @@ export function ExplainDemo({ on }: DemoProps) {
                 data-cursor-label={live ? "REMOVE" : "ADD"}
                 onClick={() => toggle(i)}
                 className={cn(
-                  "grid w-full grid-cols-[1rem_minmax(0,1fr)_3ch_4.5rem] items-center gap-3 rounded-[4px] py-1 pl-1.5 text-left text-[0.8125rem] transition-[background-color,opacity] duration-200 hover:bg-ink/[0.05] coarse:min-h-11",
-                  !live && "opacity-45",
+                  "grid w-full items-center gap-3 rounded-[4px] py-1 pl-1.5 text-left text-[0.8125rem] transition-[background-color,opacity] duration-200 hover:bg-ink/[0.05] coarse:min-h-11",
+                  "grid-cols-[1rem_minmax(0,1fr)_3ch_clamp(2rem,16cqw,4.5rem)]",
+                  !live && "opacity-60", // still AA: a struck reason stays readable so you can put it back
                 )}
               >
                 <span aria-hidden className={cn("grid size-3.5 place-items-center rounded-[3px] border", live ? "border-ink bg-ink" : "border-ink/40")}>
                   {live && <span className="size-1.5 rounded-[1px] bg-paper" />}
                 </span>
-                <span className={cn("truncate", !live && "line-through")}>{w.label}</span>
+                <span className={cn("line-clamp-2 leading-[1.15]", !live && "line-through")}>{w.label}</span>
                 <span className={cn("text-right font-mono tabular-nums", w.value > 0 ? "text-[#b23a0a]" : "text-[#1f7a45]")}>{signed(w.value)}</span>
                 <span
                   aria-hidden

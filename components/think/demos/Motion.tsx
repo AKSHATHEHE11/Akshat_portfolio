@@ -5,7 +5,7 @@ import { gsap, useGSAP } from "@/lib/gsap";
 import { useReducedMotion } from "@/lib/hooks";
 import { play } from "@/lib/sound";
 import { cn } from "@/lib/utils";
-import { micro, useThrownOn, type DemoProps } from "./shared";
+import { liveness, micro, useThrownOn, type DemoProps } from "./shared";
 
 const MAIL = ["Invoice 2041 is paid", "Standup moved to 10:30", "Build 318 is green", "Rajma at 1?"];
 const ALL = MAIL.map((_, i) => i);
@@ -14,7 +14,7 @@ const ALL = MAIL.map((_, i) => i);
  * MOTION IS MEANING — one inbox, one Archive key. Rule on: the mail flies into the Archive tray and
  * the list closes the gap it left. Rule off: it spins, pops and is gone; where to is anyone's guess.
  */
-export function MotionDemo({ on }: DemoProps) {
+export function MotionDemo({ on, quiet }: DemoProps) {
   const root = useRef<HTMLDivElement>(null);
   const tray = useRef<HTMLSpanElement>(null);
   const busy = useRef(false);
@@ -79,12 +79,15 @@ export function MotionDemo({ on }: DemoProps) {
         <p className="flex items-baseline gap-2 font-display text-[1.05rem] font-[750] tracking-[-0.01em]">
           Inbox <span className="font-mono text-[0.75rem] font-medium tabular-nums text-smoke">{rows.length}</span>
         </p>
-        <span ref={tray} className={cn(micro, "flex items-center gap-1.5 rounded-full border border-ink/25 bg-bone px-2.5 py-1.5")}>
+        <span
+          ref={tray}
+          aria-live={liveness(quiet)}
+          aria-atomic
+          className={cn(micro, "flex items-center gap-1.5 rounded-full border border-ink/25 bg-bone px-2.5 py-1.5")}
+        >
           <Archive aria-hidden size={13} strokeWidth={2} />
           Archive
-          <span aria-live="polite" className="tabular-nums text-[#b23a0a]">
-            {archived}
-          </span>
+          <span className="tabular-nums text-[#b23a0a]">{archived}</span>
         </span>
       </div>
       <ul className="relative">
