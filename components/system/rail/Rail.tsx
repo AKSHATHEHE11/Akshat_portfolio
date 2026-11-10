@@ -124,7 +124,8 @@ export function Rail() {
     if (lenis) sync(lenis);
   }, [lenis, sync]);
 
-  // Re-measure after mount, route changes, resizes, ScrollTrigger refreshes (pin spacers) and DOM changes.
+  // Re-measure after mount, route changes, resizes, ScrollTrigger refreshes (pin spacers) and rail sections
+  // being added or removed.
   useEffect(() => {
     const main = document.getElementById("main");
     let timer = 0;
@@ -136,7 +137,14 @@ export function Rail() {
         measure();
       }, 200);
     };
-    const mo = new MutationObserver(later);
+    // Only DOM changes that add or remove a rail section matter: measuring forces a layout, and text
+    // effects (typing, split-flaps, scrambles) and game sprites mutate <main> many times a second.
+    // Height changes from lazy content are the ResizeObserver's job.
+    const touchesRail = (nodes: NodeList) =>
+      Array.from(nodes).some((n) => n instanceof Element && (n.matches("[data-rail]") || n.querySelector("[data-rail]") !== null));
+    const mo = new MutationObserver((records) => {
+      if (records.some((r) => touchesRail(r.addedNodes) || touchesRail(r.removedNodes))) later();
+    });
     const ro = new ResizeObserver(later);
     if (main) {
       mo.observe(main, { childList: true, subtree: true });
