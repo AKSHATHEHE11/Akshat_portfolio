@@ -210,7 +210,7 @@ chaos layer understands:
 - `data-chaos-escape` on a small element → it dodges the cursor once in a while
 
 Event bus (`emit`/`on` from lib/system): `"boot:replay"`, `"chaos:burst"` {x,y}, `"restart"`,
-`"toast"` {text}, `"console:key"` {key}, `"shortcuts:open"` (opens the keyboard-shortcuts sheet). Add new
+`"toast"` {text}, `"console:key"` {key}, `"shortcuts:open"` (opens the keyboard-shortcuts sheet), `"menu:close"` (closes the menu panel silently). Add new
 events to this list if you introduce one.
 
 **Keys and swipes that belong to your widget.** In a world, ←/→ switch worlds and a horizontal swipe does

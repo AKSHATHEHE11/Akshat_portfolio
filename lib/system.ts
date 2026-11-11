@@ -169,6 +169,7 @@ export function useSystem<T>(selector: (s: SystemState) => T): T {
    "restart"         ending → page should rewind to the top
    "toast"           detail {text} — show a transient system message (HUD renders it)
    "console:key"     detail {key} — a key on the hero console was pressed
+   "menu:close"      the menu panel should close (silently), e.g. so the Lights ink can be seen
 */
 const bus = typeof window !== "undefined" ? new EventTarget() : null;
 

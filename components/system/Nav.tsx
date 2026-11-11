@@ -8,7 +8,7 @@ import { Scramble } from "@/components/ui/Scramble";
 import { gsap, useGSAP } from "@/lib/gsap";
 import { useChaos, useReducedMotion, useSystemReady } from "@/lib/hooks";
 import { play } from "@/lib/sound";
-import { useSystem } from "@/lib/system";
+import { on, useSystem } from "@/lib/system";
 import { cn } from "@/lib/utils";
 import { Links } from "./nav/Links";
 import { Logo } from "./nav/Logo";
@@ -59,6 +59,7 @@ export default function Nav() {
     if (!silent) play("close");
     setOpen(false);
   }, []);
+  useEffect(() => on("menu:close", () => closePanel(true)), [closePanel]);
 
   return (
     <>

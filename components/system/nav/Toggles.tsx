@@ -1,12 +1,12 @@
 "use client";
-import type { ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 import { Button } from "@/components/ui/Button";
 import { Scramble } from "@/components/ui/Scramble";
 import { Led } from "@/components/ui/marks";
 import { play } from "@/lib/sound";
 import { emit, useSystem } from "@/lib/system";
 import { cn } from "@/lib/utils";
-import { flipChaos, flipLights, flipSound, originOf } from "./actions";
+import { flipChaos, flipLights, flipSound, originOf, primeInk } from "./actions";
 
 /*
   The console's three switches. "bar" = compact pill in the nav; "panel" = a tile in the menu panel.
@@ -22,12 +22,15 @@ function Shell({
   pressed,
   label,
   onPress,
+  onPrime,
   children,
 }: {
   variant: Variant;
   pressed: boolean;
   label: string;
   onPress: (el: HTMLButtonElement) => void;
+  /** about to be pressed (pointer over it, or focused): load what the press needs */
+  onPrime?: () => void;
   children: ReactNode;
 }) {
   const panel = variant === "panel";
@@ -39,7 +42,11 @@ function Shell({
       title={panel ? undefined : label}
       data-cursor="hover"
       data-intro={panel ? undefined : ""}
-      onPointerEnter={() => play("tick")}
+      onPointerEnter={() => {
+        play("tick");
+        onPrime?.();
+      }}
+      onFocus={onPrime}
       onClick={(e) => onPress(e.currentTarget)}
       className={cn(
         "group/t relative inline-flex select-none text-(--n-fg) transition-[translate,background-color,border-color] duration-200 active:translate-y-px",
@@ -191,8 +198,25 @@ function Pill({ big }: { big?: boolean }) {
 
 export function LightsToggle({ variant = "bar" }: { variant?: Variant }) {
   const on = useSystem((s) => s.theme === "light");
+  // the menu panel only opens on the way to a switch: start fetching the ink right away
+  useEffect(() => {
+    if (variant === "panel") primeInk();
+  }, [variant]);
   return (
-    <Shell variant={variant} pressed={on} label="Lights" onPress={(el) => flipLights(originOf(el))}>
+    <Shell
+      variant={variant}
+      pressed={on}
+      label="Lights"
+      onPrime={primeInk}
+      onPress={(el) => {
+        const at = originOf(el);
+        if (variant !== "panel") return void flipLights(at);
+        // the menu panel covers the page (and looks the same in both themes): fold it away first,
+        // then pour the ink over the page itself. 480ms = the panel's exit (MenuPanel, 0.45s).
+        emit("menu:close");
+        window.setTimeout(() => flipLights(at), 480);
+      }}
+    >
       {variant === "panel" ? (
         <>
           <Pill big />
