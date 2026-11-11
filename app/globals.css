@@ -203,6 +203,14 @@
     font-synthesis: none;
     scrollbar-width: thin;
     scrollbar-color: color-mix(in oklab, var(--fg) 45%, transparent) transparent;
+    /* The page ends where it ends: no rubber-band bounce (iOS) or stretch (Android) past the top or
+       bottom. It pulled a band of page colour into view, cream under the dark worlds. */
+    overscroll-behavior: none;
+  }
+  /* Whatever can still show past the edges (older iOS, the toolbar area) wears the page's colour:
+     a world's own background inside a world (WorldShell sets --world-bg before paint). */
+  html[data-world]:not([data-world=""]) {
+    background: var(--world-bg, var(--bg));
   }
 
   body {
