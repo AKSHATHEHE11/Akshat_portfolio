@@ -61,7 +61,20 @@ export function Console({ rig }: { rig: Rig }) {
     return () => window.clearTimeout(id);
   }, [live]);
 
-  useEffect(() => setGl(hasWebGL() ? "ok" : "none"), []);
+  // The 3D (~1 MB of three.js, then the model and the shaders) waits until the page has finished
+  // starting up and the console is near the screen: landing on top of hydration, it made the first
+  // seconds of the page freeze on phones. The SVG stand-in holds the spot until then.
+  useEffect(() => {
+    if (gl !== "pending" || !onScreen) return;
+    const w = window as Window & typeof globalThis;
+    const go = () => setGl(hasWebGL() ? "ok" : "none");
+    if (typeof w.requestIdleCallback === "function") {
+      const id = w.requestIdleCallback(go, { timeout: 2500 });
+      return () => w.cancelIdleCallback(id);
+    }
+    const id = window.setTimeout(go, 700);
+    return () => window.clearTimeout(id);
+  }, [gl, onScreen]);
 
   useEffect(() => {
     rig.chaos = chaos;
