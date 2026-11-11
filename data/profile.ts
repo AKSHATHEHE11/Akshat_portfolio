@@ -14,7 +14,8 @@ export const profile = {
   location: { city: "New Delhi", country: "India", coords: "28.6139° N, 77.2090° E", timezone: "Asia/Kolkata" },
   availability: { open: true, label: "Taking on select projects — early 2027" },
 
-  email: "hello@akshat.example", // DUMMY (reserved .example domain)
+  /** shown everywhere (contact, mail fallback); the contact form delivers here too, unless CONTACT_TO is set */
+  email: "work.brayill@gmail.com",
   socials: [
     { label: "GitHub", handle: "@akshat", href: "https://github.com/" }, // DUMMY handle/link
     { label: "LinkedIn", handle: "in/akshat-agrawal", href: "https://www.linkedin.com/" }, // DUMMY
