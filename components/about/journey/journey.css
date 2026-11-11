@@ -1,248 +1,676 @@
-/* THE LINE — namespace ab-jr-. */
-.ab-jr-track {
-  --ab-snap: cubic-bezier(0.34, 1.56, 0.64, 1);
-  position: relative;
-  height: 9rem;
-  touch-action: pan-y;
-  user-select: none;
-  -webkit-user-select: none;
-}
-.ab-jr-track:focus-visible {
-  outline: 2px solid var(--signal);
-  outline-offset: 10px;
-}
-.ab-jr-line {
-  position: absolute;
-  top: 3.5rem;
-  border-top: 2px solid var(--fg);
-  translate: 0 -1px;
-}
-.ab-jr-line-dash {
-  border-top-style: dashed;
-  opacity: 0.6;
-}
-.ab-jr-tick {
-  position: absolute;
-  top: 5.25rem;
-  width: 1px;
-  height: 6px;
-  background: color-mix(in oklab, var(--fg) 40%, transparent);
-}
-.ab-jr-tick-yr {
-  height: 12px;
-  background: var(--fg);
-}
-.ab-jr-yr {
-  position: absolute;
-  top: 6.5rem;
-  translate: -50% 0;
-  font-family: var(--font-mono);
-  font-size: var(--text-label);
-  font-variant-numeric: tabular-nums;
-  color: var(--fg-muted);
-}
-/* a stop is a point on the line: the station ring is drawn around it, the kind sits above */
-.ab-jr-stop {
-  position: absolute;
-  top: 3.5rem;
-}
-.ab-jr-stop::before {
-  content: "";
-  position: absolute;
-  left: -7px;
-  top: -7px;
-  width: 14px;
-  height: 14px;
-  border: 2px solid var(--fg);
-  border-radius: 50%;
-  background: var(--bg);
-  transition:
-    background-color 220ms,
-    border-color 220ms,
-    scale 360ms var(--ab-snap);
-}
-.ab-jr-stop[data-kind="future"]::before {
-  border-style: dashed;
-}
-.ab-jr-stop[data-on]::before {
-  border-color: var(--signal);
-  background: var(--signal);
-  scale: 1.35;
-}
-.ab-jr-stop[data-kind="future"][data-on]::before {
-  background: var(--bg);
-}
-.ab-jr-kind {
-  position: absolute;
-  bottom: 1.6rem;
-  left: 0;
-  translate: -50% 0;
-  white-space: nowrap;
-  color: var(--fg-muted);
-  transition: color 220ms;
-}
-.ab-jr-stop[data-on] .ab-jr-kind {
-  color: var(--fg);
+/* THE RACK — namespace ab-rk-. Device colours are literal: the rack is the same object in both themes,
+   so faces stay ink on cream when the page goes dark. Only transform and opacity ever animate. */
+.ab-rk,
+.ab-rk-certs {
+  --rk-ink: #111111;
+  --rk-char: #2a2926;
+  --rk-paper: #f8f7f3;
+  --rk-bone: #f2eee7;
+  --rk-bone2: #e8e2d7;
+  --rk-smoke: #66635b;
+  --rk-orange: #ff5a1f;
+  --rk-go: #1fc25b;
+  --rk-snap: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --rk-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* the scanner: a head with the coordinate, a 1px line and a soft beam; moved by transform only */
-.ab-jr-scan {
-  position: absolute;
-  top: -1.4rem;
-  bottom: 0;
-  left: 0;
-  width: 0;
-  pointer-events: none;
-  will-change: transform;
+/* ── the frame: a char cavity between two ink rails with square holes (static, painted once) ── */
+.ab-rk {
+  --rail: 12px;
+  position: relative;
+  padding: 0 var(--rail);
+  border-radius: 4px 4px 2px 2px;
+  background: var(--rk-char);
+  color: var(--rk-bone);
 }
-.ab-jr-scan::before {
+@media (min-width: 768px) {
+  .ab-rk {
+    --rail: 24px;
+  }
+}
+.ab-rk::before,
+.ab-rk::after {
   content: "";
-  position: absolute;
-  top: 1.4rem;
-  bottom: 0;
-  left: -28px;
-  width: 56px;
-  background: linear-gradient(90deg, transparent, color-mix(in oklab, var(--signal) 14%, transparent), transparent);
-}
-.ab-jr-scan::after {
-  content: "";
-  position: absolute;
-  top: 1.4rem;
-  bottom: 0;
-  left: -0.5px;
-  width: 1px;
-  background: var(--signal);
-}
-.ab-jr-head {
   position: absolute;
   top: 0;
+  bottom: 18px;
+  width: var(--rail);
+  background:
+    repeating-linear-gradient(transparent 0 7px, #57544c 7px 11px) center / 4px 100% no-repeat,
+    var(--rk-ink);
+}
+.ab-rk::before {
   left: 0;
-  translate: -50% 0;
-  padding: 0.3rem 0.5rem;
-  border-radius: 2px;
-  background: var(--signal);
-  color: var(--signal-ink);
-  font-size: 0.75rem;
-  font-variant-numeric: tabular-nums;
-  line-height: 1;
-  white-space: nowrap;
 }
-/* chaos: the scan tears sideways for a beat (translate composes with the JS transform) */
-.ab-jr-scan[data-glitch],
-.ab-jr-mscan[data-glitch] {
-  animation: ab-jr-glitch 260ms steps(1, end);
+.ab-rk::after {
+  right: 0;
 }
-.ab-jr-scan[data-glitch]::after,
-.ab-jr-mscan[data-glitch]::before {
-  box-shadow:
-    -4px -2px 0 var(--accent),
-    5px 2px 0 color-mix(in oklab, var(--signal) 60%, transparent);
+:root[data-theme="dark"] .ab-rk {
+  box-shadow: 0 0 0 1px rgb(242 238 231 / 0.14);
 }
-@keyframes ab-jr-glitch {
-  0% {
-    translate: 16px 0;
-  }
-  30% {
-    translate: -11px 3px;
-  }
-  60% {
-    translate: 5px 0;
-  }
-  100% {
-    translate: 0 0;
-  }
+.ab-rk-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.3rem 1rem;
+  padding: 0.85rem 0.2rem 0.75rem;
 }
-.ab-jr-big {
-  font-family: var(--font-display);
-  font-size: var(--text-display-l);
-  font-weight: 860;
-  line-height: 0.82;
-  letter-spacing: -0.05em;
-  font-variant-numeric: tabular-nums;
+.ab-rk-list {
+  display: grid;
+  gap: 4px;
+  padding: 4px 0;
 }
-.ab-jr-big-future {
-  color: transparent;
-  -webkit-text-stroke: 1.5px var(--fg);
+.ab-rk-plinth {
+  position: relative;
+  display: block;
+  height: 18px;
+  margin: 0 calc(var(--rail) * -1);
+  border-radius: 0 0 3px 3px;
+  background: var(--rk-ink);
+}
+.ab-rk-plinth::before,
+.ab-rk-plinth::after {
+  content: "";
+  position: absolute;
+  bottom: -8px;
+  width: 28px;
+  height: 8px;
+  border-radius: 0 0 3px 3px;
+  background: var(--rk-char);
+}
+.ab-rk-plinth::before {
+  left: 18px;
+}
+.ab-rk-plinth::after {
+  right: 18px;
 }
 
-/* ── phones: a vertical rail, scanned by scrolling past a line held mid-screen ── */
-/* the line runs through the year column and the rail, then fades out where the text starts, so it
-   never strikes through what you are reading; its year tag sits on top, in the year column */
-.ab-jr-mscan {
-  position: sticky;
-  top: 50svh;
-  height: 0;
-  pointer-events: none;
-}
-.ab-jr-mscan::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  width: calc(5.25rem + 14px);
-  height: 1px;
-  background: linear-gradient(90deg, var(--signal) 70%, transparent);
-}
-.ab-jr-mhead {
-  position: absolute;
-  z-index: 2;
-  left: 0;
-  translate: 0 -50%;
-  padding: 0.25rem 0.4rem;
-  border-radius: 2px;
-  background: var(--signal);
-  color: var(--signal-ink);
-  font-size: 0.75rem;
-  line-height: 1;
-}
-.ab-jr-row {
+/* ── a unit: the face is the button; the tray slides out under it ── */
+.ab-rk-unit {
   position: relative;
-  display: grid;
-  grid-template-columns: 3.25rem 14px minmax(0, 1fr);
-  column-gap: 1rem;
-  padding: 0.25rem 0 3rem;
 }
-/* the rail segment from this stop down to the next */
-.ab-jr-row::before {
-  content: "";
-  position: absolute;
-  top: 0.9rem;
-  bottom: -0.9rem;
-  left: calc(3.25rem + 1rem + 6px);
-  border-left: 2px solid var(--fg);
-}
-.ab-jr-row[data-seg="dash"]::before {
-  border-left-style: dashed;
-  opacity: 0.6;
-}
-.ab-jr-row[data-seg="end"]::before {
+.ab-rk-unum {
   display: none;
 }
-.ab-jr-row-year {
-  padding-top: 0.15rem;
-  font-size: 0.9375rem;
-  color: var(--fg-muted);
-  transition: color 220ms;
+@media (min-width: 768px) {
+  .ab-rk-unum {
+    position: absolute;
+    top: 8px;
+    left: calc(var(--rail) * -1);
+    display: block;
+    width: var(--rail);
+    font: 500 11px/1 var(--font-mono);
+    text-align: center;
+    color: #8d897f;
+  }
 }
-.ab-jr-dot {
+/* phones: one column, the status chip in the top-right corner, dates on their own line.
+   768px and up: the dates move to a right-hand column. */
+.ab-rk-face {
   position: relative;
   z-index: 1;
-  width: 14px;
-  height: 14px;
-  margin-top: 0.3rem;
-  border: 2px solid var(--fg);
+  display: grid;
+  grid-template-columns: 12px minmax(0, 1fr) auto;
+  grid-template-areas: "led org st" ". role role" ". when when" ". extra extra";
+  column-gap: 10px;
+  align-items: start;
+  width: 100%;
+  min-height: 64px;
+  padding: 12px 12px 13px 10px;
+  border-radius: 2px;
+  background: var(--rk-paper);
+  color: var(--rk-ink);
+  text-align: left;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 360ms var(--rk-expo);
+}
+@media (min-width: 768px) {
+  .ab-rk-face {
+    grid-template-areas: "led org st" ". role when" ". extra extra";
+    column-gap: 14px;
+    min-height: 76px;
+    padding: 14px 26px 14px 18px;
+  }
+}
+.ab-rk-face:focus-visible {
+  z-index: 2;
+  outline-offset: 2px;
+}
+.ab-rk-unit[data-u="2"] .ab-rk-face {
+  min-height: 116px;
+}
+@media (min-width: 768px) {
+  .ab-rk-unit[data-u="2"] .ab-rk-face {
+    min-height: 132px;
+  }
+}
+.ab-rk-unit[data-state="done"] .ab-rk-face {
+  background: var(--rk-bone2);
+}
+.ab-rk-unit[data-state="run"]:is([data-kind="work"], [data-kind="team"]) .ab-rk-face {
+  box-shadow: inset 4px 0 0 var(--rk-orange);
+}
+.ab-rk-unit[data-state="run"][data-kind="education"] .ab-rk-face {
+  box-shadow: inset 4px 0 0 var(--rk-ink);
+}
+/* the drop shadow of a pulled-out unit fades by opacity (a box-shadow is never transitioned) */
+.ab-rk-face::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: 0 16px 28px -16px rgb(0 0 0 / 0.75);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 360ms var(--rk-expo);
+}
+.ab-rk-unit[data-open] .ab-rk-face {
+  transform: translate3d(0, -3px, 0);
+}
+.ab-rk-unit[data-open] .ab-rk-face::after {
+  opacity: 1;
+}
+@media (hover: hover) and (pointer: fine) {
+  .ab-rk-unit:not([data-open]) button.ab-rk-face:hover {
+    transform: translate3d(0, -2px, 0);
+  }
+}
+
+.ab-rk-org,
+.ab-rk-led {
+  font-size: clamp(1.2rem, 0.95rem + 1vw, 1.8rem);
+  line-height: 0.95;
+}
+.ab-rk-led {
+  grid-area: led;
+  display: flex;
+  align-items: center;
+  height: 1lh;
+}
+.ab-rk-ring {
+  width: 8px;
+  height: 8px;
+  border: 1.5px solid var(--rk-smoke);
   border-radius: 50%;
-  background: var(--bg);
-  transition:
-    background-color 220ms,
-    border-color 220ms;
 }
-.ab-jr-row[data-kind="future"] .ab-jr-dot {
-  border-style: dashed;
+.ab-rk-org {
+  grid-area: org;
+  font-family: var(--font-display);
+  font-weight: 820;
+  font-variation-settings: "wdth" 76;
+  letter-spacing: -0.015em;
+  text-transform: uppercase;
 }
-.ab-jr-row[data-on] .ab-jr-dot {
-  border-color: var(--signal);
-  background: var(--signal);
+.ab-rk-full {
+  display: block;
+  margin-top: 0.35rem;
+  font: 400 13px/1.35 var(--font-mono);
+  letter-spacing: 0.01em;
+  text-transform: none;
+  color: var(--rk-smoke);
 }
-.ab-jr-row[data-on] .ab-jr-row-year {
-  color: var(--fg);
+.ab-rk-st {
+  grid-area: st;
+  padding-top: 0.28rem;
+  font: 500 11px/1.2 var(--font-mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.ab-rk-unit[data-state="done"] .ab-rk-st {
+  color: var(--rk-smoke);
+}
+.ab-rk-role {
+  grid-area: role;
+  margin-top: 0.35rem;
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: 1.3;
+}
+.ab-rk-place {
+  display: block;
+  margin-top: 0.2rem;
+  font: 400 13px/1.4 var(--font-mono);
+  color: var(--rk-smoke);
+}
+.ab-rk-when {
+  grid-area: when;
+  margin-top: 0.3rem;
+  font: 13px/1.4 var(--font-mono);
+  white-space: nowrap;
+}
+@media (min-width: 768px) {
+  .ab-rk-when {
+    margin-top: 0.35rem;
+    text-align: right;
+  }
+}
+.ab-rk-extra {
+  grid-area: extra;
+}
+
+/* running job: an LCD that cycles its tags (steps, transform only) over a strip of vents. It is the
+   rack's one loop: LEDs hold steady, because every running animation costs style time each frame. */
+.ab-rk-lcd {
+  display: inline-block;
+  height: 22px;
+  margin-top: 0.6rem;
+  overflow: hidden;
+  padding: 0 8px;
+  border-radius: 2px;
+  background: var(--rk-ink);
+  color: var(--rk-orange);
+  font: 19px/22px var(--font-vt323), monospace;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.ab-rk-reel {
+  display: block;
+  animation: ab-rk-lcd calc(var(--n) * 2.2s) steps(var(--n)) infinite;
+}
+.ab-rk-reel > span {
+  display: block;
+  white-space: nowrap;
+}
+@keyframes ab-rk-lcd {
+  to {
+    transform: translate3d(0, -100%, 0);
+  }
+}
+.ab-rk-vents {
+  display: block;
+  height: 9px;
+  margin-top: 0.8rem;
+  background: repeating-linear-gradient(90deg, var(--rk-char) 0 2px, transparent 2px 7px);
+  opacity: 0.2;
+}
+/* the B.Tech chassis: three drive bays, one per project */
+.ab-rk-bays {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 0.85rem;
+}
+/* 11px names fit a 360px phone's bay untracked ("ADMISSIONS" = 66px); "TRAFFIC AI" wraps at its space */
+.ab-rk-bay {
+  position: relative;
+  min-width: 0;
+  padding: 6px;
+  border: 1px solid rgb(17 17 17 / 0.22);
+  border-radius: 2px;
+  background: var(--rk-bone2);
+  font: 11px/1.25 var(--font-mono);
+}
+@media (min-width: 768px) {
+  .ab-rk-bay {
+    padding: 6px 8px;
+    letter-spacing: 0.06em;
+  }
+}
+.ab-rk-bay::after {
+  content: "";
+  position: absolute;
+  top: 9px;
+  right: 6px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--rk-go);
+}
+.ab-rk-bay-no {
+  display: block;
+  padding-right: 10px;
+  color: var(--rk-smoke);
+}
+.ab-rk-bay-name {
+  display: block;
+  font-weight: 500;
+  text-transform: uppercase;
+  overflow-wrap: break-word;
+}
+/* 768px and up: handles, the switch's dark ports, the school box's floppy slot (all decoration) */
+.ab-rk-handle,
+.ab-rk-ports,
+.ab-rk-slot {
+  display: none;
+}
+@media (min-width: 768px) {
+  .ab-rk-handle {
+    position: absolute;
+    top: 50%;
+    left: 5px;
+    display: block;
+    width: 5px;
+    height: 28px;
+    margin-top: -14px;
+    border-radius: 2px;
+    background: var(--rk-char);
+    opacity: 0.5;
+  }
+  .ab-rk-handle + .ab-rk-handle {
+    right: 6px;
+    left: auto;
+  }
+  .ab-rk-ports,
+  .ab-rk-slot {
+    position: absolute;
+    top: 50%;
+    right: 190px;
+    display: block;
+  }
+  /* eight dark ports, 14×12 with a 1.5px rim, 4px apart: the fill sits inset over the rim blocks */
+  .ab-rk-ports {
+    width: 140px;
+    height: 12px;
+    margin-top: -6px;
+    background:
+      repeating-linear-gradient(90deg, transparent 0 1.5px, #d9d3c7 1.5px 12.5px, transparent 12.5px 18px) 0 1.5px / 100% 9px no-repeat,
+      repeating-linear-gradient(90deg, #8d897f 0 14px, transparent 14px 18px);
+  }
+  .ab-rk-slot {
+    width: 64px;
+    height: 5px;
+    margin-top: -2px;
+    border-radius: 3px;
+    background: var(--rk-char);
+    opacity: 0.55;
+  }
+}
+
+/* the empty top slot, and the unit that hot-swaps into it */
+.ab-rk-unit[data-kind="reserved"] .ab-rk-face {
+  grid-template-areas: "led org cta" ". role role";
+  align-items: center;
+  border: 1.5px dashed #77736a;
+  background: transparent;
+  color: var(--rk-bone);
+}
+@media (min-width: 768px) {
+  .ab-rk-unit[data-kind="reserved"] .ab-rk-face {
+    grid-template-areas: "led org cta" ". role cta";
+  }
+}
+.ab-rk-unit[data-kind="reserved"] .ab-rk-role {
+  margin-top: 0.2rem;
+  font: 400 13px/1.4 var(--font-mono);
+  color: #c9c4ba;
+}
+.ab-rk-unit[data-kind="team"] .ab-rk-face {
+  grid-template-areas: "led org st" ". role role" ". cta cta";
+}
+@media (min-width: 768px) {
+  .ab-rk-unit[data-kind="team"] .ab-rk-face {
+    grid-template-areas: "led org st" ". role cta";
+  }
+}
+.ab-rk-cta {
+  grid-area: cta;
+  align-self: center;
+}
+.ab-rk-unit[data-kind="team"] .ab-rk-cta {
+  margin-top: 0.6rem;
+}
+.ab-rk-ring {
+  flex: none;
+}
+.ab-rk-unit[data-kind="reserved"] .ab-rk-ring {
+  border-color: #77736a;
+}
+
+/* ── the tray: under the face, between two orange slide rails ── */
+.ab-rk-tray {
+  position: relative;
+  margin: 0 10px;
+  padding: 18px 16px;
+  background: var(--rk-paper);
+  box-shadow: inset 0 10px 12px -10px rgb(0 0 0 / 0.35);
+  color: var(--rk-ink);
+}
+/* an author display would beat [hidden]: say it */
+.ab-rk-tray[hidden] {
+  display: none;
+}
+.ab-rk-tray::before,
+.ab-rk-tray::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--rk-orange);
+  transform-origin: top;
+  animation: ab-rk-rail 300ms var(--rk-expo) both;
+}
+.ab-rk-tray::before {
+  left: -6px;
+}
+.ab-rk-tray::after {
+  right: -6px;
+}
+@keyframes ab-rk-rail {
+  from {
+    transform: scaleY(0);
+  }
+}
+@media (min-width: 768px) {
+  .ab-rk-tray {
+    margin: 0 18px;
+    padding: 22px 26px 24px;
+  }
+  .ab-rk-tray::before {
+    left: -9px;
+  }
+  .ab-rk-tray::after {
+    right: -9px;
+  }
+  .ab-rk-tray-in[data-cols] {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 12rem;
+    column-gap: 2rem;
+  }
+  .ab-rk-tray-in[data-cols] > .ab-rk-tags {
+    flex-direction: column;
+    margin-top: 0;
+    padding-left: 1rem;
+    border-left: 1px solid rgb(17 17 17 / 0.14);
+  }
+}
+.ab-rk-did {
+  display: grid;
+  gap: 0.65rem;
+  line-height: 1.5;
+}
+.ab-rk-did > li {
+  position: relative;
+  padding-left: 1.1rem;
+}
+.ab-rk-did > li::before {
+  content: "";
+  position: absolute;
+  top: 0.62em;
+  left: 0;
+  width: 6px;
+  height: 6px;
+  background: var(--rk-ink);
+}
+.ab-rk-tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: start;
+  gap: 0.25rem 1rem;
+  margin-top: 1rem;
+  font: 13px/1.5 var(--font-mono);
+  color: var(--rk-smoke);
+}
+.ab-rk-tags > li::before {
+  content: "+ ";
+  color: var(--rk-orange);
+}
+.ab-rk-projects {
+  display: grid;
+  gap: 1.1rem;
+  margin-top: 0.9rem;
+  line-height: 1.5;
+}
+.ab-rk-projects > li {
+  padding-top: 0.9rem;
+  border-top: 1px solid rgb(17 17 17 / 0.14);
+}
+.ab-rk-projects .ab-rk-tags {
+  margin-top: 0.5rem;
+}
+.ab-rk-pname {
+  margin-top: 0.3rem;
+  font-size: 1.0625rem;
+  font-weight: 650;
+  line-height: 1.25;
+}
+
+/* ── certifications: four stickers beside the rack, undated, never animated ── */
+.ab-rk-stickers {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 1rem;
+}
+@media (min-width: 768px) and (max-width: 1023.98px) {
+  .ab-rk-stickers {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+@media (min-width: 1024px) {
+  .ab-rk-stickers {
+    grid-template-columns: minmax(0, 17rem);
+    gap: 14px;
+  }
+}
+.ab-rk-sticker {
+  padding: 10px 12px;
+  border: 1.5px solid var(--rk-ink);
+  border-radius: 8px;
+  background: var(--rk-paper);
+  box-shadow: 0 3px 0 0 var(--rk-ink);
+  color: var(--rk-ink);
+  rotate: -2.5deg;
+}
+.ab-rk-sticker:nth-child(2) {
+  background: var(--rk-orange);
+  rotate: 1.8deg;
+}
+.ab-rk-sticker:nth-child(3) {
+  rotate: -1.2deg;
+}
+.ab-rk-sticker:nth-child(4) {
+  background: var(--rk-ink);
+  color: var(--rk-bone);
+  rotate: 2.6deg;
+}
+:root[data-theme="dark"] .ab-rk-sticker:nth-child(4) {
+  border-color: var(--rk-bone);
+}
+.ab-rk-by {
+  display: block;
+  font: 600 11px/1.2 var(--font-mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.ab-rk-cert {
+  display: block;
+  margin-top: 0.3rem;
+  font-size: 1.0625rem;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+}
+
+/* ── boot: armed (off-screen at mount, motion allowed) holds every unit cold; data-on seats them
+   from U1 up, 140ms apart; each LED self-tests, then the status reports. `backwards`, never `both`,
+   so hover and pull-out transforms work the moment a unit has seated. ── */
+.ab-rk[data-armed]:not([data-on]) .ab-rk-face {
+  opacity: 0.15;
+  transform: translate3d(28px, 0, 0);
+}
+.ab-rk[data-armed]:not([data-on]) :is(.ab-rk-led, .ab-rk-st, .ab-rk-tray) {
+  opacity: 0;
+}
+.ab-rk[data-on] .ab-rk-face {
+  animation: ab-rk-seat 460ms var(--rk-snap) backwards;
+  animation-delay: calc(var(--i) * 140ms);
+}
+.ab-rk[data-on] .ab-rk-led {
+  animation: ab-rk-post 720ms steps(1) backwards;
+  animation-delay: calc(var(--i) * 140ms + 260ms);
+}
+.ab-rk[data-on] .ab-rk-st {
+  animation: ab-rk-fade 220ms backwards;
+  animation-delay: calc(var(--i) * 140ms + 980ms);
+}
+/* a transition, not an animation: a tray opened later must not wait for the boot's delay */
+.ab-rk[data-on] .ab-rk-tray {
+  transition: opacity 360ms var(--rk-expo) calc(var(--i) * 140ms + 300ms);
+}
+@keyframes ab-rk-seat {
+  from {
+    opacity: 0.15;
+    transform: translate3d(28px, 0, 0);
+  }
+}
+@keyframes ab-rk-post {
+  0%,
+  50% {
+    opacity: 1;
+  }
+  25%,
+  75% {
+    opacity: 0.08;
+  }
+}
+@keyframes ab-rk-fade {
+  from {
+    opacity: 0;
+  }
+}
+/* hot-swap: "your team" slides in from the right (the section clips x), its LED self-tests */
+.ab-rk .ab-rk-unit[data-kind="team"] .ab-rk-face {
+  animation: ab-rk-swapin 620ms var(--rk-snap) both;
+}
+.ab-rk .ab-rk-unit[data-kind="team"] .ab-rk-led {
+  animation: ab-rk-post 720ms steps(1) 300ms backwards;
+}
+@keyframes ab-rk-swapin {
+  from {
+    transform: translate3d(105%, 0, 0);
+  }
+}
+
+/* chaos: the rack overheats. Every LED strobes orange, a THERMAL tag blinks, closed EXIT 0 units
+   rattle (data-chaos-drift writes translate/rotate, so they get a layer while it runs) */
+.ab-rk-thermal {
+  margin-right: 0.6rem;
+  padding: 0 0.35rem;
+  background: var(--rk-orange);
+  color: var(--rk-ink);
+  animation: ab-rk-strobe 0.5s steps(2) infinite;
+}
+:root[data-chaos="on"] .ab-rk-led > span {
+  border-color: var(--rk-orange);
+  background: var(--rk-orange);
+  color: var(--rk-orange);
+}
+:root[data-chaos="on"] .ab-rk .ab-rk-led {
+  animation: ab-rk-strobe 0.4s steps(2) infinite;
+}
+:root[data-chaos="on"] .ab-rk-face[data-chaos-drift] {
+  will-change: transform;
+}
+@keyframes ab-rk-strobe {
+  50% {
+    opacity: 0.25;
+  }
+}
+
+/* off-screen, the loops hold still: the LCD and, in chaos, the strobes. Only loops: a one-shot
+   reveal (a tray's content, the boot) must never wait on this, or it could sit invisible. */
+.ab-rk:not([data-live]) :is(.ab-rk-reel, .ab-rk-led, .ab-rk-thermal) {
+  animation-play-state: paused;
 }
