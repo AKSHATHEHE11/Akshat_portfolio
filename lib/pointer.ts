@@ -30,12 +30,15 @@ export function trackPointer() {
   let lastY = pointer.y;
   let raf = 0;
 
+  // The velocity smoothing runs per frame only while the pointer moves or its velocity is still
+  // decaying; a still pointer costs nothing (the next move wakes it).
   const move = (e: PointerEvent) => {
     pointer.x = e.clientX;
     pointer.y = e.clientY;
     pointer.nx = (e.clientX / window.innerWidth) * 2 - 1;
     pointer.ny = -((e.clientY / window.innerHeight) * 2 - 1);
     pointer.inside = true;
+    if (!raf) raf = requestAnimationFrame(loop);
   };
   const down = () => (pointer.down = true);
   const up = () => (pointer.down = false);
@@ -49,7 +52,12 @@ export function trackPointer() {
     pointer.speed = Math.hypot(pointer.vx, pointer.vy);
     lastX = pointer.x;
     lastY = pointer.y;
-    raf = requestAnimationFrame(loop);
+    if (dx || dy || pointer.speed > 0.001) {
+      raf = requestAnimationFrame(loop);
+      return;
+    }
+    pointer.vx = pointer.vy = pointer.speed = 0;
+    raf = 0;
   };
 
   window.addEventListener("pointermove", move, { passive: true });
@@ -58,11 +66,11 @@ export function trackPointer() {
   // a touch that turns into a scroll ends in pointercancel, never pointerup
   window.addEventListener("pointercancel", up, { passive: true });
   document.documentElement.addEventListener("pointerleave", leave);
-  raf = requestAnimationFrame(loop);
 
   return () => {
     started = false;
     cancelAnimationFrame(raf);
+    raf = 0;
     window.removeEventListener("pointermove", move);
     window.removeEventListener("pointerdown", down);
     window.removeEventListener("pointerup", up);
