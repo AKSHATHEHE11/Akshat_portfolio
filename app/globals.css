@@ -88,7 +88,8 @@
   --ease-snap: cubic-bezier(0.34, 1.56, 0.64, 1);
 
   --animate-blink: blink 1.05s steps(1, end) infinite;
-  --animate-pulse-dot: pulse-dot 1.8s var(--ease-out-quart) infinite;
+  /* timing only — the LED itself doesn't animate, its ring does (see .animate-pulse-dot below) */
+  --animate-pulse-dot: none 1.8s var(--ease-out-quart) infinite;
   --animate-marquee: marquee var(--marquee-duration, 32s) linear infinite;
 
   @keyframes blink {
@@ -96,19 +97,47 @@
       opacity: 0;
     }
   }
-  @keyframes pulse-dot {
-    0% {
-      box-shadow: 0 0 0 0 color-mix(in oklab, currentColor 55%, transparent);
-    }
-    70%,
-    100% {
-      box-shadow: 0 0 0 7px transparent;
-    }
-  }
   @keyframes marquee {
     to {
       transform: translateX(-50%);
     }
+  }
+}
+
+/* LED pulse: a ring breathes out of the dot (55% of its colour → gone, 7px out, by 70% of the cycle).
+   It was an animated box-shadow — a main-thread repaint every frame, forever, for every LED on the page.
+   Now a pseudo-element only scales and fades, which the compositor runs by itself. The timing stays on
+   the host (`animate-pulse-dot` or `animation: var(--animate-pulse-dot)`), so per-LED speeds still apply.
+   It is drawn over the dot in the dot's own colour, so only the part outside the dot shows.
+   --pulse-from = dot ÷ (dot + 14px): where the ring starts, sized for the usual 8px LED. */
+@layer components {
+  .animate-pulse-dot {
+    position: relative;
+  }
+  .animate-pulse-dot::after {
+    content: "";
+    position: absolute;
+    inset: -7px;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: 0;
+    pointer-events: none;
+    animation-name: pulse-dot;
+    animation-duration: inherit;
+    animation-timing-function: inherit;
+    animation-iteration-count: inherit;
+    animation-delay: inherit;
+  }
+}
+@keyframes pulse-dot {
+  0% {
+    opacity: 0.55;
+    scale: var(--pulse-from, 0.364);
+  }
+  70%,
+  100% {
+    opacity: 0;
+    scale: 1;
   }
 }
 
