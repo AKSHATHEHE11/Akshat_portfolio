@@ -44,18 +44,34 @@ export function ControlBar({
 
   useWorldNav(bar, `/work/${prev.slug}`, `/work/${next.slug}`, many);
 
-  // Progress through THIS world's content (the finale counts as arrived).
-  const update = () => {
-    const el = content.current;
+  // Progress through THIS world's content (the finale counts as arrived). The content's extent is
+  // measured when it resizes, never in the scroll callback: a layout read there forced a full layout
+  // every frame, right after the worlds' scroll timelines had written their styles.
+  const extent = useRef({ top: 0, run: 1 });
+  const update = (y = window.scrollY) => {
     const b = bar.current;
-    if (!el || !b || !progress.current) return;
-    const r = el.getBoundingClientRect();
-    const p = clamp(-r.top / Math.max(1, r.height - window.innerHeight));
+    if (!b || !progress.current) return;
+    const p = clamp((y - extent.current.top) / extent.current.run);
     progress.current.style.transform = `scaleX(${p.toFixed(4)})`;
     b.toggleAttribute("data-done", p > 0.995);
   };
-  useLenis(update);
-  useEffect(update);
+  useLenis((l) => update(l.scroll));
+  useEffect(() => {
+    const el = content.current;
+    if (!el) return;
+    const measure = () => {
+      const r = el.getBoundingClientRect();
+      extent.current = { top: r.top + window.scrollY, run: Math.max(1, r.height - window.innerHeight) };
+      update();
+    };
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    window.addEventListener("resize", measure);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", measure);
+    };
+  }, [content]);
 
   // Slide up once the portal morph has landed, and again after RESTART (parked below the edge while
   // the boot screen is up, so it never pops off and back). Not when the server already painted it in
