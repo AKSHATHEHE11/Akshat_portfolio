@@ -82,12 +82,12 @@ export function Track({ projects }: { projects: ProjectSummary[] }) {
       after.current = host.nextElementSibling;
       setNext(after.current?.getAttribute("data-rail") ?? null);
 
-      // fonts and lazy sections above change the layout after mount
-      const refresh = () => ScrollTrigger.refresh();
-      document.fonts?.ready.then(refresh);
-      const late = gsap.delayedCall(1.5, refresh);
+      // Lazy sections above change #main's height, which Providers already answers with a refresh. A late
+      // web font only changes the track's width (the pin length), which it doesn't see: refresh for that.
+      let live = true;
+      if (document.fonts && document.fonts.status !== "loaded") document.fonts.ready.then(() => live && ScrollTrigger.refresh());
       return () => {
-        late.kill();
+        live = false;
         st.current = null;
       };
     },

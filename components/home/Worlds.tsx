@@ -1,12 +1,22 @@
 "use client";
-import { useEffect } from "react";
+import dynamic from "next/dynamic";
+import { useEffect, useRef, useSyncExternalStore } from "react";
 import { ScrollTrigger } from "@/lib/gsap";
 import type { ProjectSummary } from "@/lib/types";
-import { useCoarse, useMediaQuery, useReducedMotion, useSystemReady } from "@/lib/hooks";
-import { Carousel } from "./worlds/Carousel";
+import { useCoarse, useReducedMotion, useSystemReady } from "@/lib/hooks";
 import { Footnote, Heading } from "./worlds/Heading";
 import { Portal } from "./worlds/Portal";
 import { Track } from "./worlds/Track";
+
+// Swiper only reaches the screens that swipe.
+const Carousel = dynamic(() => import("./worlds/Carousel").then((m) => m.Carousel), { ssr: false });
+
+let narrowQuery: MediaQueryList | null = null;
+const narrowMq = () => (narrowQuery ??= window.matchMedia("(max-width: 767px)"));
+const onNarrow = (cb: () => void) => {
+  narrowMq().addEventListener("change", cb);
+  return () => narrowMq().removeEventListener("change", cb);
+};
 
 /**
  * SELECTED WORLDS. Desktop: pinned horizontal track of portals on a railway index.
@@ -17,15 +27,20 @@ export default function Worlds({ projects }: { projects: ProjectSummary[] }) {
   const ready = useSystemReady();
   const reduced = useReducedMotion();
   const coarse = useCoarse();
-  const narrow = useMediaQuery("(max-width: 767px)");
-  const mode = !ready ? "track" : reduced ? "list" : coarse || narrow ? "swipe" : "track";
+  const narrow = useSyncExternalStore(onNarrow, () => narrowMq().matches, () => false);
+  // The server can't know the device, so until the client does this is an empty, screen-tall slot:
+  // a phone never builds (and then tears down) the desktop pin while it hydrates.
+  const mode = !ready ? null : reduced ? "list" : coarse || narrow ? "swipe" : "track";
 
   // Leaving the track takes its pin spacer (thousands of px) out of the page, and killing a pin
   // doesn't refresh the others: every trigger below would fire that far too late.
+  const was = useRef(mode);
   useEffect(() => {
-    if (mode !== "track") ScrollTrigger.refresh();
+    if (was.current === "track" && mode !== "track") ScrollTrigger.refresh();
+    was.current = mode;
   }, [mode]);
 
+  if (!mode) return <section id="worlds" data-rail="Worlds" className="h-svh border-t border-line" />;
   if (mode === "track") return <Track projects={projects} />;
 
   return (
