@@ -101,6 +101,24 @@
     0 24px 48px -30px rgb(17 17 17 / 0.5),
     0 1px 0 0 rgb(255 255 255 / 0.06) inset;
 }
+/* While the page moves the frost is a flat tint: a live backdrop blur re-blurs everything under the bar
+   every frame, more than a laptop's integrated GPU manages at 120-144 Hz (the blur can't be seen on
+   moving content anyway). It comes back as soon as the page stops (Nav.tsx sets data-moving). */
+.sys-nav[data-scrolled="true"][data-moving="true"] {
+  backdrop-filter: none;
+  background-color: color-mix(in oklab, var(--world-bg, var(--bg)) 95%, transparent);
+  transition:
+    top 0.6s var(--n-ease),
+    left 0.6s var(--n-ease),
+    right 0.6s var(--n-ease),
+    height 0.5s var(--n-ease),
+    border-radius 0.6s var(--n-ease),
+    rotate 0.6s var(--n-ease),
+    border-color 0.4s ease,
+    background-color 0.2s ease,
+    box-shadow 0.6s ease,
+    backdrop-filter 0s;
+}
 .sys-nav[data-scrolled="true"] .sys-nav__row {
   padding-inline: min(calc(var(--margin) - 7px), 13px);
 }

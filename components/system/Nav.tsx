@@ -133,10 +133,22 @@ const markScrolled = (el: HTMLElement | null, y: number) => {
   if (el && el.dataset.scrolled !== v) el.dataset.scrolled = v;
 };
 
-/** Writes data-scrolled straight to the DOM from Lenis — no React render per scroll frame. */
+/** Writes data-scrolled straight to the DOM from Lenis — no React render per scroll frame — and
+ *  data-moving while the page is in motion (nav.css drops the live blur then; see there). */
 function useScrolled(ref: RefObject<HTMLElement | null>) {
-  useLenis((l) => markScrolled(ref.current, l.scroll));
+  const still = useRef(0);
+  useLenis((l) => {
+    const el = ref.current;
+    markScrolled(el, l.scroll);
+    if (!el) return;
+    if (el.dataset.moving !== "true") el.dataset.moving = "true";
+    window.clearTimeout(still.current);
+    still.current = window.setTimeout(() => {
+      if (ref.current) ref.current.dataset.moving = "false";
+    }, 180);
+  });
   useEffect(() => markScrolled(ref.current, window.scrollY), [ref]);
+  useEffect(() => () => window.clearTimeout(still.current), []);
 }
 
 /**
