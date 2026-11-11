@@ -104,8 +104,14 @@
 .sys-nav[data-scrolled="true"] .sys-nav__row {
   padding-inline: min(calc(var(--margin) - 7px), 13px);
 }
-.sys-nav[data-scrolled="true"]:is(:hover, :focus-within) {
+.sys-nav[data-scrolled="true"]:focus-within {
   height: 4rem;
+}
+/* hover only where there is a real hover: on touch a tap leaves :hover stuck on */
+@media (hover: hover) {
+  .sys-nav[data-scrolled="true"]:hover {
+    height: 4rem;
+  }
 }
 
 /* Toggle labels fold away in the condensed bar and unfold when you reach for it. */
@@ -128,6 +134,13 @@
   margin: 0;
   opacity: 0;
 }
+@media (hover: none) {
+  .sys-nav[data-scrolled="true"]:not(:focus-within) .sys-collapse {
+    grid-template-columns: 0fr;
+    margin: 0;
+    opacity: 0;
+  }
+}
 /* Below 1440px the switches speak for themselves (labels stay in aria-label/title); below 1600px
    only Chaos keeps its label, so six links and "Work with me" fit beside them. */
 @media (max-width: 1439.98px) {
@@ -138,6 +151,26 @@
 @media (max-width: 1599.98px) {
   .sys-nav .sys-collapse-late {
     display: none;
+  }
+}
+
+/* Short screens (phones in landscape): a slimmer bar, so the page keeps the screen. */
+@media (max-height: 30rem) {
+  html:root {
+    --nav-h: 3.5rem;
+  }
+  .sys-nav[data-scrolled="true"] {
+    top: calc(0.375rem + var(--safe-top));
+    height: 3.25rem;
+  }
+}
+
+/* The logo chip is 36px tall; under a finger it answers to 44px. */
+@media (hover: none), (pointer: coarse) {
+  .group\/logo::after {
+    content: "";
+    position: absolute;
+    inset: -4px 0;
   }
 }
 
