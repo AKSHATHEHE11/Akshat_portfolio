@@ -136,10 +136,35 @@
     border-color 200ms,
     transform 300ms var(--ab-snap);
 }
+/* filled pad: the résumé shows this part in use (a job or a B.Tech project); hollow: it's on the list */
+.ab-sys-skill[data-proof] .ab-sys-pad,
+.ab-sys-key[data-proof]::before {
+  background: var(--fg);
+}
 .ab-sys-skill[data-on] .ab-sys-pad {
   border-color: var(--signal);
   background: var(--signal);
   transform: scale(1.35);
+}
+/* where it was used: the drive bay or the org, as printed on the rack */
+.ab-sys-proof {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--fg-muted);
+}
+.ab-sys-key {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.ab-sys-key::before {
+  content: "";
+  flex: none;
+  width: 9px;
+  height: 9px;
+  border: 1.5px solid var(--fg);
 }
 .ab-sys-leader {
   flex: 1;

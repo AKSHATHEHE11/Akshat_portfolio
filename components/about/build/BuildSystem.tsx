@@ -3,12 +3,11 @@ import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react"
 import { DrawSVGPlugin } from "gsap/DrawSVGPlugin";
 import { profile } from "@/data/profile";
 import { gsap, ScrollTrigger, useGSAP } from "@/lib/gsap";
-import { useChaos, useCoarse, useOnScreen, useReducedMotion } from "@/lib/hooks";
+import { useChaos, useCoarse, useReducedMotion } from "@/lib/hooks";
 import { play } from "@/lib/sound";
 import { useSystem } from "@/lib/system";
 import { cn, pad } from "@/lib/utils";
-import { Meter } from "../Meter";
-import { BOX, FX, GROUPS, PARENTS, SKILLS, layout, rootTrace, rowH, skillTrace, type Mode } from "./layout";
+import { BOX, FX, GROUPS, PARENTS, PROOF, SKILLS, layout, rootTrace, rowH, skillTrace, type Mode } from "./layout";
 import { Readout, type Probe } from "./Readout";
 import "./build.css";
 
@@ -24,7 +23,8 @@ const undash = (el: Element) => {
 /**
  * BUILD SYSTEM — the skill map as a schematic: root → five groups → their parts. The wires power on
  * outward the first time it scrolls in; pointing at (or focusing, or tapping) a part lights its wire
- * from the root and the readout prints its note, level and years. Chaos: the wiring rewires itself.
+ * from the root and the readout prints where the résumé shows it in use. A filled pad means it was
+ * used in a job or a B.Tech project; a hollow one, that it's on the list. Chaos: the wiring rewires itself.
  */
 export function BuildSystem() {
   const root = useRef<HTMLElement>(null);
@@ -39,7 +39,6 @@ export function BuildSystem() {
   const reduced = useReducedMotion();
   const coarse = useCoarse();
   const booted = useSystem((s) => s.booted);
-  const visible = useOnScreen(root, "0px");
 
   const mode: Mode = w && w < 640 ? "tall" : "wide";
   const L = useMemo(() => layout(mode, w, coarse), [mode, w, coarse]);
@@ -60,7 +59,12 @@ export function BuildSystem() {
       if (reduced || !w) return;
       const q = gsap.utils.selector(box);
       const wires = q("[data-trace]");
-      const clear = "opacity,visibility,transform";
+      // the nodes' CSS opacity transitions would chase every tweened frame (and fire an event storm):
+      // off until each node's tween is done
+      gsap.set(q(".ab-sys-group, .ab-sys-skill"), { transition: "none" });
+      // transform is left inline (it ends at zero): clearing it makes GSAP re-read computed style per
+      // node as each one lands, about 40 forced style passes in a row on a phone
+      const clear = "opacity,visibility,transition";
       const tl = gsap
         .timeline({ paused: true, onComplete: () => wires.forEach(undash) })
         .from(q(".ab-sys-root"), { autoAlpha: 0, scale: 0.94, duration: 0.5, ease: "snap", clearProps: clear })
@@ -74,10 +78,13 @@ export function BuildSystem() {
     { scope: root, dependencies: [w > 0, booted, reduced], revertOnUpdate: true },
   );
 
-  // chaos: every so often a couple of parts get patched into the wrong group
+  // chaos: every so often a couple of parts get patched into the wrong group, while it is on screen.
+  // The observer lives in here, not in state: scrolling past must not re-render all 31 parts.
   useEffect(() => {
-    if (!chaos || reduced || !visible) return;
-    const id = window.setInterval(() => {
+    const el = root.current;
+    if (!chaos || reduced || !el) return;
+    let id = 0;
+    const rewire = () =>
       setParents((p) => {
         const n = [...p];
         for (let j = 0; j < 2; j++) {
@@ -86,9 +93,16 @@ export function BuildSystem() {
         }
         return n;
       });
-    }, 1300);
-    return () => window.clearInterval(id);
-  }, [chaos, reduced, visible]);
+    const io = new IntersectionObserver(([e]) => {
+      window.clearInterval(id);
+      if (e.isIntersecting) id = window.setInterval(rewire, 1300);
+    });
+    io.observe(el);
+    return () => {
+      io.disconnect();
+      window.clearInterval(id);
+    };
+  }, [chaos, reduced]);
 
   // a wire that changes route is re-drawn from its group out
   const was = useRef(wiring);
@@ -201,11 +215,11 @@ export function BuildSystem() {
                   data-on={lit?.groups.includes(gi) || undefined}
                   data-cursor="hover"
                   aria-pressed={same(pin, { kind: "group", i: gi })}
-                  aria-label={`${g.label}: ${g.summary} ${g.skills.length} parts.`}
+                  aria-label={`${g.label}: ${g.summary} ${g.parts.length} parts.`}
                   {...handlers({ kind: "group", i: gi })}
                 >
                   <span>{g.label}</span>
-                  <span className="text-fg-muted">{pad(g.skills.length)}</span>
+                  <span className="text-fg-muted">{pad(g.parts.length)}</span>
                 </button>
                 <ul aria-label={g.label}>
                   {SKILLS.map((s, k) =>
@@ -217,16 +231,20 @@ export function BuildSystem() {
                           style={at(L.skills[k].x, FX.skill, L.skills[k].y, row)}
                           data-on={lit?.skills.includes(k) || undefined}
                           data-cursor="hover"
+                          data-proof={s.used ? "" : undefined}
                           aria-pressed={same(pin, { kind: "skill", i: k })}
                           {...handlers({ kind: "skill", i: k })}
                         >
                           <span aria-hidden className="ab-sys-pad" />
                           <span className="truncate font-medium">{s.name}</span>
-                          <span className="sr-only">
-                            , level {s.level} of 5, {s.years} {s.years === 1 ? "year" : "years"}. {s.note}
-                          </span>
+                          {s.used && <span className="sr-only">, used in {s.used.map((u) => PROOF[u].full).join("; ")}. {s.note}</span>}
                           <span aria-hidden className="ab-sys-leader" />
-                          <Meter level={s.level} className="shrink-0" />
+                          {s.used && (
+                            <span aria-hidden className="ab-sys-proof shrink-0">
+                              {PROOF[s.used[0]].tag}
+                              {s.used.length > 1 && ` +${s.used.length - 1}`}
+                            </span>
+                          )}
                         </button>
                       </li>
                     ),

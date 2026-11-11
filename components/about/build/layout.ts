@@ -1,17 +1,24 @@
 // Geometry for the BUILD SYSTEM schematic. Pure functions of (mode, width) so nodes and traces always
 // agree: nodes are HTML positioned with the same numbers the SVG traces are drawn with (CSS px).
-import { skillMap } from "@/data/skills";
+import { stints } from "@/data/experience";
+import { stack, type Proof } from "@/data/skills";
 
-export const GROUPS = skillMap;
-export const SKILLS = skillMap.flatMap((g, gi) => g.skills.map((s) => ({ ...s, gi })));
+export const GROUPS = stack;
+export const SKILLS = stack.flatMap((g, gi) => g.parts.map((p) => ({ ...p, gi })));
 /** each skill's real parent group (chaos rewires a copy of this) */
 export const PARENTS = SKILLS.map((s) => s.gi);
+
+/** where a part was used → the short tag on its row (the drive bay or the org) and the full line */
+export const PROOF = Object.fromEntries([
+  ...stints.map((s) => [s.id, { tag: s.short ?? s.org.split(" ")[0], full: `${s.org}, ${s.role}` }]),
+  ...stints.flatMap((s) => s.projects ?? []).map((p) => [p.id, { tag: p.tag ?? p.bay, full: `${p.name}, built during the B.Tech` }]),
+]) as Record<Proof, { tag: string; full: string }>;
 
 export type Mode = "wide" | "tall";
 type Pt = { x: number; y: number };
 
 /** node boxes in CSS px. Groups: in-port on the left edge, out-port on the right (wide) or below (tall). */
-export const BOX = { rootW: 150, rootH: 76, tallRootH: 48, groupW: 132, groupH: 34, trunk: 12 } as const;
+export const BOX = { rootW: 150, rootH: 76, tallRootH: 48, groupW: 160, groupH: 34, trunk: 12 } as const;
 /** wide mode: node columns as fractions of the width, so HTML can place them before the width is known */
 export const FX = { group: 0.3, skill: 0.58 } as const;
 /** row height: 32px for a mouse, 44px wherever a finger has to hit it */
@@ -61,7 +68,7 @@ export function layout(mode: Mode, w: number, coarse: boolean): Layout {
   GROUPS.forEach((g) => {
     groups.push({ x: 28, y: y + BOX.groupH / 2 });
     y += BOX.groupH + 4;
-    g.skills.forEach(() => {
+    g.parts.forEach(() => {
       skills.push({ x: 64, y: y + row / 2 });
       y += row;
     });
