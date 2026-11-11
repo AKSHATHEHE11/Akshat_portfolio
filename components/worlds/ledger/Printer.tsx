@@ -125,7 +125,7 @@ export function Printer({ borrower, sizer, run, printed, reduced, chaos, slotRef
                 </span>
                 <span className={cn("tabular-nums", t.amount < 0 && "lg-red")}>
                   {amount(t.amount)}
-                  <span className="ml-1 text-[0.85em] opacity-70">{t.amount < 0 ? "DR" : "CR"}</span>
+                  <span className="ml-1 text-[0.85em] opacity-70 coarse:text-[max(0.85em,11px)]">{t.amount < 0 ? "DR" : "CR"}</span>
                 </span>
                 <span
                   data-flag

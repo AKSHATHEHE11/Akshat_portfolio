@@ -275,7 +275,7 @@ export function Cover({ project }: { project: Project<FashionScene> }) {
                 }}
                 onPointerEnter={() => play("tick")}
                 data-cursor="hover"
-                className="group grid grid-cols-[auto_1fr] items-baseline gap-x-3"
+                className="hit group grid grid-cols-[auto_1fr] items-baseline gap-x-3"
               >
                 <span className="font-serif text-[clamp(1.75rem,1.1rem+1.5vw,2.75rem)] italic leading-none">{line.lead}</span>
                 <span className="max-w-[24ch] text-[0.95rem] font-medium leading-tight decoration-1 underline-offset-4 group-hover:underline">{line.text}</span>

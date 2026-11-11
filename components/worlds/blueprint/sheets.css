@@ -925,3 +925,19 @@ html[data-chaos="on"] .bp-lens-svg {
   will-change: transform;
   animation: bp-spin 40s linear infinite;
 }
+
+/* touch: labels read at 11px or more */
+@media (hover: none), (pointer: coarse) {
+  .bp-bub i,
+  .bp-rm-n,
+  .bp-lvl,
+  .bp-ground span {
+    font-size: 11px;
+  }
+}
+/* short screens (phones in landscape): a sticky panel taller than the view would hide its own end */
+@media (max-height: 30rem) {
+  .bp-det-main {
+    position: static;
+  }
+}

@@ -51,7 +51,7 @@ export function Story({ project }: { project: Project<FashionScene> }) {
             </dl>
             <ul className="flex flex-wrap gap-x-6 gap-y-2 pt-1">
               {project.links.map((l) => {
-                const cls = "font-serif text-[1.35rem] italic underline decoration-1 underline-offset-[6px] hover:decoration-2";
+                const cls = "hit font-serif text-[1.35rem] italic underline decoration-1 underline-offset-[6px] hover:decoration-2";
                 return (
                   <li key={l.href}>
                     {/* in-page anchors scroll (Lenis handles #); routes and live sites go through TLink */}

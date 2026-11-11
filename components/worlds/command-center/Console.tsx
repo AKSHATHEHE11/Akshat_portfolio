@@ -93,7 +93,7 @@ export function Console({ scenarios, agents, statuses, phase, asked, matched, ex
               maxLength={140}
               aria-describedby={`${id}-hint`}
               data-cursor="text"
-              className="h-12 min-w-0 flex-1 border-b border-(--cc-accent)/35 bg-transparent font-display text-[1.3rem] font-[500] tracking-[-0.01em] text-(--cc-fg) transition-colors placeholder:text-(--cc-fg)/45 focus:border-(--cc-accent)"
+              className="h-12 min-h-12 min-w-0 flex-1 border-b border-(--cc-accent)/35 bg-transparent font-display text-[1.3rem] font-[500] tracking-[-0.01em] text-(--cc-fg) transition-colors placeholder:text-(--cc-fg)/45 focus:border-(--cc-accent)"
             />
             <Button type="submit" variant="accent" icon={<ArrowRight size={18} strokeWidth={1.75} />} className="self-start sm:self-auto">
               Convene

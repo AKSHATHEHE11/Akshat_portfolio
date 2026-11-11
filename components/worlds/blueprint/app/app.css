@@ -1365,3 +1365,26 @@
     transition: none;
   }
 }
+
+/* touch: the tab labels and the map's building names read at 11px or more (the phone mockup is
+   drawn at ~0.75 of its size on phones and portrait tablets) */
+@media (hover: none), (pointer: coarse) {
+  .sid-tab {
+    font-size: 11px !important;
+  }
+  .sid-plan-t {
+    font-size: 15px;
+  }
+  .sid-plan-tt {
+    font-size: 16px;
+  }
+}
+/* tablets in landscape draw the mockup smaller still (~0.62) */
+@media (min-width: 1024px) and (hover: none), (min-width: 1024px) and (pointer: coarse) {
+  .sid-plan-t {
+    font-size: 18px;
+  }
+  .sid-plan-tt {
+    font-size: 19px;
+  }
+}
