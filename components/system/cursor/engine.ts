@@ -80,6 +80,13 @@ export function createCursor(blend: HTMLElement, solid: HTMLElement, getLenis: (
   let probeAt = 0;
   let wasBusy = false;
   let sdy = 0; // scroll-indicator dot offset
+  // The wrapped control's rect: re-read every frame until it has held still for 10 frames, again whenever
+  // something could move it (pointer — magnetic controls follow it —, press, scroll, resize, a new host),
+  // and otherwise only every 20th frame (a still pointer resting on a control forced a layout per frame).
+  let box: DOMRect | null = null;
+  let still = 0;
+  let lastX = NaN;
+  let lastY = NaN;
   let tilt = 0;
   let turn = 0; // dial angle
   let spin = 0; // chaos glyph angle
@@ -170,6 +177,8 @@ export function createCursor(blend: HTMLElement, solid: HTMLElement, getLenis: (
     host = nextHost;
     labelText = text;
     wrap = false;
+    box = null;
+    still = 0;
     if (next === "hover" && nextHost) {
       const b = nextHost.getBoundingClientRect();
       // a box-less host (display: contents) has nothing to wrap
@@ -224,6 +233,7 @@ export function createCursor(blend: HTMLElement, solid: HTMLElement, getLenis: (
   const onClick = () => {
     if (!touch) requestAnimationFrame(probe);
   };
+  const onResize = () => (still = 0);
 
   const tick = () => {
     const now = performance.now();
@@ -244,6 +254,7 @@ export function createCursor(blend: HTMLElement, solid: HTMLElement, getLenis: (
     // press: shrink, ripple, squeeze the drag disc
     if (pointer.down !== down) {
       down = pointer.down;
+      still = 0;
       gsap.to(
         look,
         down
@@ -258,6 +269,9 @@ export function createCursor(blend: HTMLElement, solid: HTMLElement, getLenis: (
     // scroll: content slides under a still pointer → re-probe; a fast scroll → capsule indicator
     const v = lenis?.velocity ?? 0;
     const busy = Boolean(lenis?.isScrolling);
+    if (busy || px !== lastX || py !== lastY) still = 0;
+    lastX = px;
+    lastY = py;
     if ((busy && now - probeAt > 120) || (wasBusy && !busy) || (host && !host.isConnected)) probe();
     wasBusy = busy;
     if (reduced || chaos || kind !== "default") scrolling = false;
@@ -276,7 +290,15 @@ export function createCursor(blend: HTMLElement, solid: HTMLElement, getLenis: (
     let tw = RING;
     let th = RING;
     let tr = RING / 2;
-    const b = kind === "hover" && host && wrap && !chaos ? host.getBoundingClientRect() : null;
+    let b: DOMRect | null = null;
+    if (kind === "hover" && host && wrap && !chaos) {
+      if (!box || still < 10 || still % 20 === 0) {
+        const n = host.getBoundingClientRect();
+        still = box && n.x === box.x && n.y === box.y && n.width === box.width && n.height === box.height ? still + 1 : 0;
+        box = n;
+      } else still++;
+      b = box;
+    }
     // the wrapped control vanished under a still pointer (display: none) — don't fly to its 0,0 rect
     if (b && !b.width && !b.height) probe();
     if (b && (b.width || b.height)) {
@@ -361,6 +383,7 @@ export function createCursor(blend: HTMLElement, solid: HTMLElement, getLenis: (
   document.addEventListener("pointerover", onOver, { passive: true });
   document.addEventListener("pointerdown", onDown, { passive: true, capture: true });
   document.addEventListener("click", onClick, { passive: true, capture: true });
+  window.addEventListener("resize", onResize);
   gsap.ticker.add(tick);
   probe();
 
@@ -378,6 +401,7 @@ export function createCursor(blend: HTMLElement, solid: HTMLElement, getLenis: (
       document.removeEventListener("pointerover", onOver);
       document.removeEventListener("pointerdown", onDown, true);
       document.removeEventListener("click", onClick, true);
+      window.removeEventListener("resize", onResize);
       gsap.killTweensOf([pos, look, ripple, label]);
       html.classList.remove("has-cursor");
     },

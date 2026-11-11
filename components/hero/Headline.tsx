@@ -96,16 +96,24 @@ export function Headline({ lines }: { lines: readonly string[] }) {
     const io = new IntersectionObserver(([e]) => (visible = e.isIntersecting));
     io.observe(h1);
 
-    // Letter positions are re-measured every 3rd frame, not every frame: each measurement forces a
-    // layout of the whole page, and the letters only drift a few px between measurements.
-    let frame = 0;
+    // Letter positions. While the letters swell they change size every frame, and a ResizeObserver hears
+    // that right after the browser's own layout — reading the rects then costs nothing. The ticker only
+    // measures itself (every 3rd frame, as before) when no such read came in, e.g. while scrolling; a
+    // measurement there forces a layout of the whole page whenever anything else changed.
     let rects: DOMRect[] = [];
+    let age = 0;
+    const measure = () => {
+      rects = flat.map((el) => el.getBoundingClientRect());
+      age = 0;
+    };
+    const sized = new ResizeObserver(measure);
+    flat.forEach((el) => sized.observe(el));
     const tick = (time: number) => {
       if (busy || !visible || reduced) return;
       const wild = chaosRef.current;
       energy += (clamp(pointer.inside ? pointer.speed / 38 : 0) - energy) * 0.12;
       if (!wild && energy < 0.003 && settled) return;
-      if (frame++ % 3 === 0 || rects.length !== flat.length) rects = flat.map((el) => el.getBoundingClientRect());
+      if (age++ >= 3 || rects.length !== flat.length) measure();
       const amp = energy * (wild ? 50 : 20);
       let moved = false;
       let i = 0;
@@ -147,6 +155,7 @@ export function Headline({ lines }: { lines: readonly string[] }) {
       cancelAnimationFrame(raf);
       document.fonts.removeEventListener("loadingdone", justify);
       ro.disconnect();
+      sized.disconnect();
       io.disconnect();
     };
   }, [reduced]);
