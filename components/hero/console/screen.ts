@@ -15,6 +15,8 @@ const H = SCREEN_H;
 const S = { l: 48, r: 672, t: 50, b: 440 };
 
 const IDLE_LINES = ["> DESIGN_", "> CODE_", "> EXPERIMENT_", "> REPEAT_"];
+/** seconds the idle menu takes to type out (16 characters a second; then it holds for 7s and loops) */
+const IDLE_TYPE_S = IDLE_LINES.join("").length / 16;
 const ROLES = profile.roles.map((r) => r.toUpperCase());
 const CITY = (profile.location.city.split(" ").pop() ?? "").slice(0, 3).toUpperCase();
 const CODE = [
@@ -361,7 +363,9 @@ export function createScreen(rig: Rig) {
       ctx.drawImage(fx, 0, 0);
       return;
     }
-    if (!poweredAt) poweredAt = now;
+    // The poster stand-in shows the menu fully typed, so the live screen starts there too (in its 7s hold)
+    // rather than wiping and retyping the moment the 3D takes over.
+    if (!poweredAt) poweredAt = now - IDLE_TYPE_S * 1000;
     if (p < 1) poweredAt = now;
 
     let show: Mode = rig.mode;
