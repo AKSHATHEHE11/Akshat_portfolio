@@ -76,14 +76,36 @@
     box-shadow 0.1s,
     background-color 0.2s;
 }
+/* a finger needs 44px (wider screens get 48px keycaps below) */
+@media (hover: none), (pointer: coarse) {
+  .ws-cap {
+    min-width: 2.75rem;
+    height: 2.75rem;
+  }
+}
 @media (min-width: 48rem) {
   .ws-cap {
     min-width: 3rem;
     height: 3rem;
   }
 }
-.ws-cap:hover {
-  background: color-mix(in oklab, var(--bg) 60%, var(--fg));
+/* short screens (phones in landscape): a slim strip, so the world keeps the screen */
+@media (max-height: 30rem) {
+  .ws-bar {
+    bottom: max(0.375rem, env(safe-area-inset-bottom));
+    height: 52px;
+    gap: 0.75rem;
+    padding: 0 0.3rem;
+  }
+  .ws-cap {
+    min-width: 2.75rem;
+    height: 2.75rem;
+  }
+}
+@media (hover: hover) {
+  .ws-cap:hover {
+    background: color-mix(in oklab, var(--bg) 60%, var(--fg));
+  }
 }
 .ws-cap:active,
 .ws-cap[data-pressed] {
@@ -185,10 +207,30 @@
     background-color 0.2s,
     color 0.2s;
 }
-.ws-stop:hover,
 .ws-stop:focus-visible {
   background: color-mix(in oklab, var(--fg) 10%, transparent);
   color: var(--fg);
+}
+/* touch: a 44px stop; on tablets in portrait the rail would be bare [ids], so the current world's
+   index and name show instead (as on phones) and the arrows and a swipe on the bar move along */
+@media (hover: none), (pointer: coarse) {
+  .ws-stop {
+    height: 2.75rem;
+  }
+}
+@media (min-width: 48rem) and (max-width: 63.99rem) and (hover: none), (min-width: 48rem) and (max-width: 63.99rem) and (pointer: coarse) {
+  .ws-now {
+    display: flex;
+  }
+  .ws-rail {
+    display: none;
+  }
+}
+@media (hover: hover) {
+  .ws-stop:hover {
+    background: color-mix(in oklab, var(--fg) 10%, transparent);
+    color: var(--fg);
+  }
 }
 .ws-stop[aria-current] {
   background: var(--accent);
@@ -265,10 +307,15 @@
   font-style: normal;
   opacity: 0.75;
 }
-.ws-stop:hover .ws-peek,
 .ws-stop:focus-visible .ws-peek {
   opacity: 1;
   translate: -50% 0;
+}
+@media (hover: hover) {
+  .ws-stop:hover .ws-peek {
+    opacity: 1;
+    translate: -50% 0;
+  }
 }
 
 .ws-counter {
