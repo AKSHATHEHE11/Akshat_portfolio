@@ -102,7 +102,10 @@ export function Stamps({ className }: { className?: string }) {
         {marks.map((m, i) => (
           <li key={m.label} data-chaos-drift style={{ rotate: `${(seeded(i + 11) * 7 - 3.5).toFixed(1)}deg` }} className="opacity-[0.86]">
             <svg viewBox={m.box} role="img" aria-label={m.label} className="h-14 w-auto sm:h-16">
-              <g filter={g}>{m.art}</g>
+              {/* the drawn lettering is part of the art; the svg's label says it */}
+              <g filter={g} aria-hidden>
+                {m.art}
+              </g>
             </svg>
           </li>
         ))}
