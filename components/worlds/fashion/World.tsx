@@ -19,6 +19,7 @@ import { StoreProvider } from "./store/context";
 import { QuickView } from "./store/QuickView";
 import { Store } from "./store/Store";
 import { Story } from "./Story";
+import { MotionUser } from "@/components/providers/MotionUser";
 
 export default function FashionWorld({ project }: WorldProps<FashionScene>) {
   const { color, scene } = project;
@@ -47,7 +48,8 @@ export default function FashionWorld({ project }: WorldProps<FashionScene>) {
   } as CSSProperties;
 
   return (
-    <StoreProvider scene={scene}>
+    <MotionUser>
+      <StoreProvider scene={scene}>
       <div className="relative overflow-x-clip pb-28" style={palette}>
         <Cover project={project} />
         <Story project={project} />
@@ -64,7 +66,8 @@ export default function FashionWorld({ project }: WorldProps<FashionScene>) {
         <QuickView />
         <BagDrawer />
       </Overlay>
-    </StoreProvider>
+      </StoreProvider>
+    </MotionUser>
   );
 }
 

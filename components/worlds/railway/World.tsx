@@ -11,6 +11,7 @@ import Junction from "./Junction";
 import Preview from "./Preview";
 import { readPnr } from "./rail";
 import type { RailwayScene } from "./scene";
+import { MotionUser } from "@/components/providers/MotionUser";
 
 /**
  * Safar Zaika — a coach on the Delhi–Varanasi line. Scroll is the journey (identity + story),
@@ -21,6 +22,7 @@ export default function RailwayWorld({ project }: WorldProps<RailwayScene>) {
   const { color, scene } = project;
   const vars = { "--rw-navy": color.bg, "--rw-cream": color.fg, "--rw-mustard": color.accent } as CSSProperties;
   return (
+    <MotionUser>
     <div className="rw pb-28" style={vars}>
       <Journey project={project} />
       <Preview project={project} />
@@ -29,5 +31,6 @@ export default function RailwayWorld({ project }: WorldProps<RailwayScene>) {
       <Consist technologies={project.technologies} train={scene.train} />
       <Arrivals metrics={project.metrics} route={scene.route} />
     </div>
+    </MotionUser>
   );
 }

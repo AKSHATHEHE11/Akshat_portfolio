@@ -17,6 +17,7 @@ import type { Burst } from "./Spew";
 import { Stage } from "./Stage";
 import { Terminal } from "./Terminal";
 import { Ticker } from "./Ticker";
+import { MotionUser } from "@/components/providers/MotionUser";
 
 // chaos-only: fetched the first time chaos turns on
 const Spew = dynamic(() => import("./Spew"), { ssr: false });
@@ -62,6 +63,7 @@ export default function LedgerWorld({ project }: WorldProps<LedgerScene>) {
   } as CSSProperties;
 
   return (
+    <MotionUser>
     <div className="lg-ruled relative overflow-x-clip pb-28" style={palette}>
       <span aria-hidden className="lg-margin z-[1]" />
       <Stage project={project} />
@@ -73,5 +75,6 @@ export default function LedgerWorld({ project }: WorldProps<LedgerScene>) {
       <Ticker metrics={project.metrics} ticker={scene.ticker} />
       {chaos && !reduced && <Spew slot={slot} burst={burst} borrowers={scene.borrowers} date={scene.desk.date} />}
     </div>
+    </MotionUser>
   );
 }

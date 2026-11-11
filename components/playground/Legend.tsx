@@ -6,6 +6,7 @@ import { Kbd } from "@/components/ui/marks";
 import { SPRING } from "@/lib/motion";
 import { play } from "@/lib/sound";
 import { LEGEND } from "./copy";
+import { MotionUser } from "@/components/providers/MotionUser";
 
 const ICON: Record<string, LucideIcon> = { tray: Package, win: AppWindow, key: Keyboard, bug: Bug, stamp: Stamp, well: Orbit, form: ListChecks };
 
@@ -41,6 +42,7 @@ export function Legend() {
   }, [open]);
 
   return (
+    <MotionUser>
     <div className="pg-legend-wrap">
       <button
         ref={btn}
@@ -102,5 +104,6 @@ export function Legend() {
         ) : null}
       </AnimatePresence>
     </div>
+    </MotionUser>
   );
 }

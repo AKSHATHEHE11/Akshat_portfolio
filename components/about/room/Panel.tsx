@@ -16,6 +16,7 @@ import { play } from "@/lib/sound";
 import { cn, pad } from "@/lib/utils";
 import { Meter } from "../Meter";
 import { OBJECTS, type Body, type RoomObject } from "./objects";
+import { MotionUser } from "@/components/providers/MotionUser";
 
 const MONO = "font-mono text-micro uppercase tracking-[0.14em]";
 
@@ -202,6 +203,7 @@ export function Panel({
   const from = reduced ? { opacity: 0 } : wide ? { opacity: 0, x: -36 } : { y: "100%" };
 
   return (
+    <MotionUser>
     <AnimatePresence>
       {obj && (
         <motion.div
@@ -299,5 +301,6 @@ export function Panel({
         </motion.div>
       )}
     </AnimatePresence>
+    </MotionUser>
   );
 }
