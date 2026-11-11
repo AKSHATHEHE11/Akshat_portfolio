@@ -1,18 +1,19 @@
-// What sits on the desk and what each thing stands for. Topics come from data/skills.ts where a skill
-// group exists; the rest are this page's own labels. Order = depth order on the desk (back → front),
+// What sits on the desk and what each thing stands for. Topics come from data/skills.ts (the résumé's
+// groups) where one exists; the rest are this page's own labels. Order = depth order on the desk (back → front),
 // which is also the numbering, the tab order and the phone's exhibit order.
-import { skillMap, type SkillGroup } from "@/data/skills";
+import { stack, type PartGroup } from "@/data/skills";
 import { pad } from "@/lib/utils";
 import { ART, SCENE, type ArtId } from "./art";
 import { P } from "./iso";
 
 export type Body =
-  | { kind: "skills"; groups: SkillGroup["id"][] }
+  | { kind: "skills"; groups: PartGroup["id"][] }
+  | { kind: "design" }
   | { kind: "experiments" }
   | { kind: "interests" }
   | { kind: "journey" };
 
-const label = (id: SkillGroup["id"]) => skillMap.find((g) => g.id === id)?.label ?? id;
+const label = (id: PartGroup["id"]) => stack.find((g) => g.id === id)?.label ?? id;
 
 interface Spec {
   id: ArtId;
@@ -31,7 +32,7 @@ const SPECS: Spec[] = [
   { id: "lamp", name: "Cloud lamp", topic: label("cloud"), body: { kind: "skills", groups: ["cloud"] }, at: [330, 36, 140], to: [30, -30], side: "r" },
   { id: "beakers", name: "Beakers", topic: "Experimentation", body: { kind: "experiments" }, at: [540, 50, 64], to: [0, -74], side: "t" },
   { id: "robot", name: "Chip robot", topic: label("ai"), body: { kind: "skills", groups: ["ai"] }, at: [441, 160, 64], to: [-44, -34], side: "l" },
-  { id: "sketchbook", name: "Sketchbook, two pens", topic: label("design"), body: { kind: "skills", groups: ["design"] }, at: [70, 200, 7], to: [-30, -52], side: "l" },
+  { id: "sketchbook", name: "Sketchbook, two pens", topic: "Design", body: { kind: "design" }, at: [70, 200, 7], to: [-30, -52], side: "l" },
   { id: "passport", name: "Passport", topic: "Experience", body: { kind: "journey" }, at: [300, 248, 8], to: [-48, 70], side: "l" },
   { id: "interests", name: "Headphones, ticket, macro pad", topic: "Interests", body: { kind: "interests" }, at: [490, 204, 7], to: [44, 104], side: "r" },
 ];

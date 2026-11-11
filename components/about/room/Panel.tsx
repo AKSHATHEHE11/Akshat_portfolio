@@ -1,12 +1,13 @@
 "use client";
 import { useEffect, useEffectEvent, useRef, type KeyboardEvent } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { ArrowDown, ArrowLeft, ArrowRight, X } from "lucide-react";
+import { ArrowDown, ArrowLeft, ArrowRight, ArrowUpRight, X } from "lucide-react";
 import { useLenis } from "lenis/react";
 import { experiments } from "@/data/experiments";
 import { journey } from "@/data/experience";
 import { profile } from "@/data/profile";
-import { skillMap } from "@/data/skills";
+import { stack, type PartGroup } from "@/data/skills";
+import { PROOF } from "../build/layout";
 import { useDialog } from "@/components/system/sheet/useDialog";
 import { Button } from "@/components/ui/Button";
 import { Corners, Led } from "@/components/ui/marks";
@@ -14,37 +15,48 @@ import { useReducedMotion } from "@/lib/hooks";
 import { BEZIER, SPRING } from "@/lib/motion";
 import { play } from "@/lib/sound";
 import { cn, pad } from "@/lib/utils";
-import { Meter } from "../Meter";
 import { OBJECTS, type Body, type RoomObject } from "./objects";
 import { MotionUser } from "@/components/providers/MotionUser";
 
 const MONO = "font-mono text-micro uppercase tracking-[0.14em]";
 
-function Skills({ groups }: { groups: string[] }) {
+/** The résumé's skills in this object's groups, each with where it was used (no levels, no years). */
+function Skills({ groups }: { groups: PartGroup["id"][] }) {
   return (
     <div className="grid gap-8">
-      {skillMap
+      {stack
         .filter((g) => groups.includes(g.id))
         .map((g) => (
           <section key={g.id} aria-label={g.label}>
             {groups.length > 1 && <h3 className={cn(MONO, "text-fg-muted")}>{g.label}</h3>}
             <p className="serif-accent mt-1 text-[1.6rem] leading-tight">{g.summary}</p>
             <ul className="mt-4 border-t border-line">
-              {g.skills.map((s) => (
-                <li key={s.name} className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-1 border-b border-line py-3">
+              {g.parts.map((s) => (
+                <li key={s.name} className="grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-x-4 gap-y-1 border-b border-line py-3">
                   <span className="font-medium">{s.name}</span>
-                  <span className="flex items-center gap-3 font-mono text-[0.75rem] tabular-nums text-fg-muted">
-                    <Meter level={s.level} />
-                    {s.years} yr{s.years === 1 ? "" : "s"}
-                    <span className="sr-only">, level {s.level} of 5</span>
+                  <span className="text-right font-mono text-[0.75rem] uppercase tracking-[0.08em] text-fg-muted">
+                    {s.used ? s.used.map((u) => PROOF[u].tag).join(" · ") : "On the list"}
                   </span>
-                  <span className="col-span-2 text-[0.9375rem] leading-snug text-fg-muted">{s.note}</span>
+                  {s.used && s.note && <span className="col-span-2 text-[0.9375rem] leading-snug text-fg-muted">{s.note}</span>}
                 </li>
               ))}
             </ul>
           </section>
         ))}
     </div>
+  );
+}
+
+/** The sketchbook: design work has its own page. */
+function Design() {
+  return (
+    <>
+      <p className="serif-accent text-[1.6rem] leading-tight">The design side has a room of its own.</p>
+      <p className="mt-3 text-[0.9375rem] leading-snug text-fg-muted">Video edits, posters, 3D designs and concert visuals live on the design page.</p>
+      <Button href="/design" variant="ghost" size="sm" className="mt-6" icon={<ArrowUpRight size={14} strokeWidth={2} />}>
+        Open the design page
+      </Button>
+    </>
   );
 }
 
@@ -134,6 +146,8 @@ function Content({ body, onGo }: { body: Body; onGo: (id: string) => void }) {
       return <Interests />;
     case "journey":
       return <Journey onScan={() => onGo("#journey")} />;
+    case "design":
+      return <Design />;
   }
 }
 
