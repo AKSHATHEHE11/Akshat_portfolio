@@ -1,4 +1,8 @@
 /* ── /design: the design side, in the black and white of the Behance cover ── */
+/* the page past its edges (toolbar area, older iOS bounce) is the cover's grey too, not cream */
+html:has(.dz) {
+  background: #222222;
+}
 .dz {
   /* the cover's grey (34, 34, 34) is also the photo's own background, so the cut-out has no edge */
   --dz-bg: #222222;
