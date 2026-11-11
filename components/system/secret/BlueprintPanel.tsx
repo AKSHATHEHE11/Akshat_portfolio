@@ -1,10 +1,9 @@
 "use client";
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { motion } from "motion/react";
 import { Button } from "@/components/ui/Button";
 import { Kbd } from "@/components/ui/marks";
-import { BEZIER } from "@/lib/motion";
-import { useSystem } from "@/lib/system";
+import { EASE_OUT } from "@/lib/anim";
+import { system, useSystem } from "@/lib/system";
 import { cn } from "@/lib/utils";
 import { closeDevVision } from "./actions";
 
@@ -40,6 +39,14 @@ export function BlueprintPanel() {
   const fontNames = useRef<(HTMLSpanElement | null)[]>([]);
   const fontSamples = useRef<(HTMLSpanElement | null)[]>([]);
   const values = useRef<(HTMLSpanElement | null)[]>([]);
+  const panel = useRef<HTMLElement>(null);
+
+  // slides in from the right edge (reduced motion: fades)
+  useEffect(() => {
+    const from = system.get().reducedMotion ? { opacity: 0 } : { opacity: 0, transform: "translateX(28px)" };
+    const a = panel.current?.animate([from, { opacity: 1, transform: "none" }], { duration: 700, delay: 150, easing: EASE_OUT, fill: "backwards" });
+    return () => a?.cancel();
+  }, []);
 
   useEffect(() => {
     const onResize = () => setVp({ w: window.innerWidth, h: window.innerHeight, dpr: window.devicePixelRatio });
@@ -72,13 +79,11 @@ export function BlueprintPanel() {
   ];
 
   return (
-    <motion.aside
+    <aside
+      ref={panel}
       aria-labelledby="sys-blueprint-title"
       data-lenis-prevent=""
       className="fixed top-[calc(var(--nav-h)+1rem)] right-(--margin) z-[70] max-h-[calc(100svh-var(--nav-h)-2rem)] w-[21rem] overflow-y-auto overscroll-contain rounded-[8px] border border-signal/45 bg-ink/92 text-bone shadow-float backdrop-blur-md max-md:inset-x-3 max-md:top-auto max-md:bottom-3 max-md:max-h-[52svh] max-md:w-auto"
-      initial={{ opacity: 0, x: 28 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ duration: 0.7, delay: 0.15, ease: BEZIER.out }}
     >
       <header className="flex items-start justify-between gap-4 border-b border-dashed border-signal/40 px-4 pt-4 pb-3.5">
         <div>
@@ -156,6 +161,6 @@ export function BlueprintPanel() {
       <p className={cn(micro, "flex items-center gap-2 px-4 py-3 text-bone/50")}>
         <Kbd>Shift</Kbd>+<Kbd>D</Kbd> or <Kbd>Esc</Kbd> to fold it away
       </p>
-    </motion.aside>
+    </aside>
   );
 }

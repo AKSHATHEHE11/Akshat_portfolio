@@ -1,7 +1,8 @@
 "use client";
 import dynamic from "next/dynamic";
-import { useEffect } from "react";
-import { AnimatePresence, motion } from "motion/react";
+import { useEffect, useRef } from "react";
+import { EASE_TWEEN, usePresence } from "@/lib/anim";
+import { useIsomorphicLayoutEffect } from "@/lib/hooks";
 import { useSystem } from "@/lib/system";
 import { closeDevVision } from "./secret/actions";
 
@@ -15,6 +16,19 @@ const DevVision = dynamic(() => import("./secret/DevVision"), { ssr: false });
  */
 export default function SecretMode() {
   const secret = useSystem((s) => s.secret);
+  const ref = useRef<HTMLDivElement>(null);
+  const { mounted, done } = usePresence(secret);
+
+  // it fades out when folded away (it arrives through its own panels)
+  useIsomorphicLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    if (secret) {
+      el.getAnimations().forEach((a) => a.cancel());
+      return;
+    }
+    el.animate({ opacity: [1, 0] }, { duration: 250, easing: EASE_TWEEN, fill: "forwards" }).onfinish = done;
+  }, [secret, done]);
 
   useEffect(() => {
     if (!secret) return;
@@ -28,13 +42,9 @@ export default function SecretMode() {
     return () => window.removeEventListener("keydown", onKey, true);
   }, [secret]);
 
-  return (
-    <AnimatePresence>
-      {secret && (
-        <motion.div key="dev-vision" exit={{ opacity: 0 }} transition={{ duration: 0.25 }}>
-          <DevVision />
-        </motion.div>
-      )}
-    </AnimatePresence>
-  );
+  return mounted ? (
+    <div ref={ref}>
+      <DevVision />
+    </div>
+  ) : null;
 }
