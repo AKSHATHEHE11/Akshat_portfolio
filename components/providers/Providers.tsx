@@ -2,7 +2,6 @@
 import "lenis/dist/lenis.css";
 import { useEffect, useMemo, useRef } from "react";
 import { usePathname } from "next/navigation";
-import { MotionConfig } from "motion/react";
 import { ReactLenis, useLenis, type LenisRef } from "lenis/react";
 import { gsap, ScrollTrigger } from "@/lib/gsap";
 import { system, useSystem } from "@/lib/system";
@@ -10,7 +9,8 @@ import { trackPointer } from "@/lib/pointer";
 
 /**
  * App-wide runtime: system state init, shared pointer tracking, Lenis smooth scroll driven by the
- * GSAP ticker (so ScrollTrigger and Lenis share one clock), and Motion's reduced-motion handling.
+ * GSAP ticker (so ScrollTrigger and Lenis share one clock). motion/react stays out of this shared
+ * graph: a route that uses it wraps its motion subtree in <MotionConfig reducedMotion="user">.
  */
 export default function Providers({ children }: { children: React.ReactNode }) {
   const lenisRef = useRef<LenisRef>(null);
@@ -40,12 +40,10 @@ export default function Providers({ children }: { children: React.ReactNode }) {
   );
 
   return (
-    <MotionConfig reducedMotion="user">
-      <ReactLenis root autoRaf={false} ref={lenisRef} options={options}>
-        <ScrollSync />
-        {children}
-      </ReactLenis>
-    </MotionConfig>
+    <ReactLenis root autoRaf={false} ref={lenisRef} options={options}>
+      <ScrollSync />
+      {children}
+    </ReactLenis>
   );
 }
 
