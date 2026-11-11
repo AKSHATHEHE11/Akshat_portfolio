@@ -4,7 +4,7 @@ export const profile = {
   name: "Akshat Agrawal",
   short: "Akshat",
   initials: "AA",
-  roles: ["Digital builder", "Design engineer", "Experimenter"],
+  roles: ["Full-stack engineer", "Backend + cloud", "ML + vision"],
 
   /** Hero headline, one line per entry. The last line is the accent word. */
   headline: ["I build things", "that should", "exist."],
@@ -17,9 +17,8 @@ export const profile = {
   /** shown everywhere (contact, mail fallback); the contact form delivers here too, unless CONTACT_TO is set */
   email: "work.brayill@gmail.com",
   socials: [
-    { label: "GitHub", handle: "@akshat", href: "https://github.com/" }, // DUMMY handle/link
-    { label: "LinkedIn", handle: "in/akshat-agrawal", href: "https://www.linkedin.com/" }, // DUMMY
-    { label: "X", handle: "@akshat_builds", href: "https://x.com/" }, // DUMMY
+    { label: "GitHub", handle: "@AKSHATHEHE11", href: "https://github.com/AKSHATHEHE11" },
+    { label: "LinkedIn", handle: "in/akshat-agrawal-sde", href: "https://www.linkedin.com/in/akshat-agrawal-sde" },
   ],
   resume: "/resume.pdf", // placeholder file generated in /public
 
@@ -42,7 +41,7 @@ export const profile = {
   /** Product-datasheet facts about Akshat (identity / spec-sheet moments). */
   spec: [
     { key: "Model", value: "AA-26" },
-    { key: "Class", value: "Design engineer, full-stack" },
+    { key: "Class", value: "Software development engineer" },
     { key: "Runs on", value: "Chai, curiosity, TypeScript" },
     { key: "Operating range", value: "Figma → production" },
     { key: "Known side effects", value: "Rebuilds things that already work" },
@@ -56,9 +55,9 @@ export const profile = {
   ],
 
   bio: [
-    "I'm a design engineer who sits exactly where the Figma file meets the pull request. I like that seam — most good ideas die there, and most of mine were born there.",
-    "I build products end to end: the interface, the motion, the API behind it, and the cloud it runs on. Lately that means AI products that have to explain themselves to people who did not ask for AI.",
-    "When I'm not shipping client work I'm building things nobody asked for, mostly to find out what happens.",
+    "I'm a software engineer. I build the whole thing: the interface, the API behind it, the database under that, and the cloud it runs on.",
+    "Right now I work remotely for Imperial Healthcare Systems, a US healthcare company. I build e-commerce sites with fully customisable admin panels, and inventory and warehouse systems whose APIs and queries I keep making faster.",
+    "I'm also doing a B.Tech in Computer Science (Cloud Computing). Along the way I've built an admissions system on AWS, a traffic system that counts vehicles to time the signals, and an ambulance dispatch platform with live tracking.",
   ],
 
   interests: ["Indian railways", "Mechanical keyboards", "Generative art", "Street food maps", "Old CRT televisions"],
@@ -67,6 +66,6 @@ export const profile = {
   about: {
     desk: ["Nothing on this desk is decoration.", "Pick something up."],
     build: ["How I’m", "wired."],
-    journey: ["The line", "so far."],
+    journey: ["Racked up", "so far."],
   },
 } as const;
