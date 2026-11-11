@@ -1,0 +1,25 @@
+/* The poster frame: the real 3D console photographed at rest (scripts/console-poster.mjs). It holds the
+   spot from the first paint until the live 3D draws its first frame on top of it, so there is never a
+   flat stand-in and never a visible switch. It covers the VIEW box plus the poster's padding
+   (POSTER_PAD in poster.ts: x 10% of the box width, top 8% / bottom 20% of its height). */
+.hc-poster {
+  position: absolute;
+  inset: -8% -10% -20%;
+  background: url("/console/poster-light-tall.webp") center / 100% 100% no-repeat;
+  /* the cable leaves through the top edge: let it fade out there rather than end in a cut */
+  mask-image: linear-gradient(to bottom, transparent 0, #000 5.5%);
+  pointer-events: none;
+}
+@media (min-width: 64rem) {
+  .hc-poster {
+    background-image: url("/console/poster-light-wide.webp");
+  }
+}
+html[data-theme="dark"] .hc-poster {
+  background-image: url("/console/poster-dark-tall.webp");
+}
+@media (min-width: 64rem) {
+  html[data-theme="dark"] .hc-poster {
+    background-image: url("/console/poster-dark-wide.webp");
+  }
+}

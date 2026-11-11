@@ -7,10 +7,15 @@ import { play } from "@/lib/sound";
 import { cn } from "@/lib/utils";
 import { KEYS, KEY_LABEL, viewRect, type ControlId, type KeyId, type Mode, type Rig } from "./rig";
 
+/** a control's box in % of the VIEW box */
+export type Box = { left: number; top: number; width: number; height: number };
+
 interface Props {
   rig: Rig;
-  /** true: positions come from the 3D projection; false: fixed over the SVG fallback */
+  /** true: positions come from the 3D projection; false: fixed over the stand-in */
   projected: boolean;
+  /** where the parts sit on the poster stand-in (else the SVG drawing's layout) */
+  rects?: Partial<Record<ControlId, Box>>;
   mode: Mode;
   knob: number;
   chaos: boolean;
@@ -26,7 +31,7 @@ const HINT: Record<KeyId, string> = {
   play: "Play mode: a tiny breakout game; the tuning knob moves the paddle",
 };
 
-export function Controls({ rig, projected, mode, knob, chaos, onKey, onTune, onChaos }: Props) {
+export function Controls({ rig, projected, rects, mode, knob, chaos, onKey, onTune, onChaos }: Props) {
   const drag = useRef<{ a: number; cx: number; cy: number; y: number } | null>(null);
   const uid = useId();
 
@@ -36,7 +41,11 @@ export function Controls({ rig, projected, mode, knob, chaos, onKey, onTune, onC
       // demand frameloop (reduced motion): without a frame the new hit area stays 0×0 and unclickable
       if (projected && el) rig.invalidate();
     },
-    style: projected ? { left: 0, top: 0 } : viewRect(id),
+    style: projected
+      ? { left: 0, top: 0 }
+      : rects?.[id]
+        ? { left: `${rects[id].left}%`, top: `${rects[id].top}%`, width: `${rects[id].width}%`, height: `${rects[id].height}%` }
+        : viewRect(id),
     onPointerEnter: () => {
       rig.hover = id;
       play("tick");
