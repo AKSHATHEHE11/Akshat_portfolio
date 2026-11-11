@@ -31,7 +31,8 @@ export default function Providers({ children }: { children: React.ReactNode }) {
   const options = useMemo(
     () => ({
       autoRaf: false,
-      lerp: reduced ? 1 : 0.1,
+      // 0.1 trailed the wheel by ~0.5s (felt like lag); 0.16 reaches it in ~0.3s and is still smooth
+      lerp: reduced ? 1 : 0.16,
       smoothWheel: !reduced,
       anchors: true,
       allowNestedScroll: true,
