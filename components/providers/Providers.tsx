@@ -55,10 +55,13 @@ function toSection(lenis: ReturnType<typeof useLenis>, el: HTMLElement) {
   lenis?.scrollTo(el, { immediate: true, force: true });
 }
 
-/** Keeps ScrollTrigger in step with Lenis and resets scroll on route change. */
+/** Resets scroll on route change (and keeps a #section in view while the page settles). ScrollTrigger
+ *  keeps step with Lenis on its own: Lenis moves the real scroll position every frame, which fires the
+ *  scroll event ScrollTrigger listens to. Calling ScrollTrigger.update() from Lenis as well ran every
+ *  trigger on the page twice per frame — about 1–2 ms a frame, a lot at 144 Hz (6.9 ms per frame). */
 function ScrollSync() {
   const pathname = usePathname();
-  const lenis = useLenis(() => ScrollTrigger.update());
+  const lenis = useLenis();
   /** a #section the route change asked for, kept in view while the page settles */
   const hold = useRef<HTMLElement | null>(null);
 
