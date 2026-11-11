@@ -30,7 +30,27 @@ export function flipSound() {
   return on;
 }
 
-/** Lights flood out of the switch (a view-transition iris) where the browser can; instant otherwise. */
+// The ink the new theme pours in with: a grid of mask frames made by scripts/ink.mjs, one sheet for
+// wide screens and one for tall ones. Fetched only once the switch is about to be used (hover, focus,
+// the menu opening), never on page load; until a sheet has decoded, the switch falls back to the iris.
+const INK = { land: "/fx/ink-land.webp", port: "/fx/ink-port.webp" };
+const sheets = new Map<string, HTMLImageElement | null>(); // null while loading; kept so it stays decoded
+const inkSheet = () => (window.innerHeight > window.innerWidth ? INK.port : INK.land);
+
+export function primeInk() {
+  const url = inkSheet();
+  if (sheets.has(url) || system.get().reducedMotion) return;
+  sheets.set(url, null);
+  const img = new Image();
+  img.src = url;
+  img.decode().then(
+    () => sheets.set(url, img),
+    () => sheets.delete(url),
+  );
+}
+
+/** The new theme pours over the page as ink where the browser can (an iris until the ink has loaded);
+ *  instant otherwise. */
 export function flipLights(from?: Point) {
   const s = system.get();
   const lightsOn = s.theme === "dark";
@@ -40,11 +60,17 @@ export function flipLights(from?: Point) {
     return lightsOn;
   }
   const root = document.documentElement;
-  root.style.setProperty("--sys-lx", `${Math.round(from.x)}px`);
-  root.style.setProperty("--sys-ly", `${Math.round(from.y)}px`);
-  root.classList.add("sys-lights");
+  const url = inkSheet();
+  const mode = sheets.get(url) ? "sys-ink" : "sys-lights";
+  if (mode === "sys-ink") root.style.setProperty("--sys-ink", `url("${url}")`);
+  else {
+    primeInk(); // next time
+    root.style.setProperty("--sys-lx", `${Math.round(from.x)}px`);
+    root.style.setProperty("--sys-ly", `${Math.round(from.y)}px`);
+  }
+  root.classList.add(mode);
   const vt = document.startViewTransition(() => system.toggleTheme());
   vt.ready.catch(() => {}); // skipped transitions reject; the theme has still flipped
-  vt.finished.finally(() => root.classList.remove("sys-lights"));
+  vt.finished.finally(() => root.classList.remove(mode));
   return lightsOn;
 }
