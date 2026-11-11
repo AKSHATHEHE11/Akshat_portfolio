@@ -147,22 +147,35 @@
   transform-origin: bottom;
   transition: transform 460ms var(--ease-out-expo);
 }
-.hero-mod:hover,
 .hero-mod:focus-visible {
   color: var(--signal-ink);
   border-color: transparent;
 }
-.hero-mod:hover .hero-mod__fill,
+@media (hover: hover) {
+  .hero-mod:hover {
+    color: var(--signal-ink);
+    border-color: transparent;
+  }
+}
 .hero-mod:focus-visible .hero-mod__fill {
   transform: scaleY(1);
+}
+@media (hover: hover) {
+  .hero-mod:hover .hero-mod__fill {
+    transform: scaleY(1);
+  }
 }
 .hero-mod__copy {
   color: var(--fg-muted);
   transition: color var(--dur-hover) var(--ease-out-quart);
 }
-.hero-mod:hover .hero-mod__copy,
 .hero-mod:focus-visible .hero-mod__copy {
   color: var(--signal-ink);
+}
+@media (hover: hover) {
+  .hero-mod:hover .hero-mod__copy {
+    color: var(--signal-ink);
+  }
 }
 .hero-mod__glyph {
   width: clamp(2.75rem, 1.9rem + 1.6vw, 3.75rem);
@@ -179,12 +192,19 @@
     background-color var(--dur-hover),
     box-shadow var(--dur-hover);
 }
-.hero-mod:hover .hero-mod__led,
 .hero-mod:focus-visible .hero-mod__led {
   background: var(--color-lime, #d8ff00);
   box-shadow:
     0 0 0 1.5px var(--signal-ink),
     0 0 10px var(--color-lime, #d8ff00);
+}
+@media (hover: hover) {
+  .hero-mod:hover .hero-mod__led {
+    background: var(--color-lime, #d8ff00);
+    box-shadow:
+      0 0 0 1.5px var(--signal-ink),
+      0 0 10px var(--color-lime, #d8ff00);
+  }
 }
 .hero-mod__jack {
   position: absolute;
@@ -198,9 +218,13 @@
   opacity: 0.35;
   transition: opacity var(--dur-hover);
 }
-.hero-mod:hover .hero-mod__jack,
 .hero-mod:focus-visible .hero-mod__jack {
   opacity: 0.9;
+}
+@media (hover: hover) {
+  .hero-mod:hover .hero-mod__jack {
+    opacity: 0.9;
+  }
 }
 
 .hero-terrain {
@@ -239,50 +263,93 @@
   transform-box: fill-box;
   transform-origin: center;
 }
-.hero-mod:hover .hero-g-liquid,
 .hero-mod:focus-visible .hero-g-liquid {
   fill: var(--signal-ink);
 }
+@media (hover: hover) {
+  .hero-mod:hover .hero-g-liquid {
+    fill: var(--signal-ink);
+  }
+}
 
 @media (prefers-reduced-motion: no-preference) {
-  .hero-mod:hover .hero-g-draw,
   .hero-mod:focus-visible .hero-g-draw {
     animation: hero-k-draw 1.6s var(--ease-out-quart) infinite;
   }
-  .hero-mod:hover .hero-g-handle,
+  @media (hover: hover) {
+    .hero-mod:hover .hero-g-draw {
+      animation: hero-k-draw 1.6s var(--ease-out-quart) infinite;
+    }
+  }
   .hero-mod:focus-visible .hero-g-handle {
     animation: hero-k-swing 1.6s var(--ease-machine) infinite alternate;
   }
-  .hero-mod:hover .hero-g-lt,
+  @media (hover: hover) {
+    .hero-mod:hover .hero-g-handle {
+      animation: hero-k-swing 1.6s var(--ease-machine) infinite alternate;
+    }
+  }
   .hero-mod:focus-visible .hero-g-lt {
     animation: hero-k-nudge 0.9s var(--ease-snap) infinite alternate;
     --dx: -2.5px;
   }
-  .hero-mod:hover .hero-g-gt,
+  @media (hover: hover) {
+    .hero-mod:hover .hero-g-lt {
+      animation: hero-k-nudge 0.9s var(--ease-snap) infinite alternate;
+      --dx: -2.5px;
+    }
+  }
   .hero-mod:focus-visible .hero-g-gt {
     animation: hero-k-nudge 0.9s var(--ease-snap) infinite alternate;
     --dx: 2.5px;
   }
-  .hero-mod:hover .hero-g-back,
+  @media (hover: hover) {
+    .hero-mod:hover .hero-g-gt {
+      animation: hero-k-nudge 0.9s var(--ease-snap) infinite alternate;
+      --dx: 2.5px;
+    }
+  }
   .hero-mod:focus-visible .hero-g-back {
     animation: hero-k-nudge 1.4s var(--ease-machine) infinite alternate;
     --dx: 3px;
   }
-  .hero-mod:hover .hero-g-caret,
+  @media (hover: hover) {
+    .hero-mod:hover .hero-g-back {
+      animation: hero-k-nudge 1.4s var(--ease-machine) infinite alternate;
+      --dx: 3px;
+    }
+  }
   .hero-mod:focus-visible .hero-g-caret {
     animation: hero-k-blink 0.9s steps(1, end) infinite;
   }
-  .hero-mod:hover .hero-g-bubble,
+  @media (hover: hover) {
+    .hero-mod:hover .hero-g-caret {
+      animation: hero-k-blink 0.9s steps(1, end) infinite;
+    }
+  }
   .hero-mod:focus-visible .hero-g-bubble {
     animation: hero-k-bubble 1.5s var(--ease-out-quart) infinite;
   }
-  .hero-mod:hover .hero-g-bubble:nth-of-type(2),
+  @media (hover: hover) {
+    .hero-mod:hover .hero-g-bubble {
+      animation: hero-k-bubble 1.5s var(--ease-out-quart) infinite;
+    }
+  }
   .hero-mod:focus-visible .hero-g-bubble:nth-of-type(2) {
     animation-delay: 0.45s;
   }
-  .hero-mod:hover .hero-g-bubble:nth-of-type(3),
+  @media (hover: hover) {
+    .hero-mod:hover .hero-g-bubble:nth-of-type(2) {
+      animation-delay: 0.45s;
+    }
+  }
   .hero-mod:focus-visible .hero-g-bubble:nth-of-type(3) {
     animation-delay: 0.9s;
+  }
+  @media (hover: hover) {
+    .hero-mod:hover .hero-g-bubble:nth-of-type(3) {
+      animation-delay: 0.9s;
+    }
   }
 }
 
