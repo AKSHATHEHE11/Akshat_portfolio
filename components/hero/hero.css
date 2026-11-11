@@ -9,17 +9,73 @@
   padding-top: var(--hero-top);
 }
 
-/* Entrance pre-state. Only when motion is allowed, and only until the entrance takes over
-   (Hero.tsx flips data-intro to "run"), so nothing flashes between SSR paint and hydration. */
+/* ── Entrance ───────────────────────────────────────────────────────────────
+   Plain CSS, so it plays from the very first paint instead of waiting for the page's JavaScript (on a
+   phone that wait left the hero blank for seconds). Keyed on <html data-booted>, which the preflight
+   script sets before first paint: a returning visitor sees it at once; on a first visit it waits behind
+   the boot screen and starts the moment the boot hands over (system.ts flips the attribute); RESTART
+   flips it back, so the entrance replays. Same timings as the GSAP timeline it replaced. Fill mode is
+   "backwards": the end state is the element's own style, so hover/chaos transforms are untouched after.
+   The console stand-in falls on --hero-land; the live 3D reads that animation's progress (land.ts) and
+   falls with it, so it can take over mid-fall. */
+.hero-scene {
+  --hero-land: linear(0 0%, 0.0026 2.083%, 0.0105 4.167%, 0.0239 6.25%, 0.0432 8.333%, 0.0685 10.417%, 0.1 12.5%, 0.138 14.583%, 0.1823 16.667%, 0.233 18.75%, 0.29 20.833%, 0.3528 22.917%, 0.4207 25%, 0.493 27.083%, 0.5685 29.167%, 0.6455 31.25%, 0.7225 33.333%, 0.7975 35.417%, 0.8686 37.5%, 0.9338 39.583%, 0.9915 41.667%, 1.0223 43.75%, 1.0406 45.833%, 1.0522 47.917%, 1.0584 50%, 1.0602 52.083%, 1.0583 54.167%, 1.0531 56.25%, 1.0448 58.333%, 1.0337 60.417%, 1.02 62.5%, 1.0036 64.583%, 0.9944 66.667%, 0.9896 68.75%, 0.9868 70.833%, 0.9855 72.917%, 0.9854 75%, 0.9861 77.083%, 0.9875 79.167%, 0.9893 81.25%, 0.9912 83.333%, 0.9932 85.417%, 0.9951 87.5%, 0.9969 89.583%, 0.9983 91.667%, 0.9994 93.75%, 1.0001 95.833%, 1.0003 97.917%, 1 100%);
+}
 @media (prefers-reduced-motion: no-preference) {
-  .hero-scene[data-intro="pending"] [data-line-inner] {
+  html:not([data-booted="1"]) .hero-scene [data-line-inner] {
     transform: translateY(112%);
   }
-  .hero-scene[data-intro="pending"] [data-fade],
-  .hero-scene[data-intro="pending"] [data-module],
-  .hero-scene[data-intro="pending"] [data-console-fallback],
-  .hero-scene[data-intro="pending"] .hero-squiggle {
+  html:not([data-booted="1"]) .hero-scene :is([data-fade], [data-module], [data-console-drop], .hero-squiggle) {
     opacity: 0;
+  }
+  html[data-booted="1"] .hero-scene [data-line-inner] {
+    animation: hero-rise 1.15s var(--ease-out-expo) backwards;
+    animation-delay: calc(0.1s + var(--i, 0) * 0.09s);
+  }
+  html[data-booted="1"] .hero-scene [data-fade] {
+    animation: hero-fade 0.9s var(--ease-out-expo) backwards;
+    animation-delay: calc(0.45s + var(--i, 0) * 0.08s);
+  }
+  html[data-booted="1"] .hero-scene .hero-squiggle {
+    animation: hero-draw 0.85s cubic-bezier(0.65, 0, 0.35, 1) 0.82s backwards;
+  }
+  html[data-booted="1"] .hero-scene [data-module] {
+    animation: hero-module 0.9s var(--ease-out-expo) backwards;
+    animation-delay: calc(0.85s + var(--i, 0) * 0.07s);
+  }
+  html[data-booted="1"] .hero-scene [data-console-drop] {
+    /* from one and a half anchor heights up: above the console's stage on every layout */
+    animation: hero-drop 1.3s var(--hero-land) 0.4s backwards;
+  }
+}
+@keyframes hero-rise {
+  from {
+    transform: translateY(112%);
+  }
+}
+@keyframes hero-fade {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+@keyframes hero-module {
+  from {
+    opacity: 0;
+    transform: translateY(26px);
+  }
+}
+@keyframes hero-draw {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+@keyframes hero-drop {
+  from {
+    transform: translateY(-150cqh);
   }
 }
 

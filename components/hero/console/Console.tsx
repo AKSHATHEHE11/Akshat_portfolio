@@ -1,15 +1,19 @@
 "use client";
 // The console stage: a transparent canvas that bleeds to the viewport edge (so the cable can leave
 // the frame), an anchor box that decides where the device sits, the SVG stand-in, and the DOM controls.
+import "./console.css";
 import dynamic from "next/dynamic";
-import { Component, useCallback, useEffect, useRef, useState, type ReactNode } from "react";
-import { useChaos, useCoarse, useOnScreen, useReducedMotion, useTheme } from "@/lib/hooks";
+import { Component, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { preload } from "react-dom";
+import { useChaos, useCoarse, useMediaQuery, useOnScreen, useReducedMotion, useTheme } from "@/lib/hooks";
 import { play } from "@/lib/sound";
 import { emit, system } from "@/lib/system";
 import { clamp, cn } from "@/lib/utils";
-import { Controls } from "./Controls";
+import { Controls, type Box } from "./Controls";
+import { land } from "../land";
+import { POSTER_RECTS } from "./poster";
+import { MODEL, type ControlId, type KeyId, type Mode, type Rig } from "./rig";
 import { Silhouette } from "./Silhouette";
-import type { KeyId, Mode, Rig } from "./rig";
 
 const Scene = dynamic(() => import("./Scene"), { ssr: false });
 
@@ -61,20 +65,58 @@ export function Console({ rig }: { rig: Rig }) {
     return () => window.clearTimeout(id);
   }, [live]);
 
-  // The 3D (~1 MB of three.js, then the model and the shaders) waits until the page has finished
-  // starting up and the console is near the screen: landing on top of hydration, it made the first
-  // seconds of the page freeze on phones. The SVG stand-in holds the spot until then.
+  // The 3D starts loading as soon as the page is live; it is never held back. Until its first frame, the
+  // poster (a photograph of this same scene at rest) holds the spot, so nothing visibly changes when the
+  // live console takes over. The model itself is already on its way: preloaded from the page head.
+  preload(MODEL, { as: "fetch", crossOrigin: "anonymous" });
+  useEffect(() => setGl(hasWebGL() ? "ok" : "none"), []);
+  // The 3D falls with the stand-in: hero.css drops it from 1.5 anchor heights up on --hero-land (land.ts),
+  // 0.4s delay, 1.3s. Timed off the CSS animation's start on the document timeline, so it keeps going
+  // after the stand-in is hidden; the attribute check also hides the device behind the boot screen and
+  // resets for a RESTART. Settled once landed: no per-frame lookups after the entrance.
+  const drop = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    if (gl !== "pending" || !onScreen) return;
-    const w = window as Window & typeof globalThis;
-    const go = () => setGl(hasWebGL() ? "ok" : "none");
-    if (typeof w.requestIdleCallback === "function") {
-      const id = w.requestIdleCallback(go, { timeout: 2500 });
-      return () => w.cancelIdleCallback(id);
-    }
-    const id = window.setTimeout(go, 700);
-    return () => window.clearTimeout(id);
-  }, [gl, onScreen]);
+    let start: number | null = null;
+    let settled = false;
+    rig.fall = () => {
+      const h = rig.anchor?.h ?? 0;
+      if (document.documentElement.dataset.booted !== "1") {
+        start = null;
+        settled = false;
+        return rig.reduced ? 0 : -1.5 * h;
+      }
+      if (settled) return 0;
+      if (start === null) {
+        const a = drop.current?.getAnimations().find((x) => (x as CSSAnimation).animationName === "hero-drop");
+        if (!a || a.startTime === null) {
+          settled = true; // reduced motion, or the fall finished before the 3D arrived
+          return 0;
+        }
+        start = Number(a.startTime);
+      }
+      const p = (Number(document.timeline.currentTime) - start - 400) / 1300;
+      if (p >= 1) {
+        settled = true;
+        return 0;
+      }
+      return -1.5 * h * (1 - land(Math.max(0, p)));
+    };
+    return () => {
+      rig.fall = () => 0;
+    };
+  }, [rig]);
+
+  // Without WebGL the SVG drawing (with its own interactive screen) stands in for good.
+  const poster = gl !== "none";
+  const wide = useMediaQuery("(min-width: 64rem)");
+  // where the poster's parts sit; dark mode draws the device 5% larger (Scene.tsx), around the box centre
+  const posterRects = useMemo(() => {
+    const k = dark ? 1.05 : 1;
+    const out: Partial<Record<ControlId, Box>> = {};
+    for (const [id, r] of Object.entries(POSTER_RECTS[wide ? "wide" : "tall"]) as [ControlId, Box][])
+      out[id] = { left: 50 + (r.left - 50) * k, top: 50 + (r.top - 50) * k, width: r.width * k, height: r.height * k };
+    return out;
+  }, [wide, dark]);
 
   useEffect(() => {
     rig.chaos = chaos;
@@ -153,7 +195,17 @@ export function Console({ rig }: { rig: Rig }) {
   }, [rig]);
 
   const controls = (projected: boolean) => (
-    <Controls rig={rig} projected={projected} mode={mode} knob={knob} chaos={chaos} onKey={onKey} onTune={onTune} onChaos={onChaos} />
+    <Controls
+      rig={rig}
+      projected={projected}
+      rects={!projected && poster ? posterRects : undefined}
+      mode={mode}
+      knob={knob}
+      chaos={chaos}
+      onKey={onKey}
+      onTune={onTune}
+      onChaos={onChaos}
+    />
   );
 
   return (
@@ -176,13 +228,13 @@ export function Console({ rig }: { rig: Rig }) {
           data-console-fallback
           className={cn(
             "absolute inset-0 m-auto aspect-[2.35/1.85] w-[min(100cqw,calc(100cqh*1.27))] transition-opacity duration-300",
-            "drop-shadow-[0_26px_28px_rgb(40_28_18/0.22)]",
+            !poster && "drop-shadow-[0_26px_28px_rgb(40_28_18/0.22)]", // the poster has its real shadow
             live && "pointer-events-none opacity-0",
             standInGone && "hidden",
           )}
         >
-          <div data-console-drop className="absolute inset-0">
-            <Silhouette mode={mode} chaos={chaos} />
+          <div ref={drop} data-console-drop className="absolute inset-0">
+            {poster ? <div aria-hidden className="hc-poster" /> : <Silhouette mode={mode} chaos={chaos} />}
             {live ? null : controls(false)}
           </div>
         </div>

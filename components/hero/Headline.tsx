@@ -4,7 +4,7 @@
 // · Moving the cursor fast swells the letters near it and squeezes the rest of the line, so the line
 //   keeps its length (an accordion, not a reflow). Calm: a little. Chaos: a lot, plus a breathing
 //   wave and twitching letters.
-import { Fragment, useEffect, useRef } from "react";
+import { Fragment, useEffect, useRef, type CSSProperties } from "react";
 import { DrawSVGPlugin } from "gsap/DrawSVGPlugin";
 import { gsap, useGSAP } from "@/lib/gsap";
 import { useChaos, useReducedMotion } from "@/lib/hooks";
@@ -185,7 +185,7 @@ export function Headline({ lines }: { lines: readonly string[] }) {
         return (
           <span key={li} className={cn("hero-row", accent && "hero-row--accent")} onPointerEnter={accent ? redraw : undefined}>
             <span className={"hero-mask"}>
-              <span data-line-inner aria-hidden className={cn("hero-line", accent && "hero-accent")}>
+              <span data-line-inner aria-hidden style={{ "--i": li } as CSSProperties} className={cn("hero-line", accent && "hero-accent")}>
                 {words.map((word, wi) => (
                   <Fragment key={wi}>
                     <span className={"hero-word"}>

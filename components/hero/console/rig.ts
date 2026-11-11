@@ -18,8 +18,9 @@ export interface Rig {
   down: KeyId | null;
   /** last press time per key → particle puff */
   pressed: Record<KeyId, number>;
-  /** entrance: 1 = above the frame, 0 = landed */
-  drop: number;
+  /** entrance: how far above its resting place the stand-in is right now, in px (0 = landed). The 3D
+   *  falls with it (Console.tsx reads the CSS fall in hero.css), so it can take over mid-fall. */
+  fall: () => number;
   /** CRT power 0..1 */
   power: number;
   chaos: boolean;
@@ -43,7 +44,7 @@ export function createRig(): Rig {
     hover: null,
     down: null,
     pressed: { design: 0, code: 0, experiment: 0, play: 0 },
-    drop: 1,
+    fall: () => 0,
     power: 0,
     chaos: false,
     reduced: false,
@@ -56,6 +57,9 @@ export function createRig(): Rig {
 
 /* Front-view layout in model units (mirrors scripts/models/console.mjs). Used by the SVG fallback
    and to place the DOM hit areas before/without WebGL. Origin = device centre, y up. */
+/** the console model; Console.tsx preloads it from the page head, Scene.tsx loads it */
+export const MODEL = "/models/console.glb";
+
 export const VIEW = { w: 2.35, h: 1.85 }; // the box the device is fitted into (with breathing room)
 export const LAYOUT = {
   body: { w: 2.2, h: 1.6, r: 0.27 },

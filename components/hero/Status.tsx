@@ -1,6 +1,6 @@
 "use client";
 // "SYSTEM STATUS ● BUILDING (i)" — opens a hardware readout: roles, meters, counters, availability.
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState, type CSSProperties } from "react";
 import { Info } from "lucide-react";
 import { profile } from "@/data/profile";
 import { site } from "@/data/site";
@@ -74,7 +74,7 @@ export function Status({ className }: { className?: string }) {
   };
 
   return (
-    <div ref={wrap} data-fade className={cn("relative z-[20] w-fit", className)}>
+    <div ref={wrap} data-fade style={{ "--i": 2 } as CSSProperties} className={cn("relative z-[20] w-fit", className)}>
       <button
         ref={button}
         type="button"

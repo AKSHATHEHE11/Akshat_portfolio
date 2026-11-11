@@ -9,10 +9,9 @@ import { EffectComposer, SelectiveBloom, ToneMapping } from "@react-three/postpr
 import { ToneMappingMode } from "postprocessing";
 import { pointer } from "@/lib/pointer";
 import { clamp } from "@/lib/utils";
-import { KEYS, VIEW, type ControlId, type KeyId, type Rig } from "./rig";
+import { KEYS, MODEL, VIEW, type ControlId, type KeyId, type Rig } from "./rig";
 import { createScreen } from "./screen";
 
-const MODEL = "/models/console.glb";
 useGLTF.preload(MODEL, false, false);
 
 export interface SceneProps {
@@ -160,6 +159,7 @@ function Stage({
     knob: 0,
     kick: 0,
     drawn: -1,
+    fall: 0,
     ready: false,
     rects: {} as Partial<Record<ControlId, string>>,
   });
@@ -264,7 +264,10 @@ function Stage({
       T.y = ty;
     }
     g.rotation.set(-0.07 + S.tilt.y * 0.16, -0.2 + S.tilt.x * 0.26, motion ? Math.sin(t * 0.55) * 0.012 : 0);
-    g.position.set(F.cx, F.cy + (motion ? Math.sin(t * 0.9) * 0.022 * F.s : 0) + rig.drop * visH, 0);
+    // the entrance: fall with the stand-in (its CSS fall, read by Console.tsx), px → world units
+    const fallPx = rig.fall();
+    const drop = Math.min(1, Math.max(0, -fallPx / Math.max(1, size.height)));
+    g.position.set(F.cx, F.cy + (motion ? Math.sin(t * 0.9) * 0.022 * F.s : 0) - fallPx * k, 0);
     g.scale.setScalar(F.s);
     if (rig.chaos && motion) {
       S.kick *= Math.exp(-dt * 5);
@@ -304,11 +307,11 @@ function Stage({
     // ── shadow: a soft pool under the floating device; it tightens as the device comes down ──
     const sh = shadow.current;
     if (sh && pool.current && core.current) {
-      const lift = rig.drop * 3 + (motion ? (Math.sin(t * 0.9) + 1) * 0.5 : 0.5);
+      const lift = drop * 3 + (motion ? (Math.sin(t * 0.9) + 1) * 0.5 : 0.5);
       sh.position.set(F.cx + S.tilt.x * 0.05 * F.s, F.cy - 0.82 * F.s, -0.28 * F.s);
       sh.scale.set(F.s * (1 + lift * 0.06), F.s, F.s);
-      pool.current.material.opacity = (dark ? 0.55 : 0.3) * Math.max(0, 1 - rig.drop * 1.6);
-      core.current.material.opacity = (dark ? 0.6 : 0.36) * Math.max(0, 1 - rig.drop * 2.5) * (1 - lift * 0.18);
+      pool.current.material.opacity = (dark ? 0.55 : 0.3) * Math.max(0, 1 - drop * 1.6);
+      core.current.material.opacity = (dark ? 0.6 : 0.36) * Math.max(0, 1 - drop * 2.5) * (1 - lift * 0.18);
     }
 
     // ── DOM hit areas follow the projected parts ──
@@ -362,7 +365,9 @@ function Stage({
 
     // still moving? then the next frame too, not just the next 30 fps tick
     const e = 0.0015;
-    let moving = (rig.chaos && motion) || (rig.drop > 0 && rig.drop < 1) || rig.power < 1;
+    // falling = the position changed since the last frame (parked above, behind the boot screen, is still)
+    let moving = (rig.chaos && motion) || fallPx !== S.fall || rig.power < 1;
+    S.fall = fallPx;
     moving ||= Math.abs(T.vx) + Math.abs(T.vy) > e || Math.abs(tx - T.x) + Math.abs(ty - T.y) > e;
     moving ||= Math.abs(S.lever.v) > e || Math.abs(lx - S.lever.x) > e * 0.2 || Math.abs(ka - S.knob) > e;
     for (const id of KEYS) moving ||= Math.abs(S.keys[id].v) > e || Math.abs(S.keys[id].z - (rig.down === id ? -0.05 : rig.mode === id ? -0.026 : rig.hover === id ? 0.018 : 0)) > e * 0.2;

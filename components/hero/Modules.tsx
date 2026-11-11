@@ -1,6 +1,7 @@
 "use client";
 // The patch bay under the hero: three modules that route into the site, plus a dark display module.
 // Copy comes from /data (the think pipeline + the experiment lab), so it changes with the content.
+import type { CSSProperties } from "react";
 import { ArrowUpRight } from "lucide-react";
 import { experiments } from "@/data/experiments";
 import { profile } from "@/data/profile";
@@ -29,8 +30,16 @@ const MODULES = [
 export function Modules({ className }: { className?: string }) {
   return (
     <nav aria-label="Ways in" className={cn("grid grid-cols-2 gap-(--gutter) lg:grid-cols-[1fr_1fr_1fr_0.78fr]", className)}>
-      {MODULES.map(({ id, title, line: copy, href, Glyph }) => (
-        <TLink key={id} href={href} data-module data-cursor="hover" className={cn("hero-mod", "group/mod")} onPointerEnter={() => play("tick")}>
+      {MODULES.map(({ id, title, line: copy, href, Glyph }, i) => (
+        <TLink
+          key={id}
+          href={href}
+          data-module
+          style={{ "--i": i } as CSSProperties}
+          data-cursor="hover"
+          className={cn("hero-mod", "group/mod")}
+          onPointerEnter={() => play("tick")}
+        >
           <span aria-hidden className={"hero-mod__fill"} />
           <Glyph className={"hero-mod__glyph"} />
           <span className="relative min-w-0">
@@ -49,7 +58,7 @@ export function Modules({ className }: { className?: string }) {
           <span aria-hidden className={"hero-mod__jack"} />
         </TLink>
       ))}
-      <div data-module data-chaos-drift role="img" aria-label={`Live wireframe terrain, ${profile.location.city}`} className={"hero-terrain"}>
+      <div data-module style={{ "--i": MODULES.length } as CSSProperties} data-chaos-drift role="img" aria-label={`Live wireframe terrain, ${profile.location.city}`} className={"hero-terrain"}>
         <Terrain />
         <Corners className="text-signal/80" size={12} inset={9} weight={1.5} />
         <span className="label absolute bottom-3 left-4 text-signal">{profile.location.coords}</span>
