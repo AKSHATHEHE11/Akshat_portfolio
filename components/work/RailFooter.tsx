@@ -52,7 +52,7 @@ export function RailFooter() {
           </svg>
         </div>
       </div>
-      <TLink href="/about" className="wk-next-stop" data-cursor="hover">
+      <TLink href="/about" className="wk-next-stop hit" data-cursor="hover">
         <span>Next stop</span>
         <ArrowRight size={14} strokeWidth={1.75} aria-hidden />
         <b>About me</b>

@@ -86,6 +86,11 @@
   letter-spacing: 0.16em;
   color: rgb(255 90 31 / 0.85);
 }
+@media (hover: none), (pointer: coarse) {
+  .lb-edge {
+    font-size: 11px;
+  }
+}
 
 .lb-frame {
   display: block;

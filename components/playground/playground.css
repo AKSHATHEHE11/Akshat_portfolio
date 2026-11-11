@@ -147,6 +147,12 @@
     font-size: 8px;
   }
 }
+/* touch: the scale reads at 11px (every other number is already dropped on phones) */
+@media (hover: none), (pointer: coarse) {
+  .pg-ruler {
+    font-size: 11px;
+  }
+}
 .pg-ruler .pg-mark {
   left: 0;
   top: 0;

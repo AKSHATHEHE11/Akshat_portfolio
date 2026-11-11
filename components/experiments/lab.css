@@ -656,6 +656,12 @@ html[data-chaos="on"] .xp-liquid-word {
   font-size: 0.875rem;
   letter-spacing: 0.04em;
 }
+/* touch: a 44px field */
+@media (hover: none), (pointer: coarse) {
+  .xp-liquid-tape input {
+    min-height: 2.75rem;
+  }
+}
 .xp-liquid-tape:focus-within {
   outline: 2px solid #ff5a1f;
   outline-offset: 2px;
@@ -967,6 +973,12 @@ html[data-chaos="on"] .xp-liquid-word {
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   user-select: none;
+}
+/* touch: room for eight 44px keys (narrow decks below take the full row instead) */
+@media (hover: none), (pointer: coarse) {
+  .xp-osc-keys {
+    flex-basis: 24.5rem;
+  }
 }
 .xp-osc-key {
   display: flex;

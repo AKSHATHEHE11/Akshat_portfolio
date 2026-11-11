@@ -940,6 +940,11 @@ html[data-chaos="on"] .wk-mask {
   justify-self: end;
   font-size: 0.5625rem;
 }
+@media (hover: none), (pointer: coarse) {
+  .wk-board[data-mode="chaos"] :is(.wk-cat, .wk-year) {
+    font-size: 0.6875rem;
+  }
+}
 
 /* ═════════ TIMELINE: stations on a line ═════════ */
 .wk-board[data-mode="timeline"] .wk-scroller {
