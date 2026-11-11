@@ -1,5 +1,6 @@
 "use client";
-// The lookbook reads sideways: pinned horizontal scroll on desktop (GSAP), Swiper on touch widths.
+// The lookbook reads sideways: pinned horizontal scroll with a mouse on wide screens (GSAP), Swiper on
+// touch screens at every width (an iPad in landscape was getting a ~6-screen pin) and narrow windows.
 // Garments drift at their own depth as a spread passes the centre; scroll speed skews the flat-lays.
 // Chaos: it scrolls backwards (desktop runs right-to-left, the mobile swiper flips to RTL).
 import { useRef, useState, type UIEvent } from "react";
@@ -30,7 +31,7 @@ export function Lookbook({ scene, gallery }: { scene: FashionScene; gallery?: st
   useGSAP(
     () => {
       const mm = gsap.matchMedia();
-      mm.add("(min-width: 1024px)", () => {
+      mm.add("(min-width: 1024px) and (hover: hover) and (pointer: fine)", () => {
         const el = track.current;
         const sec = section.current;
         if (!el || !sec || reduced) return;
@@ -131,8 +132,8 @@ export function Lookbook({ scene, gallery }: { scene: FashionScene; gallery?: st
 
   return (
     <div id="lookbook" className="relative">
-      {/* desktop: pinned, sideways */}
-      <section ref={section} aria-labelledby="fy-look" className="relative hidden h-svh overflow-hidden lg:block">
+      {/* mouse, wide: pinned, sideways */}
+      <section ref={section} aria-labelledby="fy-look" className="relative hidden h-svh overflow-hidden lg:fine:block">
         {/* reduced motion: a native sideways strip. data-arrows="local" keeps ←/→ scrolling it instead
             of switching worlds (the shell skips arrow keys inside it). */}
         <div
@@ -204,8 +205,8 @@ export function Lookbook({ scene, gallery }: { scene: FashionScene; gallery?: st
         </div>
       </section>
 
-      {/* touch widths: swipe */}
-      <section aria-labelledby="fy-look-m" className="relative py-20 lg:hidden">
+      {/* touch, or narrow: swipe */}
+      <section aria-labelledby="fy-look-m" className="relative py-20 lg:fine:hidden">
         <div className="px-(--margin)">
           <h2 id="fy-look-m" className="font-serif text-[23vw] italic leading-[0.8] tracking-[-0.03em]">
             {lookbook.title}
@@ -222,6 +223,9 @@ export function Lookbook({ scene, gallery }: { scene: FashionScene; gallery?: st
           spaceBetween={12}
           slidesOffsetBefore={16}
           slidesOffsetAfter={16}
+          // only touch screens get this deck at 1024+ (a mouse gets the pinned spread): a tablet in
+          // landscape shows two looks at once, each fitting the screen's height
+          breakpoints={{ 1024: { slidesPerView: 2.2, spaceBetween: 16 } }}
           onSlideChange={(s) => setSlide(s.activeIndex)}
           className="mt-8"
           data-cursor="drag"
