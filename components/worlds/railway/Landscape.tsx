@@ -30,13 +30,18 @@ export interface SceneryItem {
   kind: "platform" | "board";
 }
 
+// The art is memoised too: `active` flips as the window scrolls in and out of view, and each
+// Landscape render would otherwise reconcile every scenery shape again (~90ms, mid-scroll).
 const LAYERS = [
-  { key: "clouds", cls: "rw-l-clouds", speed: 0.03, depth: 4, tile: TILE.clouds, Art: CloudsArt },
-  { key: "hills", cls: "rw-l-hills", speed: 0.07, depth: 7, tile: TILE.hills, Art: HillsArt },
-  { key: "trees", cls: "rw-l-trees", speed: 0.22, depth: 12, tile: TILE.trees, Art: TreesArt },
-  { key: "fields", cls: "rw-l-fields", speed: 0.5, depth: 18, tile: TILE.fields, Art: FieldsArt },
-  { key: "ground", cls: "rw-l-ground", speed: 1, depth: 26, tile: TILE.ground, Art: GroundArt },
+  { key: "clouds", cls: "rw-l-clouds", speed: 0.03, depth: 4, tile: TILE.clouds, Art: memo(CloudsArt) },
+  { key: "hills", cls: "rw-l-hills", speed: 0.07, depth: 7, tile: TILE.hills, Art: memo(HillsArt) },
+  { key: "trees", cls: "rw-l-trees", speed: 0.22, depth: 12, tile: TILE.trees, Art: memo(TreesArt) },
+  { key: "fields", cls: "rw-l-fields", speed: 0.5, depth: 18, tile: TILE.fields, Art: memo(FieldsArt) },
+  { key: "ground", cls: "rw-l-ground", speed: 1, depth: 26, tile: TILE.ground, Art: memo(GroundArt) },
 ] as const;
+const Poles = memo(PolesArt);
+const Platform = memo(PlatformArt);
+const Board = memo(StationBoardArt);
 const POLE_SPEED = 1.55;
 /** tiles rendered per layer; only as many as the window can show are displayed (see measure) */
 const COPIES = 8;
@@ -234,7 +239,7 @@ export const Landscape = memo(function Landscape({
           }}
           className={it.kind === "platform" ? "rw-platform" : "rw-sboard"}
         >
-          {it.kind === "platform" ? <PlatformArt station={it.station} coach={coach} /> : <StationBoardArt station={it.station} />}
+          {it.kind === "platform" ? <Platform station={it.station} coach={coach} /> : <Board station={it.station} />}
         </div>
       ))}
       <div ref={poleEl} className="rw-layer rw-l-poles">
@@ -242,7 +247,7 @@ export const Landscape = memo(function Landscape({
           <svg key={k} viewBox={`0 0 ${TILE.poles.w} ${TILE.poles.h}`} style={{ aspectRatio: `${TILE.poles.w} / ${TILE.poles.h}` }}>
             {k === 0 ? (
               <g id={`${uid}-poles`}>
-                <PolesArt />
+                <Poles />
               </g>
             ) : (
               <use href={`#${uid}-poles`} />

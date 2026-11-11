@@ -1,6 +1,6 @@
 "use client";
 import "./app.css";
-import { useCallback, useEffect, useRef, useState, type ReactNode, type RefObject } from "react";
+import { memo, useCallback, useEffect, useRef, useState, type ReactNode, type RefObject } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { Copy, TrainFront } from "lucide-react";
 import { BEZIER } from "@/lib/motion";
@@ -38,7 +38,8 @@ const STEPS: { id: Step; label: string }[] = [
  * order → live tracking until the partner hands it over at the coach door. All local state; the
  * clock is simulated (compressed while tracking) and drives the sky outside the window.
  */
-export default function SafarApp({
+// memo: the order window re-renders as it scrolls in and out of view; the app has nothing to redo
+export default memo(function SafarApp({
   brand,
   scene,
   driveRef,
@@ -362,4 +363,4 @@ export default function SafarApp({
       <RouteLine route={scene.route} km={kmAt(scene.route, sim.now, late)} highlight={order?.station.code ?? station?.code ?? null} className="rw-route-app" />
     </div>
   );
-}
+});
