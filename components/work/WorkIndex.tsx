@@ -32,7 +32,7 @@ const PERM: Record<ProjectSummary["status"], string> = {
   "in progress": "drwx------",
 };
 
-type FlipJob = { state: Flip.FlipState; kind: "mode" | "active" };
+type FlipJob = { state: Flip.FlipState; kind: "mode" | "active"; targets: Element[]; simple?: boolean };
 
 /** A summary plus the two listing columns the server derives from the full project (tags, file size),
  *  so the full project data never ships to the browser. */
@@ -134,12 +134,25 @@ export default function WorkIndex({ projects }: { projects: IndexProject[] }) {
   const shown = entries.filter(matches).length;
 
   /* ── Flip: record where every atom is, change state, fly them from there ── */
+  // A new active row only moves the rows from the first changed one down, so an "active" job records just
+  // those, Flip prunes the ones that end up where they were, and — nothing in the calm list is rotated
+  // unless global chaos tilts it — positions come from plain rects instead of a matrix walk per atom
+  // (each walk forces a layout). A mode change records the whole board, as before.
   const capture = useCallback(
-    (kind: FlipJob["kind"]) => {
+    (kind: FlipJob["kind"], from = 0) => {
       const el = board.current;
-      if (el && !reduced) pending.current = { state: Flip.getState(el.querySelectorAll("[data-flip]")), kind };
+      if (!el || reduced) return;
+      if (kind === "mode") {
+        const targets = Array.from(el.querySelectorAll("[data-flip]"));
+        pending.current = { state: Flip.getState(targets), kind, targets };
+        return;
+      }
+      const targets = Array.from(list.current?.children ?? [])
+        .slice(from)
+        .flatMap((li) => Array.from(li.querySelectorAll("[data-flip]")));
+      pending.current = { state: Flip.getState(targets, { simple: !chaosOn }), kind, targets, simple: !chaosOn };
     },
-    [reduced],
+    [reduced, chaosOn],
   );
 
   const changeMode = useCallback(
@@ -163,11 +176,13 @@ export default function WorkIndex({ projects }: { projects: IndexProject[] }) {
   const activate = useCallback(
     (slug: string) => {
       if (live.current.mode !== "list" || live.current.active === slug) return;
-      capture("active");
+      const at = (s: string | null) => entries.findIndex((e) => e.p.slug === s);
+      const a = at(live.current.active);
+      capture("active", Math.max(0, Math.min(a < 0 ? Infinity : a, at(slug))));
       live.current.active = slug;
       setActive(slug);
     },
-    [capture],
+    [capture, entries],
   );
 
   const onIntent = useCallback(
@@ -312,7 +327,9 @@ export default function WorkIndex({ projects }: { projects: IndexProject[] }) {
       const isMode = job.kind === "mode";
       if (isMode && mode === "timeline" && sc) sc.dataset.flipping = "";
       Flip.from(job.state, {
-        targets: el.querySelectorAll("[data-flip]"),
+        targets: isMode ? el.querySelectorAll("[data-flip]") : job.targets,
+        prune: !isMode,
+        simple: job.simple,
         duration: isMode ? 0.9 : 0.6,
         ease: isMode ? "machine" : "expo.out",
         scale: true,

@@ -1,5 +1,5 @@
 "use client";
-import type { CSSProperties } from "react";
+import { memo, type CSSProperties } from "react";
 import { ArrowUpRight } from "lucide-react";
 import { Morph } from "@/components/transitions/Morph";
 import { TLink } from "@/components/ui/TLink";
@@ -27,8 +27,9 @@ export interface Entry {
  * One project, rendered ONCE. Every mode re-lays out these same nodes with CSS; atoms marked
  * data-flip (plate, index, title, category, colour chip) are what Flip flies between layouts,
  * and the chip/title carry the portal → world morph names, so each name exists once per page.
+ * Memoised: hovering a row re-renders that row and the one it took over from, not the whole list.
  */
-export function WorkItem({
+export const WorkItem = memo(function WorkItem({
   e,
   mode,
   active,
@@ -114,4 +115,4 @@ export function WorkItem({
       </TLink>
     </li>
   );
-}
+});
