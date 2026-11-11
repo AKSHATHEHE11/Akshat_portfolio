@@ -44,9 +44,19 @@ html.has-cursor
   transform: translate3d(-200px, -200px, 0);
   will-change: transform;
 }
+/* The blending layer has no box of its own: each part (dot, ring, I-beam, ripple) is a small fixed
+   element that inverts only what is under it. A full-screen blended layer made the GPU blend the whole
+   screen every frame to draw a 6px dot: the biggest single cost of hovering on a 144 Hz laptop.
+   The fade (engine.ts) comes down as --cur-a, since a box-less parent can't carry opacity. */
 .cur-blend {
+  display: contents;
   color: #fff;
+}
+.cur-blend > * {
+  position: fixed;
+  z-index: 100;
   mix-blend-mode: difference;
+  opacity: var(--cur-a, 0);
 }
 
 .cur-dot {
@@ -181,6 +191,8 @@ html[data-chaos="on"] .cur-disc {
 /* ── worlds: tint with the world's accent; a faint ink hairline keeps it legible on pale worlds ── */
 html[data-world]:not([data-world=""]) .cur-blend {
   color: var(--world-accent, var(--accent));
+}
+html[data-world]:not([data-world=""]) .cur-blend > * {
   mix-blend-mode: normal;
 }
 html[data-world]:not([data-world=""]) :is(.cur-dot, .cur-beam) {

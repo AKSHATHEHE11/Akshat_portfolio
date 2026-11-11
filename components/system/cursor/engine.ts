@@ -93,6 +93,7 @@ export function createCursor(blend: HTMLElement, solid: HTMLElement, getLenis: (
   let gi = 0;
   let swapAt = 0;
   let head = 0;
+  let blendAlpha = "";
 
   // Ring geometry is tweened by quickTo; everything else the loop reads lives in `look`.
   const pos = { x: pointer.x, y: pointer.y, w: RING, h: RING, r: RING / 2 };
@@ -333,7 +334,7 @@ export function createCursor(blend: HTMLElement, solid: HTMLElement, getLenis: (
     put(ring, "width", `${r2(pos.w)}px`);
     put(ring, "height", `${r2(pos.h)}px`);
     put(ring, "borderRadius", `${r2(pos.r)}px`);
-    put(ring, "opacity", `${r2(look.ring)}`);
+    put(ring, "opacity", `${r2(look.ring * look.alpha)}`); // its own opacity overrides the layer's --cur-a
     const ds = look.dot * p;
     put(dot, "transform", `translate3d(${r2(px - 3)}px,${r2(py - 3 + sdy)}px,0) rotate(${a}deg) scale(${r2(ds * (1 + s * 1.3))},${r2(ds * (1 - s * 0.5))})`);
     put(beam, "transform", look.beam > 0.005 ? `translate3d(${r2(px - 0.75)}px,${r2(py - beamH / 2)}px,0) scaleY(${r2(look.beam)})` : OFF);
@@ -376,7 +377,10 @@ export function createCursor(blend: HTMLElement, solid: HTMLElement, getLenis: (
     });
 
     const alpha = `${r2(look.alpha)}`;
-    put(blend, "opacity", alpha);
+    if (alpha !== blendAlpha) {
+      blendAlpha = alpha;
+      blend.style.setProperty("--cur-a", alpha); // the blend layer is box-less (cursor.css): fade its parts
+    }
     put(solid, "opacity", alpha);
   };
 
