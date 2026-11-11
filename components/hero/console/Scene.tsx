@@ -436,19 +436,30 @@ function Post({ selection, dark }: { selection: THREE.Object3D[]; dark: boolean 
 }
 
 /* ── the orange cable: a tube from the socket off the canvas edge, swaying in the vertex shader ── */
+/** how much of the cable (by length) the poster shows before its fade: where the live cable starts growing */
+const CABLE_STUB = 0.08;
 function Cable({ rig, socket, fit }: { rig: Rig; socket: THREE.Object3D; fit: React.RefObject<Fit> }) {
   const mesh = useRef<THREE.Mesh>(null);
   const built = useRef({ ex: -1e9, ey: -1e9 });
   const { material, uniforms } = useMemo(() => {
-    const uniforms = { uTime: { value: 0 }, uAmp: { value: 1 } };
+    // uReveal: how much of the cable exists, socket → end (uv.x). The poster stand-in shows only a fading
+    // stub, so when the live console takes over the cable grows out from there, plugged in, not popped in.
+    const uniforms = { uTime: { value: 0 }, uAmp: { value: 1 }, uReveal: { value: CABLE_STUB } };
     const material = new THREE.MeshPhysicalMaterial({ color: "#ff5a1f", roughness: 0.36, clearcoat: 0.6, clearcoatRoughness: 0.3 });
     material.onBeforeCompile = (shader) => {
       Object.assign(shader.uniforms, uniforms);
+      shader.fragmentShader =
+        "uniform float uReveal;\nvarying float vCableU;\n" +
+        shader.fragmentShader.replace(
+          "#include <clipping_planes_fragment>",
+          "#include <clipping_planes_fragment>\n  if (vCableU > uReveal) discard;",
+        );
       shader.vertexShader =
-        "uniform float uTime;\nuniform float uAmp;\n" +
+        "uniform float uTime;\nuniform float uAmp;\nvarying float vCableU;\n" +
         shader.vertexShader.replace(
           "#include <begin_vertex>",
           `#include <begin_vertex>
+          vCableU = uv.x;
           float cs = smoothstep(0.04, 0.55, uv.x);
           transformed += vec3(
             sin(uTime * 1.3 + uv.x * 6.0),
@@ -469,6 +480,7 @@ function Cable({ rig, socket, fit }: { rig: Rig; socket: THREE.Object3D; fit: Re
   }, [material]);
 
   const swing = useRef({ t: 0, whip: 0 });
+  const reveal = useRef(0);
   // window.scrollY forces a synchronous layout when anything changed layout this frame (the kinetic
   // headline always has), so the "is the canvas at the top of the page" test runs twice a second.
   const top = useRef({ open: true, n: 0 });
@@ -508,6 +520,15 @@ function Cable({ rig, socket, fit }: { rig: Rig; socket: THREE.Object3D; fit: Re
     sw.t += rig.reduced ? 0 : dt * (chaos ? 3.2 : 1) * (1 + sw.whip * 3);
     uniforms.uTime.value = sw.t;
     uniforms.uAmp.value = rig.reduced ? 0 : chaos ? 2.4 + sw.whip * 5 : 1;
+
+    // first appearance: the cable plugs in from the poster's stub (0.6s, ease-out); every frame meanwhile
+    const R = reveal.current;
+    if (R < 1) {
+      reveal.current = rig.reduced ? 1 : Math.min(1, R + dt / 0.6);
+      const e = 1 - (1 - reveal.current) ** 3;
+      uniforms.uReveal.value = CABLE_STUB + (1.001 - CABLE_STUB) * e;
+      if (reveal.current < 1) rig.hot = performance.now() + 50;
+    }
   });
 
   return <mesh ref={mesh} material={material} frustumCulled={false} />;
