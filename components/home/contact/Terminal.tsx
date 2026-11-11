@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { Kbd } from "@/components/ui/marks";
 import { Scramble } from "@/components/ui/Scramble";
 import { gsap, useGSAP } from "@/lib/gsap";
-import { useChaos, useIsomorphicLayoutEffect, useReducedMotion } from "@/lib/hooks";
+import { useChaos, useCoarse, useIsomorphicLayoutEffect, useReducedMotion } from "@/lib/hooks";
 import { play } from "@/lib/sound";
 import { cn } from "@/lib/utils";
 import { tidy, type Field } from "./rules";
@@ -46,6 +46,7 @@ function LogLine({ line, chaos }: { line: Line; chaos: boolean }) {
  * The contact terminal: name, email and an optional phone, then a real textarea with a block caret,
  * Enter to transmit (Shift+Enter = new line). Transmitting sends the enquiry to Akshat's inbox from
  * the server; if that can't happen it opens the visitor's own mail app with everything filled in.
+ * On touch screens Return is a new line (phone keyboards have no Shift+Enter) and Send transmits.
  */
 export function Terminal({ intent, id, labelledBy, className }: { intent: Intent; id: string; labelledBy: string; className?: string }) {
   const shell = useRef<HTMLDivElement>(null);
@@ -63,6 +64,7 @@ export function Terminal({ intent, id, labelledBy, className }: { intent: Intent
   const [busy, setBusy] = useState(false);
   const reduced = useReducedMotion();
   const chaos = useChaos();
+  const coarse = useCoarse();
   const inputId = useId();
   const { contextSafe } = useGSAP({ scope: shell });
 
@@ -173,7 +175,7 @@ export function Terminal({ intent, id, labelledBy, className }: { intent: Intent
   };
 
   const onKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
+    if (e.key === "Enter" && !e.shiftKey && !coarse && !e.nativeEvent.isComposing) {
       e.preventDefault();
       void transmit();
       return;
@@ -236,7 +238,7 @@ export function Terminal({ intent, id, labelledBy, className }: { intent: Intent
                 onKeyDown={(e) => {
                   if (e.key.length === 1 || e.key === "Backspace") play("type");
                 }}
-                className="w-full min-w-0 bg-transparent font-mono text-[0.9375rem] text-fg caret-signal outline-none placeholder:text-fg-muted"
+                className="w-full min-w-0 bg-transparent font-mono text-[0.9375rem] text-fg caret-signal outline-none placeholder:text-fg-muted coarse:min-h-11"
               />
             </label>
           ))}
@@ -265,7 +267,7 @@ export function Terminal({ intent, id, labelledBy, className }: { intent: Intent
               value={value}
               placeholder={intent.prompt}
               autoComplete="off"
-              enterKeyHint="send"
+              enterKeyHint={coarse ? "enter" : "send"}
               onChange={(e) => setValue(e.target.value)}
               onKeyDown={onKeyDown}
               onSelect={sync}
@@ -275,7 +277,7 @@ export function Terminal({ intent, id, labelledBy, className }: { intent: Intent
               onBlur={sync}
               className={cn(
                 TYPE,
-                "block w-full resize-none overflow-hidden border-0 bg-transparent p-0 text-fg caret-transparent outline-none placeholder:text-fg-muted",
+                "block w-full resize-none overflow-hidden border-0 bg-transparent p-0 text-fg caret-transparent outline-none placeholder:text-fg-muted coarse:min-h-11",
               )}
             />
             <span ref={mirror} aria-hidden className={cn(TYPE, "pointer-events-none invisible absolute inset-x-0 top-0 block whitespace-pre-wrap break-words")} />
