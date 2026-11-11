@@ -1,10 +1,10 @@
 "use client";
 // The 3D console. Loaded with next/dynamic(ssr:false) from Console.tsx — never import it directly.
 // Every visible motion reads the shared Rig in useFrame; React only re-renders this on prop changes.
-import { Suspense, memo, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { Canvas, useFrame, useThree, type RootState } from "@react-three/fiber";
-import { Environment, Lightformer, PerformanceMonitor, Shadow, useGLTF } from "@react-three/drei";
+import { Environment, Lightformer, Shadow, useGLTF } from "@react-three/drei";
 import { EffectComposer, SelectiveBloom, ToneMapping } from "@react-three/postprocessing";
 import { ToneMappingMode } from "postprocessing";
 import { pointer } from "@/lib/pointer";
@@ -39,14 +39,18 @@ interface Fit {
 // memo: Console re-renders on every knob move; the Canvas must not (see Lights).
 export default memo(function Scene({ rig, active, reduced, coarse, dark, playing, onReady, onLost }: SceneProps) {
   const post = !coarse;
-  // Resolution governor: start at 1.5× (1.25× on touch); drei's PerformanceMonitor drops to 1× when
-  // the frame rate sags (integrated GPUs, busy laptops) and climbs back once there is headroom.
-  const ceiling = Math.min(typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1, coarse ? 1.25 : 1.5);
-  const [dpr, setDpr] = useState(ceiling);
+  // A fixed resolution: 1.5× (1.25× on touch). It used to flip between that and 1× with the frame
+  // rate, and every flip reallocated the drawing buffer and the bloom targets — a stall each time.
+  const dpr = Math.min(typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1, coarse ? 1.25 : 1.5);
+  // No frame is drawn until every shader has compiled in the background (see Stage).
+  const [warm, setWarm] = useState(false);
+  const onWarm = useCallback(() => setWarm(true), []);
+  // "demand": Stage paces the frames itself — every frame while anything moves, 30 fps at rest.
+  const paced = active && warm && !(reduced && !playing);
   return (
     <Canvas
       aria-hidden
-      frameloop={!active ? "never" : reduced && !playing ? "demand" : "always"}
+      frameloop={!active || !warm ? "never" : "demand"}
       dpr={dpr}
       camera={{ fov: 24, position: [0, 0, 9], near: 3, far: 20 }}
       gl={{ alpha: true, antialias: !post, powerPreference: "high-performance", toneMapping: THREE.NeutralToneMapping }}
@@ -58,15 +62,30 @@ export default memo(function Scene({ rig, active, reduced, coarse, dark, playing
         })
       }
     >
-      <PerformanceMonitor flipflops={4} onDecline={() => setDpr(1)} onIncline={() => setDpr(ceiling)} />
       <Suspense fallback={null}>
-        <Stage rig={rig} coarse={coarse} dark={dark} post={post} onReady={onReady} />
+        <Stage rig={rig} coarse={coarse} dark={dark} post={post} paced={paced} onWarm={onWarm} onReady={onReady} />
       </Suspense>
     </Canvas>
   );
 });
 
-function Stage({ rig, coarse, dark, post, onReady }: { rig: Rig; coarse: boolean; dark: boolean; post: boolean; onReady: () => void }) {
+function Stage({
+  rig,
+  coarse,
+  dark,
+  post,
+  paced,
+  onWarm,
+  onReady,
+}: {
+  rig: Rig;
+  coarse: boolean;
+  dark: boolean;
+  post: boolean;
+  paced: boolean;
+  onWarm: () => void;
+  onReady: () => void;
+}) {
   const { scene: model } = useGLTF(MODEL, false, false);
   const group = useRef<THREE.Group>(null);
   const shadow = useRef<THREE.Group>(null);
@@ -148,13 +167,61 @@ function Stage({ rig, coarse, dark, post, onReady }: { rig: Rig; coarse: boolean
   const v = useMemo(() => new THREE.Vector3(), []);
 
   const invalidate = useThree((st) => st.invalidate);
+  const gl = useThree((st) => st.gl);
+  const scene = useThree((st) => st.scene);
+  const camera = useThree((st) => st.camera);
   useEffect(() => {
-    rig.invalidate = () => invalidate();
+    // anything the visitor does draws every frame for a moment (springs, puffs, readouts)
+    rig.invalidate = () => {
+      rig.hot = performance.now() + 250;
+      invalidate();
+    };
     invalidate();
     return () => {
       rig.invalidate = () => {};
     };
   }, [rig, invalidate]);
+
+  // Compile every shader before the first frame, in parallel and off the main thread where the browser
+  // can (KHR_parallel_shader_compile). Drawing first made the GPU driver compile them one by one on
+  // the main thread: the page froze for ~1s on a laptop, ~1.75s on a mid-range phone.
+  useEffect(() => {
+    let gone = false;
+    // With bloom on, the scene is drawn into the composer's buffer, not the screen, and three builds a
+    // different variant of every shader for that (linear output, no tone mapping): compile with a
+    // render target bound so the variants match. compile() reads that state synchronously.
+    const rt = post ? new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType }) : null;
+    const prev = gl.getRenderTarget();
+    gl.setRenderTarget(rt);
+    const done = gl.compileAsync(scene, camera);
+    gl.setRenderTarget(prev);
+    done
+      .catch(() => {})
+      .finally(() => {
+        rt?.dispose();
+        if (!gone) onWarm();
+      });
+    return () => {
+      gone = true;
+    };
+  }, [gl, scene, camera, post, onWarm]);
+
+  // At rest (the float, the cable's sway, the CRT) 30 fps reads the same and halves the GPU and main
+  // thread cost; useFrame keeps drawing every frame while anything actually moves.
+  useEffect(() => {
+    if (!paced) return;
+    let raf = 0;
+    let last = 0;
+    // by time, not every other frame, so 120 Hz screens (and headless Chrome) idle at 30 too
+    const tick = (now: number) => {
+      raf = requestAnimationFrame(tick);
+      if (now - last < 29) return;
+      last = now;
+      invalidate();
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [paced, invalidate]);
 
   useFrame((state: RootState, delta: number) => {
     const g = group.current;
@@ -292,6 +359,16 @@ function Stage({ rig, coarse, dark, post, onReady }: { rig: Rig; coarse: boolean
       S.ready = true;
       requestAnimationFrame(onReady);
     }
+
+    // still moving? then the next frame too, not just the next 30 fps tick
+    const e = 0.0015;
+    let moving = (rig.chaos && motion) || (rig.drop > 0 && rig.drop < 1) || rig.power < 1;
+    moving ||= Math.abs(T.vx) + Math.abs(T.vy) > e || Math.abs(tx - T.x) + Math.abs(ty - T.y) > e;
+    moving ||= Math.abs(S.lever.v) > e || Math.abs(lx - S.lever.x) > e * 0.2 || Math.abs(ka - S.knob) > e;
+    for (const id of KEYS) moving ||= Math.abs(S.keys[id].v) > e || Math.abs(S.keys[id].z - (rig.down === id ? -0.05 : rig.mode === id ? -0.026 : rig.hover === id ? 0.018 : 0)) > e * 0.2;
+    const now = performance.now();
+    if (moving) rig.hot = now + 120;
+    if (now < rig.hot && motion) invalidate();
   });
 
   return (
@@ -497,6 +574,7 @@ function Puffs({ rig, keys }: { rig: Rig; keys: Record<KeyId, THREE.Object3D> })
       pos.needsUpdate = true;
       col.needsUpdate = true;
     }
+    if (any) rig.hot = performance.now() + 60;
   });
 
   return (

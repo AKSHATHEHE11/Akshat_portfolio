@@ -28,8 +28,10 @@ export interface Rig {
   anchor: { x: number; y: number; w: number; h: number } | null;
   /** DOM hit areas, positioned every frame from the 3D projection */
   els: Partial<Record<ControlId, HTMLElement | null>>;
-  /** set by the scene: request a frame (frameloop "demand" under reduced motion) */
+  /** set by the scene: request a frame (and keep drawing every frame for a moment) */
   invalidate: () => void;
+  /** performance.now() until which the scene draws every frame instead of 30 fps (something moves) */
+  hot: number;
 }
 
 export function createRig(): Rig {
@@ -48,6 +50,7 @@ export function createRig(): Rig {
     anchor: null,
     els: {},
     invalidate: () => {},
+    hot: 0,
   };
 }
 
