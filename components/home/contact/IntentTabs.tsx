@@ -1,9 +1,10 @@
 "use client";
-import { useRef, type KeyboardEvent } from "react";
-import { motion } from "motion/react";
+import { useRef, useState, type KeyboardEvent } from "react";
 import { contact } from "@/data/contact";
+import { sharedElement, spring } from "@/lib/anim";
 import { SPRING } from "@/lib/motion";
 import { play } from "@/lib/sound";
+import { system } from "@/lib/system";
 import { cn } from "@/lib/utils";
 
 type Intent = (typeof contact.intents)[number];
@@ -28,6 +29,7 @@ export function IntentTabs({
   className?: string;
 }) {
   const tabs = useRef<(HTMLButtonElement | null)[]>([]);
+  const [pill] = useState(() => sharedElement(() => (system.get().reducedMotion ? null : spring(SPRING.soft))));
 
   const select = (i: number) => {
     if (i === index) return;
@@ -80,10 +82,10 @@ export function IntentTabs({
             )}
           >
             {on && (
-              <motion.span layoutId="contact-intent-pill" transition={SPRING.soft} aria-hidden className="absolute -inset-[2px] rounded-[8px] bg-signal">
+              <span ref={pill} aria-hidden className="absolute -inset-[2px] rounded-[8px] bg-signal">
                 {/* speech-bubble notch pointing down at the terminal */}
                 <span className="absolute left-1/2 top-full hidden h-3.5 w-6 -translate-x-1/2 bg-signal [clip-path:polygon(0_0,100%_0,50%_100%)] lg:block" />
-              </motion.span>
+              </span>
             )}
             <span className="relative text-balance">
               <span aria-hidden>[ </span>
