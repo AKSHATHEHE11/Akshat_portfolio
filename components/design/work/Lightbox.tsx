@@ -19,8 +19,9 @@ function autoplay(v: HTMLVideoElement | null) {
 }
 
 /**
- * One field's pieces, one at a time, as large as the screen allows. Esc closes, ←/→ step through the
- * field (wrapping), focus stays inside and returns to the tile, the page underneath doesn't scroll.
+ * One field's pieces, one at a time, as large as the screen allows. Esc closes, ←/→ (or a sideways
+ * swipe on touch) step through the field (wrapping), focus stays inside and returns to the tile, the
+ * page underneath doesn't scroll.
  */
 export function Lightbox({
   works,
@@ -34,6 +35,7 @@ export function Lightbox({
   onClose: () => void;
 }) {
   const ref = useRef<HTMLDivElement>(null);
+  const swipe = useRef<{ x: number; y: number; t: number } | null>(null);
   useDialog(ref, index !== null, onClose);
   if (index === null) return null;
 
@@ -77,7 +79,24 @@ export function Lightbox({
         </button>
       </header>
 
-      <div className="dz-lb-stage" onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div
+        className="dz-lb-stage"
+        onClick={(e) => e.target === e.currentTarget && onClose()}
+        onTouchStart={(e) => {
+          const t = e.touches[0];
+          // one finger, not pinch-zoomed in (then a drag pans the piece)
+          swipe.current = e.touches.length === 1 && (window.visualViewport?.scale ?? 1) < 1.01 ? { x: t.clientX, y: t.clientY, t: e.timeStamp } : null;
+        }}
+        onTouchEnd={(e) => {
+          const s = swipe.current;
+          swipe.current = null;
+          if (!s || n < 2) return;
+          const t = e.changedTouches[0];
+          const dx = t.clientX - s.x;
+          if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(t.clientY - s.y) * 1.5 && e.timeStamp - s.t < 700) go(dx < 0 ? 1 : -1);
+        }}
+        onTouchCancel={() => (swipe.current = null)}
+      >
         <div key={w.id} className="dz-lb-media" style={{ "--ar": `${m.width} / ${m.height}` } as CSSProperties}>
           {m.kind === "image" ? (
             <Image
