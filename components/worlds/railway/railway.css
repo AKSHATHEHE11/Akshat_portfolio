@@ -1117,6 +1117,30 @@ html[data-chaos="on"] .rw-lamp {
   }
 }
 
+/* touch phones: the ride runs by itself (nothing pinned), so the scene is one screen. The ticket
+   clears the world bar (and the home indicator), and the window's table clears the ticket. */
+@media (max-width: 767px) and (hover: none), (max-width: 767px) and (pointer: coarse) {
+  .rw-scene {
+    --h-bot: max(25svh, calc(208px + max(8px, env(safe-area-inset-bottom))));
+  }
+  .rw-ticket {
+    bottom: calc(76px + max(8px, env(safe-area-inset-bottom)));
+  }
+}
+/* touch, short screens (phones in landscape): the scene scrolls like a page, so the title starts
+   under the nav and the ticket sits at the foot of the scene instead of clearing a pinned bar */
+@media (max-height: 500px) and (hover: none), (max-height: 500px) and (pointer: coarse) {
+  .rw-scene {
+    --h-bot: 32px;
+  }
+  .rw-titleblock {
+    top: calc(var(--nav-h) + 16px);
+  }
+  .rw-ticket {
+    bottom: 32px;
+  }
+}
+
 @keyframes rw-steam {
   from {
     stroke-dashoffset: 170;

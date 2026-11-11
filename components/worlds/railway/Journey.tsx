@@ -26,14 +26,19 @@ import Timetable from "./Timetable";
  */
 /** parked a few metres short of the New Delhi board, so the app card in the glass doesn't cover it */
 const PARK = -0.18;
-/** phones in landscape: the pinned coach can't fit between nav and shell bar, so the ride is printed */
-const SHORT = "(max-height: 500px)";
+/**
+ * Where the ride is printed instead of pinned: phones in landscape (the pinned coach can't fit
+ * between nav and shell bar) and every touch screen (a pin here held ~7 screens of swiping). There
+ * the train runs the route by itself while the window is in view, and the timetable below carries
+ * the story.
+ */
+const PRINTED = "(max-height: 500px), (hover: none), (pointer: coarse)";
 
 export default function Journey({ project }: { project: Project<RailwayScene> }) {
   const { scene, slug } = project;
   const reduced = useReducedMotion();
-  const short = useMediaQuery(SHORT);
-  const still = reduced || short;
+  const printed = useMediaQuery(PRINTED);
+  const still = reduced || printed;
   const lenis = useLenis();
   const root = useRef<HTMLElement>(null);
   const driveRef = useRef(newDrive({ d: PARK }));
@@ -63,18 +68,20 @@ export default function Journey({ project }: { project: Project<RailwayScene> })
   useGSAP(
     () => {
       const el = root.current;
+      if (!el || reduced) return;
       // matchMedia too: useMediaQuery reports false until its effect runs, which would pin for a frame
-      if (!el || still || window.matchMedia(SHORT).matches) return;
+      const pinned = !window.matchMedia(PRINTED).matches;
       const proxy = { d: PARK };
       const tl = gsap.timeline({ paused: true, defaults: { ease: "none" } });
-      tl.to(el, { "--zoom": 1, duration: 1, ease: "power2.inOut" }, 0);
-      let at = 0.65;
+      if (pinned) tl.to(el, { "--zoom": 1, duration: 1, ease: "power2.inOut" }, 0);
+      // on the clock (touch) the train stands at each platform long enough to read the app's card
+      let at = pinned ? 0.65 : 2;
       // each leg: pull out, run, brake into the next platform; the PA announcement plays mid-leg
       const LEG = 3.4;
-      const HALT = 1;
+      const HALT = pinned ? 1 : 2.2;
       geo.D.slice(1).forEach((Dn, i) => {
         tl.to(proxy, { d: Dn, duration: LEG, ease: "power2.inOut" }, at);
-        const a = anns.current[i];
+        const a = pinned && anns.current[i];
         if (a)
           tl.fromTo(a, { opacity: 0, y: 28 }, { opacity: 1, y: 0, duration: 0.3, ease: "power2.out" }, at + 0.7).to(
             a,
@@ -86,13 +93,16 @@ export default function Journey({ project }: { project: Project<RailwayScene> })
       tl.to({}, { duration: 0.8 }, at - HALT); // hold at the terminus
 
       let joint = 0;
+      let clockText = "";
       let cur = { i: 0, at: true };
       tl.eventCallback("onUpdate", () => {
         const d = proxy.d;
         driveRef.current.d = d;
         const { clock, km } = geo.at(Math.max(0, d));
         driveRef.current.t = dayT(scene.route, clock);
-        if (clockEl.current) clockEl.current.textContent = fmt(clock);
+        const text = fmt(clock);
+        const node = clockEl.current?.firstChild;
+        if (text !== clockText && node instanceof Text) node.data = clockText = text;
         routeHandle.current?.(km);
         const atI = d < geo.D[0] + 0.03 ? 0 : geo.D.findIndex((D) => Math.abs(D - d) < 0.03);
         const nextI = geo.D.findIndex((D) => D > d);
@@ -106,18 +116,24 @@ export default function Journey({ project }: { project: Project<RailwayScene> })
           joint = j;
           clack();
         }
-        el.classList.toggle("rw-zoomed", tl.time() > 0.45);
+        if (pinned) el.classList.toggle("rw-zoomed", tl.time() > 0.45);
       });
 
-      ScrollTrigger.create({
-        animation: tl,
-        trigger: el,
-        start: "top top",
-        end: () => `+=${Math.round(window.innerHeight * 6)}`,
-        pin: true,
-        scrub: 0.6,
-        invalidateOnRefresh: true,
-      });
+      if (pinned)
+        ScrollTrigger.create({
+          animation: tl,
+          trigger: el,
+          start: "top top",
+          end: () => `+=${Math.round(window.innerHeight * 6)}`,
+          pin: true,
+          scrub: 0.6,
+          invalidateOnRefresh: true,
+        });
+      else {
+        // runs on the clock while the window is in view, then the next train pulls out
+        tl.repeat(-1).repeatDelay(2.5);
+        ScrollTrigger.create({ animation: tl, trigger: el, start: "top bottom", end: "bottom top", toggleActions: "play pause resume pause" });
+      }
 
       // back to the parked train if this scene is torn down (reduced motion switched on, unmount)
       return () => {
@@ -128,7 +144,7 @@ export default function Journey({ project }: { project: Project<RailwayScene> })
         setPos({ i: 0, at: true });
       };
     },
-    { scope: root, dependencies: [still, geo], revertOnUpdate: true },
+    { scope: root, dependencies: [reduced, printed, geo], revertOnUpdate: true },
   );
 
   const st = geo.stops[pos.i];
