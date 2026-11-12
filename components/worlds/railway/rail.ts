@@ -23,41 +23,6 @@ export function dayT(route: Station[], min: number) {
   return clamp((min - a) / (b - a));
 }
 
-/** Where the train is (km) at a minute, given it runs `late` minutes behind the timetable. */
-export function kmAt(route: Station[], min: number, late: number) {
-  const pts: [number, number][] = [];
-  for (const s of route) {
-    if (s.arr) pts.push([toMin(s.arr) + late, s.km]);
-    if (s.dep && s.dep !== s.arr) pts.push([toMin(s.dep) + late, s.km]);
-  }
-  if (min <= pts[0][0]) return pts[0][1];
-  for (let i = 1; i < pts.length; i++) {
-    const [t1, k1] = pts[i];
-    if (min <= t1) {
-      const [t0, k0] = pts[i - 1];
-      return t1 === t0 ? k1 : k0 + ((k1 - k0) * (min - t0)) / (t1 - t0);
-    }
-  }
-  return pts[pts.length - 1][1];
-}
-
-export interface Reach {
-  ok: boolean;
-  why: string;
-  eta: number;
-  orderBy: number;
-}
-
-/** Can a kitchen at this station still reach the coach? Only reachable halts are orderable. */
-export function reach(s: Station, now: number, late: number, lead: number): Reach {
-  const eta = arrOf(s) + late;
-  const orderBy = eta - lead;
-  if (s.kind === "origin" || eta <= now) return { ok: false, why: "Departed", eta, orderBy };
-  if (s.kind === "pass") return { ok: false, why: "No halt", eta, orderBy };
-  if (now > orderBy) return { ok: false, why: `Closed — kitchens need ${lead} min`, eta, orderBy };
-  return { ok: true, why: `Order by ${fmt(orderBy)}`, eta, orderBy };
-}
-
 const BERTHS = ["Lower", "Middle", "Upper", "Lower", "Middle", "Upper", "Side lower", "Side upper"];
 
 /** Demo PRS lookup: coach and berth are derived from the PNR digits, so every PNR feels real. */
@@ -67,7 +32,6 @@ export function readPnr(pnr: string, consist: string[]) {
   const seat = Number(pnr.slice(-2)) % 72 || 72;
   return { coach: coaches[sum % coaches.length], seat, berth: BERTHS[(seat - 1) % 8] };
 }
-export type Trip = ReturnType<typeof readPnr>;
 
 /**
  * Scroll-journey geometry. Distances are in "window widths" (W): the nearest landscape layer

@@ -77,22 +77,3 @@ export function Tiffin({ className }: { className?: string }) {
     </svg>
   );
 }
-
-/** The meal box that lands on the table when an order is handed over. */
-export function Parcel({ code, brand, className }: { code: string; brand: string; className?: string }) {
-  return (
-    <svg className={cn("rw-parcel", className)} viewBox="0 0 120 92" aria-hidden>
-      <path d="M8 24 L20 10 L116 10 L110 24 Z" fill="#dcb47e" />
-      <path d="M110 24 L116 10 L116 76 L110 88 Z" fill="#a97e47" />
-      <rect x="8" y="24" width="102" height="64" rx="2" fill="#c89b62" />
-      <rect x="8" y="40" width="102" height="15" fill="#d8ff00" />
-      <text x="59" y="51" textAnchor="middle" fontSize="9" fontWeight="800" fill="#111" letterSpacing="1" style={{ fontFamily: "var(--font-display)" }}>
-        {brand.toUpperCase()}
-      </text>
-      <text x="59" y="77" textAnchor="middle" fontSize="13" fill="#14243f" style={{ fontFamily: "var(--font-mono)" }}>
-        {code}
-      </text>
-      <path d="M58 10 V88 M8 64 H110" stroke="#7a5a32" strokeWidth="1.5" opacity=".7" />
-    </svg>
-  );
-}
