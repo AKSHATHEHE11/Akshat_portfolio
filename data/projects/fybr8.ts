@@ -22,9 +22,9 @@ export const fybr8: Project<FashionScene> = {
   id: "03",
   slug: "fybr8",
   title: "Fybr8",
-  tagline: "Denim commerce with the texture left in.",
+  tagline: "Fabric-first jeans, fair prices.",
   description:
-    "Fybr8 is a denim label's online store designed like a lookbook you can buy from: fabric first, fit second, checkout in three taps.",
+    "A sleek, fabric-focused denim brand with a new-gen look: one straight comfort fit in twelve shades, cut from 12.5 oz cotton-rich denim, sold through its own store and a three-step checkout.",
   category: "Fashion / Denim Commerce",
   year: 2025,
   status: "live",
@@ -37,7 +37,8 @@ export const fybr8: Project<FashionScene> = {
     { name: "Vercel", group: "cloud", why: "Edge-cached product pages for drop days." },
     { name: "Figma", group: "design", why: "Every garment drawn as a flat from real fabric scans." },
   ],
-  color: { bg: "#e9e6df", fg: "#14161c", accent: "#c8f03c" },
+  // the live storefront's own palette: canvas, charcoal and its royal-blue accent
+  color: { bg: "#f7f5f0", fg: "#262626", accent: "#4169e1" },
   environment: "fashion",
   metrics: [
     { label: "Conversion on drop day", value: "4.8%", note: "category average ~1.9%" },
@@ -86,6 +87,25 @@ export const fybr8: Project<FashionScene> = {
   ],
   // the real store; it allows framing, so it runs inside the world (scripts/check-embeds.mjs)
   live: { url: "https://www.fybr8.com/", mode: "embed", capture: "/projects/fybr8/poster.webp", permission: "own" },
+  // read from the live checkout (fybr8.com/checkout)
+  highlights: {
+    title: "Checkout in three steps",
+    intro: "What it does differently: no password, one short form, and you only pay part of the price to book your pair.",
+    steps: [
+      {
+        title: "Sign in with a code",
+        text: "No password. A one-time code comes on WhatsApp or email, or it's one tap with Google, and returning customers find their saved addresses already filled in.",
+      },
+      {
+        title: "One screen for the address",
+        text: "Your name and where it goes: that's the whole form. The PIN code is checked, and the delivery estimate for it shows before you pay.",
+      },
+      {
+        title: "Pre-book, pay the rest later",
+        text: "Pay part now to book your pair. The balance goes online before dispatch, with a link when your jeans are ready, or cash on delivery, confirmed on WhatsApp first. Payments run through Razorpay.",
+      },
+    ],
+  },
   links: [
     { label: "Shop the drop", href: "#preview" },
     { label: "Read the process", href: "#process" },
