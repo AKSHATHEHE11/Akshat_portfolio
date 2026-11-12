@@ -111,6 +111,8 @@ export function LiveScreen({ live, title, className }: { live: LiveSite; title: 
             src={live.capture}
             alt={`${title} — full-page capture of ${host}`}
             className="w-full select-none"
+            loading="lazy"
+            decoding="async"
             draggable={false}
             onLoad={(e) => {
               const img = e.currentTarget;
@@ -128,6 +130,11 @@ export function LiveScreen({ live, title, className }: { live: LiveSite; title: 
                 : undefined
             }
           />
+          <span className="absolute bottom-4 right-4">
+            <Button href={live.url} variant="signal" size="sm">
+              Open live site
+            </Button>
+          </span>
         </div>
       )}
 
@@ -136,7 +143,7 @@ export function LiveScreen({ live, title, className }: { live: LiveSite; title: 
         <div className="absolute inset-0 grid place-items-center overflow-hidden text-bone">
           {live.capture && (
             // eslint-disable-next-line @next/next/no-img-element -- decorative poster behind the standby screen
-            <img src={live.capture} alt="" aria-hidden className="absolute inset-0 h-full w-full object-cover object-top opacity-35 blur-[2px]" />
+            <img src={live.capture} alt="" aria-hidden loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover object-top opacity-35 blur-[2px]" />
           )}
           <div aria-hidden className="live-scanlines pointer-events-none absolute inset-0" />
           <div className="relative flex flex-col items-center gap-4 px-6 text-center">
