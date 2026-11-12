@@ -637,8 +637,10 @@ html[data-chaos="on"] .rw-steam {
   font-variation-settings: "wdth" 72;
   line-height: 1;
   white-space: pre;
+  /* no backface-visibility: hidden — a flap turns at most 80°, so its back never shows, and the
+     rule made the browser composite the cells and everything painted over them (~140 extra GPU
+     layers on this page, re-sorted on every scroll frame) */
   transform-origin: 50% 50%;
-  backface-visibility: hidden;
 }
 .rw-cell::after {
   content: "";
