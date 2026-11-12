@@ -81,8 +81,9 @@ export function Finale({
               >
                 <Motif
                   env={next.environment}
+                  image={next.heroImage}
                   color={next.color}
-                  className="opacity-60 transition-transform duration-[1.4s] ease-out-expo group-hover:scale-[1.05]"
+                  className={`${next.heroImage ? "opacity-20" : "opacity-60"} transition-transform duration-[1.4s] ease-out-expo group-hover:scale-[1.05]`}
                 />
               </div>
             </Morph>
