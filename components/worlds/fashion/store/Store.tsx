@@ -5,7 +5,9 @@ import { AnimatePresence, LayoutGroup, motion } from "motion/react";
 import { Ruler } from "lucide-react";
 import { SPRING } from "@/lib/motion";
 import { play } from "@/lib/sound";
+import type { LiveSite } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { LiveScreen } from "../../LiveScreen";
 import { Garment } from "../Garment";
 import type { Product } from "../scene";
 import { useStore, type Filter, type Tab } from "./context";
@@ -23,7 +25,7 @@ const TABS: { id: Tab; label: string }[] = [
   { id: "fit", label: "Fit finder" },
 ];
 
-export function Store({ title }: { title: string }) {
+export function Store({ title, live }: { title: string; live?: LiveSite }) {
   const { scene, state, dispatch, go } = useStore();
   const { products, store } = scene;
   const shown = state.filter === "all" ? products : products.filter((p) => p.category === state.filter);
@@ -157,6 +159,14 @@ export function Store({ title }: { title: string }) {
             <FitFinder />
           </div>
         </div>
+
+        {/* the real store (project.live), after the one this world stocks */}
+        {live ? (
+          <div className="mx-auto mt-16 max-w-[64rem] lg:mt-24">
+            <p className="mb-6 max-w-[34ch] font-serif text-[1.35rem] italic leading-tight">And the real one, live. Power it on and browse the store right here.</p>
+            <LiveScreen live={live} title={title} />
+          </div>
+        ) : null}
       </div>
     </section>
   );

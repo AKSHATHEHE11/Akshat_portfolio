@@ -54,7 +54,7 @@ export default function FashionWorld({ project }: WorldProps<FashionScene>) {
         <Cover project={project} />
         <Story project={project} />
         <Lookbook scene={scene} gallery={project.gallery} />
-        <Store title={project.title} />
+        <Store title={project.title} live={project.live} />
         <Process steps={project.process} />
         <Decisions decisions={project.decisions} swatches={scene.swatchbook} />
         <CareLabel tech={project.technologies} label={scene.label} />
