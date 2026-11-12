@@ -59,6 +59,9 @@ export const safarZaika: Project<RailwayScene> = {
       why: "A late meal on a train is not late — it is gone. Reliability beats choice.",
     },
   ],
+  // the real app; it refuses framing (X-Frame-Options: DENY), so the window shows a full-page
+  // capture (scripts/capture-site.mjs) with a link out. Allow framing on the app to switch to "embed".
+  live: { url: "https://safar-zaika-main.vercel.app/", mode: "capture", capture: "/projects/safar-zaika/desktop.webp", permission: "own" },
   links: [
     { label: "Order a meal", href: "#preview" },
     { label: "Read the chart", href: "#process" },
