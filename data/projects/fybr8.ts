@@ -84,6 +84,8 @@ export const fybr8: Project<FashionScene> = {
       why: "Every extra field on drop day cost pairs. Accounts can wait for the receipt.",
     },
   ],
+  // the real store; it allows framing, so it runs inside the world (scripts/check-embeds.mjs)
+  live: { url: "https://www.fybr8.com/", mode: "embed", capture: "/projects/fybr8/poster.webp", permission: "own" },
   links: [
     { label: "Shop the drop", href: "#preview" },
     { label: "Read the process", href: "#process" },
