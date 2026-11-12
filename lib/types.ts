@@ -89,7 +89,7 @@ export interface Project<Scene = unknown> {
   live?: LiveSite;
   /** showcase pages: what the project does differently, as a few numbered steps */
   highlights?: { title: string; intro?: string; steps: { title: string; text: string }[] };
-  /** optional real imagery — worlds must look complete without it */
+  /** a real picture of the project (its live site's first screen): cards show it instead of the drawn motif */
   heroImage?: string;
   gallery?: string[];
   metrics: Metric[];
@@ -106,5 +106,5 @@ export interface Project<Scene = unknown> {
 /** The light-weight project info safe to pass around (nav rails, switchers, chaos fragments). */
 export type ProjectSummary = Pick<
   Project,
-  "id" | "slug" | "title" | "tagline" | "category" | "year" | "status" | "color" | "environment"
+  "id" | "slug" | "title" | "tagline" | "category" | "year" | "status" | "color" | "environment" | "heroImage"
 >;

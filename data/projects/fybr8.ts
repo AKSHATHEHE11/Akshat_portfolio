@@ -70,6 +70,7 @@ export const fybr8: Project = {
     },
   ],
   // the real store; it allows framing, so it runs inside the world (scripts/check-embeds.mjs)
+  heroImage: "/projects/fybr8/card.webp",
   live: { url: "https://www.fybr8.com/", mode: "embed", capture: "/projects/fybr8/poster.webp", permission: "own" },
   // read from the live checkout (fybr8.com/checkout)
   highlights: {

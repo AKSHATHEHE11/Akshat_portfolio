@@ -15,8 +15,8 @@ export const featured = projects.slice(0, 3);
 export const getProject = (slug: string) => projects.find((p) => p.slug === slug);
 
 export function toSummary(p: Project): ProjectSummary {
-  const { id, slug, title, tagline, category, year, status, color, environment } = p;
-  return { id, slug, title, tagline, category, year, status, color, environment };
+  const { id, slug, title, tagline, category, year, status, color, environment, heroImage } = p;
+  return { id, slug, title, tagline, category, year, status, color, environment, heroImage };
 }
 
 export const summaries: ProjectSummary[] = projects.map(toSummary);
