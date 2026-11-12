@@ -75,6 +75,20 @@
   position: relative;
   height: clamp(560px, calc(100svh - 320px), 760px);
 }
+/* the real app in the glass (project.live): as big as the window's height allows (16:10 screen plus
+   its 38px address bar), the countryside still running past around it */
+.rw-live {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  padding: clamp(16px, 4%, 48px);
+  container-type: size;
+}
+.rw-live > figure {
+  width: min(100cqw, (100cqh - 38px) * 1.6);
+}
 .rw-table-app {
   top: auto;
   bottom: -14px;

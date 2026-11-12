@@ -1,6 +1,7 @@
 "use client";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useOnScreen } from "@/lib/hooks";
+import { LiveScreen } from "../LiveScreen";
 import { play } from "@/lib/sound";
 import type { Project } from "@/lib/types";
 import SafarApp from "./app/SafarApp";
@@ -11,9 +12,10 @@ import type { RailwayScene, Station } from "./scene";
 
 const CRUISE = 0.42;
 
-/** The order window: the real app running in the glass while the countryside goes past. */
+/** The order window: the app in the glass while the countryside goes past. With a live site (project.live)
+ *  the glass shows the real one; without, a working demo of the ordering flow. */
 export default function Preview({ project }: { project: Project<RailwayScene> }) {
-  const { scene } = project;
+  const { scene, live } = project;
   const driveRef = useRef(newDrive({ d: 3.2, speed: CRUISE, target: CRUISE, t: dayT(scene.route, toMin(scene.now)) }));
   const frame = useRef<HTMLDivElement>(null);
   const onScreen = useOnScreen(frame);
@@ -48,13 +50,19 @@ export default function Preview({ project }: { project: Project<RailwayScene> })
             </span>
             <span>Order window</span>
           </h2>
-          <p>PNR is prefilled. Order something.</p>
+          <p>{live ? "The real app, as it runs today." : "PNR is prefilled. Order something."}</p>
         </div>
 
         <div ref={frame} className="rw-frame rw-frame-app">
           <Landscape driveRef={driveRef} items={items} active={onScreen} coach={stop?.coach ?? "B3"} />
           <div className="rw-glass" aria-hidden />
-          <SafarApp brand={project.title} scene={scene} driveRef={driveRef} onArrive={onArrive} onDepart={onDepart} onDelivered={onDelivered} />
+          {live ? (
+            <div className="rw-live">
+              <LiveScreen live={live} title={project.title} />
+            </div>
+          ) : (
+            <SafarApp brand={project.title} scene={scene} driveRef={driveRef} onArrive={onArrive} onDepart={onDepart} onDelivered={onDelivered} />
+          )}
           <div className="rw-gasket" aria-hidden />
         </div>
 
