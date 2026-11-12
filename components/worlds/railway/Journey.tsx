@@ -2,12 +2,10 @@
 import { useMemo, useRef, useState } from "react";
 import { ArrowDown, ArrowRight, Check, Megaphone } from "lucide-react";
 import { useLenis } from "lenis/react";
-import { Morph } from "@/components/transitions/Morph";
 import { Button } from "@/components/ui/Button";
 import { gsap, ScrollTrigger, useGSAP } from "@/lib/gsap";
 import { useMediaQuery, useOnScreen, useReducedMotion } from "@/lib/hooks";
 import { play } from "@/lib/sound";
-import { morph } from "@/lib/transitions";
 import type { Project } from "@/lib/types";
 import { Landscape, newDrive, type SceneryItem } from "./Landscape";
 import { Kulhad, Lamp, Tiffin } from "./Props";
@@ -35,7 +33,7 @@ const PARK = -0.18;
 const PRINTED = "(max-height: 500px), (hover: none), (pointer: coarse)";
 
 export default function Journey({ project }: { project: Project<RailwayScene> }) {
-  const { scene, slug } = project;
+  const { scene } = project;
   const reduced = useReducedMotion();
   const printed = useMediaQuery(PRINTED);
   const still = reduced || printed;
@@ -59,11 +57,7 @@ export default function Journey({ project }: { project: Project<RailwayScene> })
   );
   const trip = useMemo(() => readPnr(scene.pnr, scene.train.consist), [scene.pnr, scene.train.consist]);
   const pools = useMemo(() => ({ en: scene.route.map((s) => s.en), hi: scene.route.map((s) => s.hi) }), [scene.route]);
-  const story = [
-    { lead: "Problem", text: project.challenge },
-    { lead: "Fix", text: project.solution },
-    { lead: "Result", text: project.outcome },
-  ];
+  const story = scene.story;
 
   useGSAP(
     () => {
@@ -178,22 +172,18 @@ export default function Journey({ project }: { project: Project<RailwayScene> })
   return (
     <>
       <section ref={root} id="journey" className="rw-scene" data-lamp={lamp ? "on" : "off"} aria-label={`${project.title}: the ride`}>
-        <Morph name={morph.stage(slug)}>
-          <div className="rw-wall absolute inset-0" />
-        </Morph>
+        <div className="rw-wall absolute inset-0" />
         <div className="rw-rack" aria-hidden />
         <div className="rw-dim" aria-hidden />
 
         <div className="rw-heroish rw-titleblock">
-          <Morph name={morph.title(slug)} variant="text">
-            <h1 className="rw-title" data-chaos-type>
-              {project.title.split(" ").map((w, i) => (
-                <span key={i} className="block">
-                  {w}
-                </span>
-              ))}
-            </h1>
-          </Morph>
+          <h2 className="rw-title" data-chaos-type>
+            {project.title.split(" ").map((w, i) => (
+              <span key={i} className="block">
+                {w}
+              </span>
+            ))}
+          </h2>
           <p className="rw-title-hi rw-hi" lang="hi">
             {scene.nameHi}
           </p>

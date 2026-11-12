@@ -54,5 +54,7 @@ export interface RailwayScene {
   deliveryFee: number;
   /** the Indian Railways PA opener, used for the story announcements */
   announce: { hi: string; en: string };
+  /** what the PA announces during the ride, one per leg: how the order reaches the seat */
+  story: { lead: string; text: string }[];
   route: Station[];
 }

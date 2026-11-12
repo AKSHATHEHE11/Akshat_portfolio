@@ -63,10 +63,7 @@ export const safarZaika: Project<RailwayScene> = {
   // the real app; it refuses framing (X-Frame-Options: DENY), so the window shows a full-page
   // capture (scripts/capture-site.mjs) with a link out. Allow framing on the app to switch to "embed".
   live: { url: "https://safar-zaika-main.vercel.app/", mode: "capture", capture: "/projects/safar-zaika/desktop.webp", permission: "own" },
-  links: [
-    { label: "Order a meal", href: "#preview" },
-    { label: "Read the chart", href: "#process" },
-  ],
+  links: [{ label: "Order a meal", href: "#preview" }],
   scene: {
     nameHi: "सफ़र ज़ायक़ा",
     train: {
@@ -81,6 +78,12 @@ export const safarZaika: Project<RailwayScene> = {
     leadMin: 40,
     deliveryFee: 30,
     announce: { hi: "यात्रीगण कृपया ध्यान दें", en: "Passengers, attention please" },
+    // read from the live site: how an order reaches the seat
+    story: [
+      { lead: "Order", text: "Enter your PNR and pick a halt on your route." },
+      { lead: "Cook", text: "A local kitchen cooks to your train's arrival time." },
+      { lead: "Hand over", text: "A delivery partner meets your coach and hands the meal over at your berth." },
+    ],
     route: [
       { code: "NDLS", en: "New Delhi", hi: "नई दिल्ली", km: 0, arr: null, dep: "08:15", pf: 16, kind: "origin", msl: 216, famous: "Chole bhature" },
       { code: "ALJN", en: "Aligarh Jn", hi: "अलीगढ़ जंक्शन", km: 126, arr: "09:40", dep: "09:40", pf: 2, kind: "pass", msl: 187 },
