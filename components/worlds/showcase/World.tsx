@@ -1,5 +1,5 @@
 "use client";
-import type { CSSProperties } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { ArrowDown, ArrowUpRight } from "lucide-react";
 import { Morph } from "@/components/transitions/Morph";
 import { morph } from "@/lib/transitions";
@@ -11,9 +11,9 @@ import { brandFonts } from "./fonts";
 /**
  * A project that has a real website: no world, no effects — the project's own fonts and colours,
  * the site running inside this page, a link to the real thing, and (optionally) what it does
- * differently in a few steps.
+ * differently in a few steps. `children` (a project's own extra scene) goes under the site.
  */
-export default function ShowcaseWorld({ project }: WorldProps) {
+export default function ShowcaseWorld({ project, children }: WorldProps & { children?: ReactNode }) {
   const { slug, title, tagline, description, category, year, color, live, highlights } = project;
   if (!live) return null;
   const font = brandFonts[slug];
@@ -59,6 +59,8 @@ export default function ShowcaseWorld({ project }: WorldProps) {
           <LiveScreen live={live} title={title} />
         </div>
       </section>
+
+      {children}
 
       {highlights && (
         <section id="highlights" aria-labelledby="sc-highlights" className="scroll-mt-[var(--nav-h)] px-(--margin) py-20">
