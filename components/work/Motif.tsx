@@ -17,9 +17,16 @@ const BARS = [7, 12, 9, 15, 10, 6, 13];
  * every portal carries. No images: it has to look finished at 12px and at full-bleed.
  * Animations run only while an ancestor sets `--motif-play: running`.
  */
-export function Motif({ env, color, className }: { env: WorldType; color: ProjectColor; className?: string }) {
+export function Motif({ env, color, image, className }: { env: WorldType; color: ProjectColor; image?: string; className?: string }) {
   const id = useId().replace(/[^a-zA-Z0-9_-]/g, "");
   const { bg, fg, accent: ac } = color;
+
+  // a project with a real site shows its first screen instead
+  if (image)
+    return (
+      // eslint-disable-next-line @next/next/no-img-element -- a small fixed-size card picture, sized by its slot
+      <img src={image} alt="" aria-hidden width={1440} height={900} loading="lazy" decoding="async" draggable={false} className={cn("mf-motif object-cover object-[0%_0%]", className)} />
+    );
 
   return (
     <svg

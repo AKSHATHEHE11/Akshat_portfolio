@@ -103,7 +103,7 @@ export const WorkItem = memo(function WorkItem({
         </span>
         <Morph name={morph.stage(p.slug)}>
           <span className="wk-chip" data-flip data-chip>
-            <Motif env={p.environment} color={p.color} />
+            <Motif env={p.environment} color={p.color} image={p.heroImage} />
           </span>
         </Morph>
         <span className="wk-more" data-more>
