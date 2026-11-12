@@ -6,9 +6,9 @@ export const safarZaika: Project<RailwayScene> = {
   id: "02",
   slug: "safar-zaika",
   title: "Safar Zaika",
-  tagline: "Hot regional food, delivered to your seat at the next station.",
+  tagline: "Hot food, delivered to your train seat.",
   description:
-    "Safar Zaika lets railway passengers order from local kitchens along their route. Enter a PNR, pick a station ahead, and the meal is waiting on the platform when your coach rolls in.",
+    "Enter your PNR and pick a halt on your route: a local kitchen cooks to your train's arrival time, and a partner hands the meal over at your berth.",
   category: "Railway Food Delivery",
   year: 2025,
   status: "shipped",
@@ -21,7 +21,8 @@ export const safarZaika: Project<RailwayScene> = {
     { name: "PostgreSQL", group: "data", why: "Stations, kitchens, menus and time windows." },
     { name: "AWS", group: "cloud", why: "Queues that survive a train running four hours late." },
   ],
-  color: { bg: "#14243f", fg: "#f6eedd", accent: "#f2b705" },
+  // the live site's own palette: cocoa, cream and gold
+  color: { bg: "#2a1407", fg: "#fffaf2", accent: "#e3b461" },
   environment: "railway",
   metrics: [
     { label: "Stations covered", value: "418" },
