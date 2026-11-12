@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Page } from "@/components/transitions/Page";
 import WorldShell from "@/components/worlds/shell/WorldShell";
-import { worlds } from "@/components/worlds/registry";
+import { showcase, worlds } from "@/components/worlds/registry";
 import { getProject, projects, summaries, toSummary } from "@/data/projects";
 
 type Params = { params: Promise<{ slug: string }> };
@@ -23,7 +23,7 @@ export default async function WorldPage({ params }: Params) {
   const { slug } = await params;
   const project = getProject(slug);
   if (!project) notFound();
-  const World = worlds[project.environment];
+  const World = project.live ? showcase : worlds[project.environment];
 
   return (
     <Page>

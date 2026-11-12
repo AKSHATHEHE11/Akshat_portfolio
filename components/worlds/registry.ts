@@ -7,6 +7,7 @@ import FashionWorld from "./fashion/World";
 import LedgerWorld from "./ledger/World";
 import BlueprintWorld from "./blueprint/World";
 import LabWorld from "./lab/World";
+import ShowcaseWorld from "./showcase/World";
 
 // Server-side lookup: the [slug] page renders only the chosen world, so the browser downloads only
 // that world's client code. To add a world type: add it to WorldType (lib/types.ts) and here.
@@ -19,3 +20,7 @@ export const worlds: Record<WorldType, ComponentType<WorldProps<any>>> = {
   blueprint: BlueprintWorld,
   lab: LabWorld,
 };
+
+/** A project with a real website gets the plain showcase page (its own fonts and colours, the site
+ *  running inside, a link out); the others keep their world until their real details arrive. */
+export const showcase: ComponentType<WorldProps> = ShowcaseWorld;

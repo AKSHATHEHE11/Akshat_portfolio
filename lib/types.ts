@@ -87,6 +87,8 @@ export interface Project<Scene = unknown> {
   environment: WorldType;
   /** the real website, run inside the world's screen when present */
   live?: LiveSite;
+  /** showcase pages: what the project does differently, as a few numbered steps */
+  highlights?: { title: string; intro?: string; steps: { title: string; text: string }[] };
   /** optional real imagery — worlds must look complete without it */
   heroImage?: string;
   gallery?: string[];
