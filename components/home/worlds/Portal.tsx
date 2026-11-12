@@ -76,11 +76,16 @@ export function Portal({
             style={{ "--p-bg": p.color.bg, "--p-fg": p.color.fg, "--p-accent": p.color.accent, background: p.color.bg, color: p.color.fg } as CSSProperties}
           >
             <div aria-hidden className="wd-preview">
-              <Preview p={p} hot={hot} running={running} />
+              {p.heroImage ? (
+                // eslint-disable-next-line @next/next/no-img-element -- the live site's first screen, sized by the screen
+                <img src={p.heroImage} alt="" width={1440} height={900} loading="lazy" decoding="async" draggable={false} className="size-full object-cover object-[0%_0%]" />
+              ) : (
+                <Preview p={p} hot={hot} running={running} />
+              )}
             </div>
             <span aria-hidden className="wd-scan" />
             <Corners className="wd-corners" size={16} inset={14} />
-            <span aria-hidden className="label wd-env">[ {p.environment.replace("-", " ")} ]</span>
+            {!p.heroImage && <span aria-hidden className="label wd-env">[ {p.environment.replace("-", " ")} ]</span>}
           </div>
         </Morph>
         <div aria-hidden className="wd-chin">
