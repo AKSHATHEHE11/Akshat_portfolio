@@ -62,9 +62,13 @@ export function LiveScreen({ live, title, className }: { live: LiveSite; title: 
     return () => window.clearTimeout(id);
   }, [state, nonce]);
 
+  const embed = live.mode === "embed";
+  const capture = live.mode === "capture" && !!live.capture;
+
+  // a capture has nothing to load: Power on just switches the screen on
   const powerOn = () => {
     play("toggle-on");
-    setState("connecting");
+    setState(embed ? "connecting" : "live");
   };
   const reload = () => {
     play("click");
@@ -72,8 +76,7 @@ export function LiveScreen({ live, title, className }: { live: LiveSite; title: 
     setNonce((n) => n + 1);
   };
 
-  const embed = live.mode === "embed";
-  const showCapture = live.mode === "capture" && !!live.capture;
+  const showCapture = capture && state !== "standby";
   const frameOn = embed && state !== "standby";
   const phone = device === "phone";
 
@@ -150,8 +153,14 @@ export function LiveScreen({ live, title, className }: { live: LiveSite; title: 
             {state === "standby" || !embed ? (
               <>
                 <p className="crt text-[clamp(1rem,2.4vw,1.6rem)] leading-none">LIVE · {host.toUpperCase()}</p>
-                {embed ? (
-                  <Button variant="signal" size="sm" icon={<Power size={14} strokeWidth={2} />} onClick={powerOn} aria-label={`Load the live ${host} website inside this page`}>
+                {embed || capture ? (
+                  <Button
+                    variant="signal"
+                    size="sm"
+                    icon={<Power size={14} strokeWidth={2} />}
+                    onClick={powerOn}
+                    aria-label={embed ? `Load the live ${host} website inside this page` : `Show the ${host} website inside this page`}
+                  >
                     Power on
                   </Button>
                 ) : (
