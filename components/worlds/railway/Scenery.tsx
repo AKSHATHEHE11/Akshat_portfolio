@@ -49,15 +49,19 @@ const HILL_FRONT = ridge(
   240,
 );
 
+/** Placed in tile coordinates rather than with a <g transform>: a transformed group paints as a
+ *  piece of its own, and three small clouds far apart across eight tiles became ~24 separate GPU
+ *  layers per landscape for the browser to sort through on every scroll frame. */
 function Cloud({ x, y, s }: { x: number; y: number; s: number }) {
+  const at = (cx: number, cy: number) => ({ cx: x + cx * s, cy: y + cy * s });
   return (
-    <g transform={`translate(${x} ${y}) scale(${s})`}>
-      <ellipse cx="0" cy="18" rx="120" ry="22" />
-      <circle cx="-55" cy="4" r="34" />
-      <circle cx="-5" cy="-14" r="48" />
-      <circle cx="52" cy="2" r="36" />
-      <circle cx="90" cy="14" r="22" />
-    </g>
+    <>
+      <ellipse {...at(0, 18)} rx={120 * s} ry={22 * s} />
+      <circle {...at(-55, 4)} r={34 * s} />
+      <circle {...at(-5, -14)} r={48 * s} />
+      <circle {...at(52, 2)} r={36 * s} />
+      <circle {...at(90, 14)} r={22 * s} />
+    </>
   );
 }
 
