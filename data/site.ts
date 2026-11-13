@@ -9,6 +9,9 @@ export const site = {
   build: "2026.11",
   version: "AKSHAT/OS 26.11",
 
+  /** The music island (top centre) plays this Spotify playlist through Spotify's own player. */
+  music: { playlist: "6gyglL1vMvpjGLXBKfRxHa", title: "The Weeknd: Best Of The Best" },
+
   /** Work and Design lead: they are the two portfolios. */
   nav: [
     { id: "01", label: "Work", href: "/work", key: "w" },
