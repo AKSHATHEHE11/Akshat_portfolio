@@ -6,6 +6,7 @@ import { site } from "@/data/site";
 import Providers from "@/components/providers/Providers";
 import Boot from "@/components/system/Boot";
 import Nav from "@/components/system/Nav";
+import MusicIsland from "@/components/system/MusicIsland";
 import Hud from "@/components/system/Hud";
 import ScrollRail from "@/components/system/ScrollRail";
 import Shortcuts from "@/components/system/Shortcuts";
@@ -53,6 +54,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Providers>
           <Boot />
           <Nav />
+          <MusicIsland />
           <ChaosLayer />
           <main id="main">{children}</main>
           <Hud />
