@@ -1,7 +1,7 @@
 "use client";
 import "./music/music.css";
 import { useEffect, useRef, useState, type CSSProperties } from "react";
-import { Music, Pause, Play, SkipBack, SkipForward } from "lucide-react";
+import { Music, Pause, Play, Search, SkipBack, SkipForward, X } from "lucide-react";
 import { site } from "@/data/site";
 
 /*
@@ -13,7 +13,9 @@ import { site } from "@/data/site";
   loaded only when someone first reaches for it. Visitors logged in to Spotify in that browser hear
   full songs, everyone else Spotify's 30-second previews. Where a browser refuses to start sound
   from outside Spotify's player (Safari, phones), the island shows that player for one tap.
-  The song list (data/playlist.json) comes from `node scripts/playlist.mjs`.
+  The song list is the live Spotify playlist (/api/music/playlist, refreshed hourly; data/playlist.json
+  from `node scripts/playlist.mjs` is the fallback). The magnifier searches all of Spotify
+  (/api/music/search) and slots the picked song in next.
 */
 
 type Track = { uri: string; title: string; artist: string; ms: number; cover: string | null };
@@ -70,6 +72,8 @@ export default function MusicIsland() {
   const phaseRef = useRef<Phase>("idle");
   const wantPlay = useRef(false); // play as soon as the player is ready (first press, or a new song loading)
   const endedUri = useRef("");
+  const loaded = useRef(""); // the song Spotify's player has loaded
+  const findInput = useRef<HTMLInputElement>(null);
   const closeTimer = useRef(0);
   const tapTimer = useRef(0);
 
@@ -81,6 +85,9 @@ export default function MusicIsland() {
   const [dur, setDur] = useState(0);
   const [open, setOpen] = useState(false);
   const [needsTap, setNeedsTap] = useState(false);
+  const [finding, setFinding] = useState(false);
+  const [q, setQ] = useState("");
+  const [found, setFound] = useState<{ q: string; tracks: Track[] | "error" } | null>(null);
 
   const track: Track | undefined = tracks[i];
 
@@ -101,27 +108,41 @@ export default function MusicIsland() {
     setPos(0);
     setDur(0);
     wantPlay.current = true; // played when the player says it's ready
-    ctrl.current?.loadUri(list[k].uri);
+    if (ctrl.current) {
+      loaded.current = list[k].uri;
+      ctrl.current.loadUri(list[k].uri);
+    }
   };
 
   const warm = () => {
     if (phaseRef.current !== "idle") return;
     phaseRef.current = "loading";
     setPhase("loading");
-    Promise.all([import("@/data/playlist.json"), loadApi()]).then(
-      ([{ default: playlist }, spotify]) => {
-        const list = playlist.tracks as Track[];
+    const songs = fetch("/api/music/playlist")
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
+      .catch(() => import("@/data/playlist.json"))
+      .then((p: { tracks: Track[] }) => p.tracks);
+    Promise.all([songs, loadApi()]).then(
+      ([list, spotify]) => {
         tracksRef.current = list;
         setTracks(list);
         const el = host.current;
         if (!el || !list.length) return;
         const mount = document.createElement("div"); // the API swaps this for its iframe
         el.appendChild(mount);
+        loaded.current = list[0].uri;
         spotify.createController(mount, { uri: list[0].uri, width: "100%", height: 80 }, (c) => {
           ctrl.current = c;
           c.addListener("ready", () => {
             phaseRef.current = "ready";
             setPhase("ready");
+            // a song was picked before the player was ready: load it (ready fires again after)
+            const want = tracksRef.current[iRef.current]?.uri;
+            if (want && want !== loaded.current) {
+              loaded.current = want;
+              c.loadUri(want);
+              return;
+            }
             if (wantPlay.current) {
               wantPlay.current = false;
               start(c, true);
@@ -171,6 +192,49 @@ export default function MusicIsland() {
   const prev = () => (pos > 3000 ? ctrl.current?.restart() : load(iRef.current - 1));
   const next = () => load(iRef.current + 1);
 
+  // a song from the search: play it now, then carry on with the playlist
+  const pick = (t: Track) => {
+    const list = tracksRef.current;
+    const at = list.findIndex((x) => x.uri === t.uri);
+    if (at >= 0) load(at);
+    else {
+      const k = Math.min(iRef.current + 1, list.length);
+      const grown = [...list.slice(0, k), t, ...list.slice(k)];
+      tracksRef.current = grown;
+      setTracks(grown);
+      load(k);
+    }
+    setFinding(false);
+    setQ("");
+    window.requestAnimationFrame(() => root.current?.querySelector<HTMLButtonElement>(".mi-play")?.focus());
+  };
+
+  const term = q.trim();
+  useEffect(() => {
+    if (!finding || term.length < 2) return;
+    const ac = new AbortController();
+    const wait = window.setTimeout(() => {
+      fetch(`/api/music/search?q=${encodeURIComponent(term)}`, { signal: ac.signal })
+        .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
+        .then(
+          (j: { tracks: Track[] }) => setFound({ q: term, tracks: j.tracks }),
+          () => !ac.signal.aborted && setFound({ q: term, tracks: "error" }),
+        );
+    }, 300);
+    return () => {
+      window.clearTimeout(wait);
+      ac.abort();
+    };
+  }, [finding, term]);
+  useEffect(() => {
+    if (finding) findInput.current?.focus();
+  }, [finding]);
+  const stopFinding = () => {
+    setFinding(false);
+    setQ("");
+    window.requestAnimationFrame(() => root.current?.querySelector<HTMLButtonElement>(".mi-find")?.focus());
+  };
+
   const show = () => {
     window.clearTimeout(closeTimer.current);
     warm();
@@ -192,7 +256,10 @@ export default function MusicIsland() {
   useEffect(() => {
     if (!open) return;
     const away = (e: PointerEvent) => {
-      if (!root.current?.contains(e.target as Node)) setOpen(false);
+      if (!root.current?.contains(e.target as Node)) {
+        setOpen(false);
+        setFinding(false);
+      }
     };
     document.addEventListener("pointerdown", away);
     return () => document.removeEventListener("pointerdown", away);
@@ -207,11 +274,12 @@ export default function MusicIsland() {
       className="mi"
       data-open={open || undefined}
       data-playing={playing || undefined}
-      data-tap={(open && needsTap) || undefined}
+      data-tap={(open && needsTap && !finding) || undefined}
+      data-search={(open && finding) || undefined}
       style={{ viewTransitionName: "music-island" }}
       // hover is a mouse thing: a finger lifting counts as leaving, which would shut it straight away
       onPointerEnter={(e) => e.pointerType === "mouse" && show()}
-      onPointerLeave={(e) => e.pointerType === "mouse" && hide()}
+      onPointerLeave={(e) => e.pointerType === "mouse" && !finding && hide()} // typing a search: stay open
       // keyboard focus opens it; a tap focuses too, but there the click opens it (else it would open and shut at once)
       onFocus={(e) => {
         if ((e.target as HTMLElement).matches(":focus-visible")) show();
@@ -223,6 +291,7 @@ export default function MusicIsland() {
       onKeyDown={(e) => {
         if (e.key === "Escape" && open) {
           setOpen(false);
+          setFinding(false);
           root.current?.querySelector<HTMLButtonElement>(".mi-notch")?.focus();
         }
       }}
@@ -255,6 +324,65 @@ export default function MusicIsland() {
               Open the playlist ↗
             </a>
           </p>
+        ) : finding ? (
+          <>
+            <form className="mi-search" role="search" onSubmit={(e) => e.preventDefault()}>
+              <Search size={14} aria-hidden />
+              <input
+                ref={findInput}
+                type="search"
+                placeholder="Search any song on Spotify"
+                aria-label="Search Spotify for a song"
+                enterKeyHint="search"
+                autoComplete="off"
+                value={q}
+                onChange={(e) => setQ(e.currentTarget.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Escape") {
+                    e.stopPropagation();
+                    stopFinding();
+                  }
+                }}
+              />
+              <button type="button" aria-label="Back to the player" onClick={stopFinding} data-cursor="hover">
+                <X size={14} />
+              </button>
+            </form>
+            <div className="mi-results" data-lenis-prevent aria-live="polite">
+              {term.length < 2 ? (
+                <p className="mi-hint">Type a song or an artist. The one you pick plays next.</p>
+              ) : found?.q !== term ? (
+                <p className="mi-hint">Searching…</p>
+              ) : found.tracks === "error" ? (
+                <p className="mi-hint">Search isn&apos;t working right now.</p>
+              ) : !found.tracks.length ? (
+                <p className="mi-hint">Nothing found for “{term}”.</p>
+              ) : (
+                <ul>
+                  {found.tracks.map((t) => (
+                    <li key={t.uri}>
+                      <button type="button" onClick={() => pick(t)} data-cursor="hover">
+                        {t.cover ? (
+                          // eslint-disable-next-line @next/next/no-img-element -- Spotify's cover art, 36px
+                          <img src={t.cover} alt="" width={36} height={36} loading="lazy" />
+                        ) : (
+                          <span className="mi-art-empty" aria-hidden>
+                            <Music size={14} />
+                          </span>
+                        )}
+                        <span className="mi-meta">
+                          <span className="mi-title">{t.title}</span>
+                          <span className="mi-artist">
+                            {t.artist} · {clock(t.ms)}
+                          </span>
+                        </span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </>
         ) : (
           <>
             <div className="mi-head">
@@ -291,6 +419,9 @@ export default function MusicIsland() {
             </div>
 
             <div className="mi-controls">
+              <button type="button" className="mi-find" aria-label="Search for a song" onClick={() => setFinding(true)} data-cursor="hover">
+                <Search size={16} />
+              </button>
               <button type="button" aria-label="Previous song" onClick={prev} disabled={!tracks.length} data-cursor="hover">
                 <SkipBack size={20} fill="currentColor" />
               </button>
