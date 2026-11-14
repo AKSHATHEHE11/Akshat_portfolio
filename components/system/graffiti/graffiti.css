@@ -1,0 +1,108 @@
+/* Graffiti tags and marks (Graffiti.tsx). Paint colours follow the site's accents; the outline is ink. */
+@layer components {
+.gf {
+  --gf-line: var(--color-ink);
+  pointer-events: none;
+  user-select: none;
+  rotate: var(--tilt, 0deg);
+  z-index: 2;
+}
+.gf[data-paint="orange"] {
+  --gf-paint: var(--color-orange);
+}
+.gf[data-paint="lime"] {
+  --gf-paint: var(--color-lime);
+}
+.gf[data-paint="ink"] {
+  --gf-paint: var(--fg);
+  --gf-line: var(--bg);
+}
+
+/* ── tag: a word in a spray hand ── */
+.gf-tag {
+  position: absolute;
+  display: inline-block;
+  font-size: clamp(2.5rem, 1.6rem + 3.2vw, 5rem);
+  line-height: 1;
+  white-space: nowrap;
+}
+.gf-word {
+  position: relative;
+  z-index: 1;
+  display: block;
+  padding: 0 0.12em;
+  color: var(--gf-paint);
+  -webkit-text-stroke: 0.07em var(--gf-line);
+  paint-order: stroke fill;
+  /* a hard ink drop shadow + overspray haze in the paint colour */
+  text-shadow:
+    0.05em 0.06em 0 var(--gf-line),
+    0 0 0.35em color-mix(in oklab, var(--gf-paint) 45%, transparent);
+  filter: var(--rough);
+  /* sprayed on left to right, in bursts */
+  clip-path: inset(-30% 100% -40% -10%);
+  transition: clip-path 1s steps(10, end) var(--delay, 0ms);
+}
+.gf-tag[data-in] .gf-word {
+  clip-path: inset(-30% -10% -40% -10%);
+}
+
+/* paint running down from the letters */
+.gf-drip {
+  position: absolute;
+  z-index: 0;
+  top: 55%;
+  left: calc(var(--x) * 100%);
+  width: 0.075em;
+  height: calc(0.45em + var(--i) * 0.22em);
+  border-radius: 0 0 999px 999px;
+  background: var(--gf-paint);
+  box-shadow: 0 0 0 0.02em var(--gf-line);
+  transform: scaleY(0);
+  transform-origin: top;
+  transition: transform 1.8s cubic-bezier(0.55, 0, 0.75, 1) calc(var(--delay, 0ms) + 900ms + var(--i) * 260ms);
+}
+.gf-drip::after {
+  content: "";
+  position: absolute;
+  bottom: -0.04em;
+  left: 50%;
+  width: 0.13em;
+  height: 0.13em;
+  translate: -50% 0;
+  border-radius: 50%;
+  background: inherit;
+}
+.gf-tag[data-in] .gf-drip {
+  transform: scaleY(1);
+}
+
+/* ── mark: a sprayed shape ── */
+.gf-mark {
+  position: absolute;
+  overflow: visible;
+}
+.gf-line,
+.gf-haze {
+  stroke: var(--gf-paint);
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transition: stroke-dashoffset 0.75s cubic-bezier(0.6, 0, 0.3, 1) calc(var(--delay, 0ms) + var(--i) * 420ms);
+}
+.gf-haze {
+  opacity: 0.18;
+}
+.gf-mark[data-in] .gf-line,
+.gf-mark[data-in] .gf-haze {
+  stroke-dashoffset: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gf-word,
+  .gf-drip,
+  .gf-line,
+  .gf-haze {
+    transition: none;
+  }
+}
+}
