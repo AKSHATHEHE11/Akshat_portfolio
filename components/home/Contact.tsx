@@ -10,6 +10,7 @@ import { Cross } from "./contact/Cross";
 import { IntentTabs, tabId } from "./contact/IntentTabs";
 import { Terminal } from "./contact/Terminal";
 import { Viewfinder } from "./contact/Viewfinder";
+import { Mark, Tag } from "@/components/system/graffiti/Graffiti";
 
 const PANEL = "contact-terminal";
 
@@ -26,7 +27,11 @@ export default function Contact() {
           <Cross className="-left-[8px] -top-[8px] max-md:hidden" />
           <Cross className="-right-[8px] -top-[8px] max-md:hidden" />
 
-          <div className="flex items-start justify-between gap-8 pt-[clamp(2.5rem,6vh,4rem)]">
+          <div className="relative flex items-start justify-between gap-8 pt-[clamp(2.5rem,6vh,4rem)]">
+            <Tag paint="lime" tilt={-8} delay={500} className="bottom-[-0.3em] right-[22%] max-md:right-0 max-md:text-[2.25rem]">
+              holla!
+            </Tag>
+            <Mark shape="arrow" paint="orange" tilt={28} delay={1500} className="bottom-[-3.25rem] right-[38%] w-24 max-md:hidden" />
             <h2 id="contact-title" data-chaos-type className="display text-display-m">
               {contact.heading.map((line, i) => (
                 <Reveal key={`${line}-${booted}`} as="span" className="block" delay={i * 0.08}>

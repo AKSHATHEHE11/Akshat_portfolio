@@ -9,6 +9,7 @@ import { Barcode } from "./Barcode";
 import { Stamps } from "./Stamps";
 import { Sticker } from "./Sticker";
 import "./identity.css";
+import { Mark } from "@/components/system/graffiti/Graffiti";
 
 const spec = (key: string) => profile.spec.find((r) => r.key === key)?.value;
 const MODEL = spec("Model") ?? profile.initials;
@@ -44,7 +45,8 @@ export function Datasheet({ unit, stickerRef }: { unit: number; stickerRef: Ref<
           </p>
         </header>
 
-        <div className="grid gap-x-10 gap-y-4 border-b border-ink/15 py-6 sm:grid-cols-[auto_minmax(0,1fr)] sm:items-end">
+        <div className="relative grid gap-x-10 gap-y-4 border-b border-ink/15 py-6 sm:grid-cols-[auto_minmax(0,1fr)] sm:items-end">
+          <Mark shape="crown" paint="orange" tilt={-12} weight={8} className="-top-3 -left-4 w-[clamp(3.5rem,7vw,6rem)]" />
           <h2 id="identity-title" className="display text-[clamp(4.25rem,2rem+8vw,9.5rem)] leading-[0.8] tracking-[-0.055em]">
             <span className="sr-only">{profile.name}, model </span>
             {MODEL.split(/(\d+)/).map((part, i) => (/^\d+$/.test(part) ? <Num key={i} v={part} /> : part))}

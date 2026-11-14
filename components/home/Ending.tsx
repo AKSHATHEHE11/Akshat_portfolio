@@ -15,6 +15,7 @@ import { RestartKey } from "./ending/RestartKey";
 import { Rewind } from "./ending/Rewind";
 import { sessionSeconds } from "./ending/session";
 import { Uptime } from "./ending/Uptime";
+import { Tag } from "@/components/system/graffiti/Graffiti";
 
 const { ending } = contact;
 
@@ -52,7 +53,10 @@ export default function Ending() {
             </p>
           </div>
 
-          <div className="grid gap-y-10 border-t border-line py-[clamp(2.5rem,7vh,4.5rem)] lg:grid-cols-12">
+          <div className="relative grid gap-y-10 border-t border-line py-[clamp(2.5rem,7vh,4.5rem)] lg:grid-cols-12">
+            <Tag paint="orange" tilt={-6} delay={300} drips={[0.12, 0.4, 0.66, 0.9]} className="bottom-[0.35em] left-[20%] max-lg:bottom-auto max-lg:left-auto max-lg:right-0 max-lg:top-[0.3em] max-md:text-[1.75rem]">
+              akshat was here
+            </Tag>
             <h2 id="end-title" data-chaos-type className="display text-display-s lg:col-span-7 lg:pr-10">
               {ending.heading.map((line, i) => (
                 <Reveal key={`${line}-${booted}`} as="span" className="block" delay={i * 0.08}>
