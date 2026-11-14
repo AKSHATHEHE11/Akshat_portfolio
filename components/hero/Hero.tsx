@@ -15,6 +15,7 @@ import { createRig } from "./console/rig";
 import { Headline } from "./Headline";
 import { Modules } from "./Modules";
 import { Status } from "./Status";
+import { Tag } from "@/components/system/graffiti/Graffiti";
 import "./hero.css";
 
 const NOSCRIPT =
@@ -94,6 +95,9 @@ export default function Hero() {
       <div className="frame grid flex-1 grid-cols-12 gap-x-(--gutter)">
         <div className="@container relative z-[1] col-span-12 pt-[clamp(0.25rem,2.5vh,2rem)] lg:col-span-7 lg:pb-8">
           <Headline lines={profile.headline} />
+          <Tag paint="orange" tilt={-9} delay={1400} className="right-[3%] top-[60%] max-lg:hidden">
+            akshat
+          </Tag>
           <p data-fade style={{ "--i": 0 } as CSSProperties} className="mt-[clamp(2.5rem,5.5vh,3.75rem)] max-w-[31ch] text-lede text-fg">
             <Intro text={profile.intro} />
           </p>
