@@ -50,14 +50,14 @@ itself running at the centre.
 | # | Project | World | The product inside it |
 |---|---|---|---|
 | 01 | DecisionOS | AI command centre | Ask the board: four AI agents argue a decision, then a brief assembles |
-| 02 | Safar Zaika | Indian railway journey | Order regional food by PNR, then track it along the route |
-| 03 | Fybr8 | Denim lookbook | A working store with fabric-first product pages and a fit finder |
+| 02 | Safar Zaika | Indian railway journey | The real Safar Zaika site behind **Power on**, then a train ride that delivers the order |
+| 03 | Fybr8 | Its own storefront | The real fybr8.com, live and usable, in the store's own colours and fonts |
 | 04 | CredWise | Analyst ledger terminal | Score a borrower and see the reasons behind the number |
 | 05 | Synthora SID | Campus blueprint | The student app: next class, attendance margin, digital ID |
 | 06 | Null Field | Shader instrument | A live WebGL instrument with knobs, presets and a record key |
 
-> The six projects are realistic **demo content** while the real case studies are prepared. Content
-> lives in `/data`, so swapping it in needs no UI changes.
+> Safar Zaika and Fybr8 are real, live products. The other four are realistic **demo content** while
+> their case studies are prepared. Content lives in `/data`, so swapping it in needs no UI changes.
 
 **Real websites inside worlds.** A project's real site can run *inside* its world's screen (the train
 window, the command-centre display), sandboxed and loaded only on demand. This is done only with the
