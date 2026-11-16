@@ -1,9 +1,9 @@
 # Real project websites inside their worlds
 
-Every project world has a screen that fits its metaphor: the train window in Safar Zaika, the main
-display in DecisionOS's command centre, the lookbook mirror in Fybr8. When a project has a real
-website, that screen runs it via `components/worlds/LiveScreen.tsx`, driven by the project's
-`live` field in `data/projects/<slug>.ts`.
+Every project world has a screen that fits its metaphor. A project with a real website gets the
+plain showcase page (`components/worlds/showcase/`) in the site's own colours and fonts, and its screen
+runs the site via `components/worlds/LiveScreen.tsx`, driven by the project's `live` field in
+`data/projects/<slug>.ts`.
 
 ```ts
 live: {
@@ -84,6 +84,19 @@ node scripts/capture-site.mjs https://site-two.in site-two
 ```
 
 Then set `mode: "capture", capture: "/projects/site-two/desktop.jpg"`.
+
+## Live projects today
+
+| Project | URL | Mode | Why |
+|---|---|---|---|
+| Fybr8 | https://www.fybr8.com/ | `embed` | No framing restrictions (checked 2026-11-16 with `npm run embeds`). |
+| Safar Zaika | https://safar-zaika-main.vercel.app/ | `capture` | Sends `X-Frame-Options: DENY`. To switch to `embed`, that app must allow `frame-ancestors 'self' https://justttakshat.vercel.app`. |
+
+**What updates by itself:** with `embed`, visitors see the site as it is right now. These were copied
+once and don't follow later changes to the site: the card picture (`public/projects/<slug>/card.webp`),
+the poster/capture images, the page's colours (`color`) and fonts (`components/worlds/showcase/fonts.ts`),
+and the written text and `highlights` in the data file. Refresh them by hand after a redesign, and re-run
+`npm run embeds -- <url>` if the site's security headers change.
 
 ## What to send for each real project
 
