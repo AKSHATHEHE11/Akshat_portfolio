@@ -39,6 +39,9 @@ BOOT → ENTER → PLAY → SELECTED WORLDS → THINK → IDENTITY → LAB → C
 | **Playground · Think · Experiments · About** | A physics workbench, a switchboard of design principles, six runnable creative-coding experiments, and an identity you explore rather than read. |
 | **Found UI** | Live cursor coordinates, scroll velocity, local time, build stamps. Subtle, never in the way. |
 | **Sound** | Interface sounds synthesised with WebAudio. No audio files, and off until you turn it on. |
+| **Music island** | A black notch on the top edge that grows into a now-playing card: Akshat's Spotify playlist, plus a search for any song on Spotify. It keeps playing across pages. |
+| **Contact terminal** | Name, email and message go straight to the inbox over SMTP (Nodemailer). If mail isn't set up, the visitor's own mail app opens instead. |
+| **Graffiti** | Spray-painted tags and marks dropped on a few spots. They spray on, and the paint drips. |
 | **Hidden things** | Keyboard shortcuts (press `?`), a secret blueprint mode, and at least one classic cheat code. |
 
 ## Project worlds
