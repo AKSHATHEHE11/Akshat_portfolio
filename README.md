@@ -129,8 +129,12 @@ contrast, and reduced motion is honoured.
 
 ```bash
 npm install
-npm run dev        # http://localhost:3000
+cp .env.example .env.local   # optional: mail + song search, see the comments inside
+npm run dev                  # http://localhost:3000
 ```
+
+Everything runs without the env file. Without it, the contact form falls back to the visitor's mail app and the
+music search stays off.
 
 | Script | What it does |
 |---|---|
@@ -140,11 +144,13 @@ npm run dev        # http://localhost:3000
 | `npm run shot -- <route> <out.png> [--mobile]` | Screenshot a route of a running server |
 | `npm run embeds -- <url>` | Check whether a site allows being shown inside the portfolio |
 | `npm run capture -- <url> <slug>` | Full-page captures for sites that can't be embedded |
+| `node scripts/playlist.mjs` | Save the Spotify playlist as `data/playlist.json` (the fallback when Spotify can't be read live) |
 
 ## Structure
 
 ```
-app/                    routes: / · /work · /work/[slug] · /playground · /think · /experiments · /about
+app/                    routes: / · /work · /work/[slug] · /design · /playground · /think · /experiments · /about
+  api/music/            the live playlist + song search for the music island
 components/
   system/               boot, console nav, HUD, cursor, grain, scroll rail, shortcuts, secret mode
   chaos/                Chaos Mode
