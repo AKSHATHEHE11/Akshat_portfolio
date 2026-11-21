@@ -50,6 +50,9 @@ Each project picks a world in its data file. A world is one reusable environment
 project's story, process, decisions, stack and results inside its own metaphor, with the product
 itself running at the centre.
 
+A project with a real website gets a simpler **showcase page** instead: its own fonts and colours, a
+short intro, and the real site inside the page behind a **Power on** button.
+
 | # | Project | World | The product inside it |
 |---|---|---|---|
 | 01 | DecisionOS | AI command centre | Ask the board: four AI agents argue a decision, then a brief assembles |
