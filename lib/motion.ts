@@ -42,6 +42,7 @@ export const Z = {
   chaos: 45,
   hud: 50,
   nav: 60,
+  music: 65, // the music island: over the nav, under the menu sheet
   sheet: 70,
   boot: 90,
   grain: 95,

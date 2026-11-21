@@ -114,7 +114,7 @@ overshoot), `"power3.inOut"`. CSS: `ease-out-expo`, `ease-out-quart`, `ease-mach
 Motion springs: `SPRING.key`, `SPRING.soft`, `SPRING.magnet` from lib/motion.ts.
 
 ### z-index (lib/motion.ts `Z`) — never invent others
-content 1 · sticky 20 · worldUi 40 · chaos 45 · hud 50 · nav 60 · sheet 70 · boot 90 · grain 95 · cursor 100.
+content 1 · sticky 20 · worldUi 40 · chaos 45 · hud 50 · nav 60 · music 65 · sheet 70 · boot 90 · grain 95 · cursor 100.
 Tailwind: `z-[60]` etc.
 
 ## 4. Interaction language

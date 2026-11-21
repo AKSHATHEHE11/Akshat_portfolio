@@ -12,7 +12,7 @@
   --mi-spring: cubic-bezier(0.32, 1.25, 0.5, 1);
   --mi-dim: rgb(255 255 255 / 0.55);
   position: fixed;
-  z-index: 65; /* over the nav (60), under the menu panel (70) */
+  z-index: 65; /* Z.music in lib/motion.ts: over the nav (60), under the menu panel (70) */
   top: 0;
   left: 50%;
   translate: -50% 0;
