@@ -124,6 +124,8 @@ contrast, and reduced motion is honoured.
 | **matter-js** | Physics for the playground |
 | **Swiper** | Touch-first carousels on phones |
 | **lucide-react** | Line icons |
+| **Nodemailer** | The contact form's mail, over SMTP |
+| **Spotify iFrame API** + Web API | The music island: Spotify's own player driven by our controls, and song search |
 
 ## Run it locally
 
