@@ -179,6 +179,8 @@ docs/                   design brief, live-site guide, README assets
 2. Choose its `environment` (world), its colours and its `scene` content.
 3. Optionally add `live: { url, mode, permission }` so the real site runs inside the world. Check the
    link first with `npm run embeds`.
+4. With a real site, add `heroImage`: a 1440×900 picture of its first screen at
+   `public/projects/<slug>/card.webp`. The work cards, home portals and the next-stop card show it.
 
 ---
 
