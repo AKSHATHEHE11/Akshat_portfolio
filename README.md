@@ -144,7 +144,7 @@ music search stays off.
 | `npm run shot -- <route> <out.png> [--mobile]` | Screenshot a route of a running server |
 | `npm run embeds -- <url>` | Check whether a site allows being shown inside the portfolio |
 | `npm run capture -- <url> <slug>` | Full-page captures for sites that can't be embedded |
-| `node scripts/playlist.mjs` | Save the Spotify playlist as `data/playlist.json` (the fallback when Spotify can't be read live) |
+| `npm run playlist` | Save the Spotify playlist as `data/playlist.json` (the fallback when Spotify can't be read live) |
 
 ## Structure
 
