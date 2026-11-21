@@ -39,7 +39,7 @@ live: {
 ## Step 1 — check each link
 
 ```bash
-node scripts/check-embeds.mjs https://site-one.com https://site-two.in --origin=https://justttakshat.vercel.app
+npm run embeds -- https://site-one.com https://site-two.in --origin=https://justttakshat.vercel.app
 ```
 
 `✓ EMBED OK` → use `mode: "embed"`. `✗ BLOCKED` → see step 2 or use `capture`.
@@ -78,7 +78,7 @@ usually can't change this. Use `capture` for those.
 ## Step 3 — sites that stay blocked: capture them
 
 ```bash
-node scripts/capture-site.mjs https://site-two.in site-two
+npm run capture -- https://site-two.in site-two
 # → public/projects/site-two/desktop.jpg and phone.jpg
 ```
 
