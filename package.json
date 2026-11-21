@@ -11,7 +11,8 @@
     "models": "node scripts/models/build-all.mjs",
     "shot": "node scripts/shot.mjs",
     "embeds": "node scripts/check-embeds.mjs",
-    "capture": "node scripts/capture-site.mjs"
+    "capture": "node scripts/capture-site.mjs",
+    "playlist": "node scripts/playlist.mjs"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
