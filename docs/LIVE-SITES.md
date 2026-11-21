@@ -20,7 +20,7 @@ live: {
 | mode | what visitors see | when to use it |
 |---|---|---|
 | `embed` | The real site, live and fully usable, inside the world's screen. It loads only after the visitor presses **Power on**, runs sandboxed, and the address bar shows the real domain. | The site allows framing (check it first). |
-| `capture` | A full-page screenshot of the site scrolling itself inside the screen, plus **Open live site ↗**. | The site refuses framing and you can't change that. |
+| `capture` | A poster first; **Power on** starts a full-page screenshot of the site scrolling itself inside the screen, plus **Open live site ↗**. | The site refuses framing and you can't change that. |
 | `link` | A framed poster plus **Open live site ↗**. | Quick fallback. |
 
 ## Keeping it legal
