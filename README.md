@@ -154,12 +154,14 @@ music search stays off.
 app/                    routes: / · /work · /work/[slug] · /design · /playground · /think · /experiments · /about
   api/music/            the live playlist + song search for the music island
 components/
-  system/               boot, console nav, HUD, cursor, grain, scroll rail, shortcuts, secret mode
+  system/               boot, console nav, HUD, cursor, grain, scroll rail, shortcuts, secret mode,
+                        the music island, graffiti tags
   chaos/                Chaos Mode
-  hero/  home/          the home journey, scene by scene
+  hero/  home/          the home journey, scene by scene (home/contact/ holds the mail form)
   work/                 the work index and its five modes
-  worlds/               one folder per world + the shell around them + LiveScreen
-  playground/ think/ experiments/ about/
+  worlds/               one folder per world + the shell around them + LiveScreen;
+                        showcase/ is the page for projects with a real site
+  design/ playground/ think/ experiments/ about/
   ui/                   keys, links, reveals, marks
   transitions/          page transitions and shared-element morphs
 lib/                    system state, sound, GSAP setup, pointer, hooks, motion tokens, types
