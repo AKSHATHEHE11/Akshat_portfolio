@@ -39,22 +39,21 @@ live: {
 ## Step 1 — check each link
 
 ```bash
-node scripts/check-embeds.mjs https://site-one.com https://site-two.in --origin=https://your-portfolio-domain.com
+node scripts/check-embeds.mjs https://site-one.com https://site-two.in --origin=https://justttakshat.vercel.app
 ```
 
 `✓ EMBED OK` → use `mode: "embed"`. `✗ BLOCKED` → see step 2 or use `capture`.
 
 ## Step 2 — on sites YOU control, allow the portfolio to frame them
 
-Add one response header to the project site (replace the domain; add `http://localhost:3000` while
-testing locally):
+Add one response header to the project site (add `http://localhost:3000` while testing locally):
 
 **Next.js** (`next.config.js` of the project site)
 ```js
 async headers() {
   return [{
     source: "/:path*",
-    headers: [{ key: "Content-Security-Policy", value: "frame-ancestors 'self' https://your-portfolio-domain.com" }],
+    headers: [{ key: "Content-Security-Policy", value: "frame-ancestors 'self' https://justttakshat.vercel.app" }],
   }];
 }
 ```
@@ -62,14 +61,14 @@ async headers() {
 **Vercel static site** (`vercel.json`)
 ```json
 { "headers": [{ "source": "/(.*)", "headers": [
-  { "key": "Content-Security-Policy", "value": "frame-ancestors 'self' https://your-portfolio-domain.com" }
+  { "key": "Content-Security-Policy", "value": "frame-ancestors 'self' https://justttakshat.vercel.app" }
 ] }] }
 ```
 
 **Netlify** (`public/_headers`)
 ```
 /*
-  Content-Security-Policy: frame-ancestors 'self' https://your-portfolio-domain.com
+  Content-Security-Policy: frame-ancestors 'self' https://justttakshat.vercel.app
 ```
 
 Remove any `X-Frame-Options: DENY` the site sends. When `frame-ancestors` is present, browsers
