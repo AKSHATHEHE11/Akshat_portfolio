@@ -13,7 +13,8 @@
     "embeds": "node scripts/check-embeds.mjs",
     "capture": "node scripts/capture-site.mjs",
     "playlist": "node scripts/playlist.mjs",
-    "check:music": "node scripts/check-music.mjs"
+    "check:music": "node scripts/check-music.mjs",
+    "check:contact": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-contact.mjs"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
