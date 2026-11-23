@@ -151,6 +151,7 @@ music search stays off.
 | `npm run capture -- <url> <slug>` | Full-page captures for sites that can't be embedded |
 | `npm run playlist` | Save the Spotify playlist as `data/playlist.json` (the fallback when Spotify can't be read live) |
 | `npm run check:music [-- <server>]` | Check the music API on a running server: the playlist, and search if the Spotify keys are set |
+| `npm run check:contact` | Check the contact form's rules (also runs on every push, with type-check and lint, in GitHub Actions) |
 
 ## Structure
 
