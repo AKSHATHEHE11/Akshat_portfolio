@@ -35,7 +35,7 @@ type Hit = {
 
 export async function GET(req: Request) {
   const q = new URL(req.url).searchParams.get("q")?.trim().slice(0, 100);
-  if (!q) return Response.json({ tracks: [] });
+  if (!q || q.length < 2) return Response.json({ tracks: [] }); // the island searches from 2 letters; don't spend Spotify calls on less
   const auth = await accessToken();
   if (!auth) return Response.json({ error: "search is not set up" }, { status: 503 });
 
