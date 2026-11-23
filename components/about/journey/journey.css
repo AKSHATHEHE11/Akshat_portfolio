@@ -593,6 +593,11 @@
 .ab-rk[data-armed]:not([data-on]) :is(.ab-rk-led, .ab-rk-st, .ab-rk-tray) {
   opacity: 0;
 }
+/* keyboard focus can land on a unit before the rack boots: never let it sit on a faded control */
+.ab-rk[data-armed]:not([data-on]) .ab-rk-unit:focus-within .ab-rk-face {
+  opacity: 1;
+  transform: none;
+}
 .ab-rk[data-on] .ab-rk-face {
   animation: ab-rk-seat 460ms var(--rk-snap) backwards;
   animation-delay: calc(var(--i) * 140ms);
