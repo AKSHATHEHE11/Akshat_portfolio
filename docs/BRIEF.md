@@ -275,6 +275,11 @@ The live site can replace or sit beside the mocked interactive preview. Rules ar
 own sites or written client permission only, never bypass a site's framing block (fallback modes
 "capture"/"link"), and the iframe loads only when the visitor presses Power on.
 
+A project with `live` gets the showcase page (`components/worlds/showcase/`) in the site's own fonts
+and colours instead of a full world; Safar Zaika keeps its train ride under it. Give it a `heroImage`
+(`public/projects/<slug>/card.webp`, 1440×900, first screen with popups closed): the work cards, home
+portals and next-stop card show it instead of the drawn motif.
+
 ## 10. Accessibility checklist
 
 Semantic landmarks and a logical heading order (one `h1` per page) · real `<button>`/`<a>` · keyboard
