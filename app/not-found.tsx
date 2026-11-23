@@ -1,6 +1,10 @@
+import type { Metadata } from "next";
 import { Page } from "@/components/transitions/Page";
 import { Button } from "@/components/ui/Button";
 import { Corners } from "@/components/ui/marks";
+
+// the tab says what happened, and search engines don't index a dead link
+export const metadata: Metadata = { title: "Signal lost", robots: { index: false } };
 
 export default function NotFound() {
   return (
