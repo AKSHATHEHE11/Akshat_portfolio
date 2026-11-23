@@ -268,6 +268,10 @@ bio) · `data/projects/*.ts` (+ `index.ts`: `projects`, `summaries`, `featured`,
 Server pages pass data down as props where it is large (e.g. `summaries`). Small data modules may be
 imported directly by client components.
 
+Search and sharing come from the same data: `site.url` is the live domain, and `app/sitemap.ts`,
+`app/robots.ts`, `app/manifest.ts`, the home page's schema.org Person (from `profile`) and each world's
+link preview (its `heroImage`) are all built from it. Add a page to `site.nav` and it joins the sitemap.
+
 ### Real websites inside worlds
 When `project.live` exists, the world's screen (window, display, mirror…) renders
 `<LiveScreen live={project.live} title={project.title} />` from `components/worlds/LiveScreen.tsx`.
