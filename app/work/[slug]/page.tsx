@@ -16,7 +16,10 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { slug } = await params;
   const p = getProject(slug);
-  return p ? { title: p.title, description: p.description } : {};
+  if (!p) return {};
+  // a shared link shows the project's own first screen when it has one
+  const images = p.heroImage ? [{ url: p.heroImage, width: 1440, height: 900, alt: `${p.title}: first screen` }] : undefined;
+  return { title: p.title, description: p.description, openGraph: { title: p.title, description: p.description, type: "website", images } };
 }
 
 export default async function WorldPage({ params }: Params) {
