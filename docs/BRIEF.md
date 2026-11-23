@@ -104,6 +104,11 @@ Mostly neutral. Accents appear strategically. Never a rainbow (project worlds ma
 - Asymmetric grids. 12-col mental model with `gap-(--gutter)`.
 - Nav is fixed and ~`var(--nav-h)` tall at top: leave room.
 
+### Component stylesheets
+- A component's own `.css` file goes inside `@layer components { … }`. Unlayered CSS beats every
+  Tailwind utility, so `max-lg:hidden` or `max-md:text-[…]` on that element would silently do nothing
+  (this hid nothing on phones until the graffiti tags were moved into the layer).
+
 ### Depth / shadows
 `shadow-key` (physical key), `shadow-key-down` (pressed), `shadow-hard` (ink offset), `shadow-float`, `shadow-glow`.
 
