@@ -12,7 +12,8 @@
     "shot": "node scripts/shot.mjs",
     "embeds": "node scripts/check-embeds.mjs",
     "capture": "node scripts/capture-site.mjs",
-    "playlist": "node scripts/playlist.mjs"
+    "playlist": "node scripts/playlist.mjs",
+    "check:music": "node scripts/check-music.mjs"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
