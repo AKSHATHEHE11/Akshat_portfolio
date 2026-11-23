@@ -5,7 +5,7 @@ export const site = {
   short: "Akshat",
   description:
     "Akshat Agrawal is a design engineer who builds playful, useful things for the web. This portfolio is a playground: enter it.",
-  url: "https://akshat.example", // DUMMY — real domain later
+  url: "https://justttakshat.vercel.app", // the live site: link previews and the sitemap build on it
   build: "2026.11",
   version: "AKSHAT/OS 26.11",
 
