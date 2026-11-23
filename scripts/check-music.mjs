@@ -27,4 +27,4 @@ else {
   else console.log(`✓ search: ${r.tracks.length} songs, first “${r.tracks[0].title}” by ${r.tracks[0].artist}`);
 }
 
-process.exit(failed ? 1 : 0);
+process.exitCode = failed ? 1 : 0; // not process.exit(): on Windows it can abort while fetch's sockets close
