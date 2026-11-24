@@ -72,8 +72,8 @@ function mediaBoxes(vw: number, vh: number) {
   return out;
 }
 
-/** Fixed chrome (nav, HUD, rail, world bar — the brief's view-transition names), minus the cursor. */
-const CHROME = '[style*="view-transition-name"]:not([style*="site-cursor"])';
+/** Fixed chrome (nav, HUD, rail, world bar — the brief's view-transition names). */
+const CHROME = '[style*="view-transition-name"]';
 let chromeCache = { at: -1e9, boxes: [] as DOMRect[] };
 
 /**

@@ -46,5 +46,4 @@ export const Z = {
   sheet: 70,
   boot: 90,
   grain: 95,
-  cursor: 100,
 } as const;

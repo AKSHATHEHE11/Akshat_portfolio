@@ -91,7 +91,7 @@ respected.
 
 **Interaction language:** every button is a physical key. It's pulled magnetically toward the cursor,
 fills on hover and travels 2 px when pressed. Links grow the next page out of the click point. The
-cursor changes its shape and wording to suit what it's over: *open*, *view*, *drag*.
+pointer is the visitor's own; the site draws none.
 
 **Rules this site doesn't break**
 - No eyebrow → heading → subline → two-buttons formula, and no section numbers stamped on every
@@ -160,7 +160,7 @@ music search stays off.
 app/                    routes: / · /work · /work/[slug] · /design · /playground · /think · /experiments · /about
   api/music/            the live playlist + song search for the music island
 components/
-  system/               boot, console nav, HUD, cursor, grain, scroll rail, shortcuts, secret mode,
+  system/               boot, console nav, HUD, grain, scroll rail, shortcuts, secret mode,
                         the music island, graffiti tags
   chaos/                Chaos Mode
   hero/  home/          the home journey, scene by scene (home/contact/ holds the mail form)

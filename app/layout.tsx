@@ -11,7 +11,6 @@ import Hud from "@/components/system/Hud";
 import ScrollRail from "@/components/system/ScrollRail";
 import Shortcuts from "@/components/system/Shortcuts";
 import SecretMode from "@/components/system/SecretMode";
-import Cursor from "@/components/system/Cursor";
 import Grain from "@/components/system/Grain";
 import ChaosLayer from "@/components/chaos/ChaosLayer";
 
@@ -61,7 +60,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <ScrollRail />
           <Shortcuts />
           <SecretMode />
-          <Cursor />
           <Grain />
         </Providers>
       </body>

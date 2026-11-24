@@ -120,7 +120,7 @@ overshoot), `"power3.inOut"`. CSS: `ease-out-expo`, `ease-out-quart`, `ease-mach
 Motion springs: `SPRING.key`, `SPRING.soft`, `SPRING.magnet` from lib/motion.ts.
 
 ### z-index (lib/motion.ts `Z`) — never invent others
-content 1 · sticky 20 · worldUi 40 · chaos 45 · hud 50 · nav 60 · music 65 · sheet 70 · boot 90 · grain 95 · cursor 100.
+content 1 · sticky 20 · worldUi 40 · chaos 45 · hud 50 · nav 60 · music 65 · sheet 70 · boot 90 · grain 95.
 Tailwind: `z-[60]` etc.
 
 ## 4. Interaction language
@@ -131,8 +131,8 @@ Tailwind: `z-[60]` etc.
 - **Magnetic**: `components/ui/Magnetic.tsx` wraps any element.
 - **Text**: `components/ui/Reveal.tsx` (masked line/word/char reveal on scroll), `components/ui/Scramble.tsx`
   (decoding system text). Marks: `components/ui/marks.tsx` → `Bracket`, `Led`, `Corners`, `Kbd`.
-- **Cursor states** — set on any element; the global cursor reads them:
-  `data-cursor="hover|open|view|drag|text|hide"` and optional `data-cursor-label="OPEN"` for custom text.
+- **Pointer** — the system's own; the site draws none (a drawn one cost rendering on every mouse move).
+  `data-cursor="hover|open|view|drag|text"` picks its shape (globals.css); `data-cursor-label` is unused.
   Project portals → `open`; images/previews → `view`; draggables → `drag`.
 - **Sound** — `import { play } from "@/lib/sound"`: `play("tick")` on hover, `"click"`, `"press"`,
   `"toggle-on|off"`, `"open|close"`, `"type"`, `"glitch"`, `"drop"`, `"success"`… It is a no-op unless the
@@ -239,7 +239,7 @@ background and its title. Rules: one element per name per page; the morph target
 rendered immediately (not behind `dynamic()`/Suspense) or the pair won't form.
 
 Fixed chrome that must not animate during page transitions gets `style={{ viewTransitionName: "site-nav" }}`
-(names in use: `site-nav`, `site-hud`, `site-rail`, `site-cursor`, `site-cursor-blend`, `site-grain`,
+(names in use: `site-nav`, `site-hud`, `site-rail`, `site-grain`,
 `world-shell`). Never switch an element that carries a view-transition name to `display: none` while a
 navigation can run — its snapshot pair breaks and it flashes; fade it with opacity instead.
 

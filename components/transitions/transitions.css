@@ -39,8 +39,6 @@
 ::view-transition-group(site-nav),
 ::view-transition-group(site-hud),
 ::view-transition-group(site-rail),
-::view-transition-group(site-cursor),
-::view-transition-group(site-cursor-blend),
 ::view-transition-group(site-grain),
 ::view-transition-group(world-shell) {
   animation: none;
@@ -49,8 +47,6 @@
 ::view-transition-old(site-nav),
 ::view-transition-old(site-hud),
 ::view-transition-old(site-rail),
-::view-transition-old(site-cursor),
-::view-transition-old(site-cursor-blend),
 ::view-transition-old(site-grain),
 ::view-transition-old(world-shell) {
   display: none;
@@ -58,18 +54,9 @@
 ::view-transition-new(site-nav),
 ::view-transition-new(site-hud),
 ::view-transition-new(site-rail),
-::view-transition-new(site-cursor),
-::view-transition-new(site-cursor-blend),
 ::view-transition-new(site-grain),
 ::view-transition-new(world-shell) {
   animation: none;
-}
-/* The cursor's white layer keeps inverting whatever passes beneath it (inside a world it is tinted). */
-::view-transition-group(site-cursor-blend) {
-  mix-blend-mode: difference;
-}
-:root[data-world]:not([data-world=""])::view-transition-group(site-cursor-blend) {
-  mix-blend-mode: normal;
 }
 
 /* ── nav-forward: an aperture opens from the click; the old page recedes into the dark ── */

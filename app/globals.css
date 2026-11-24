@@ -192,7 +192,6 @@
   --z-sheet: 70;
   --z-boot: 90;
   --z-grain: 95;
-  --z-cursor: 100;
 
   /* notches / home indicator (non-zero because the viewport uses viewport-fit=cover) */
   --safe-top: env(safe-area-inset-top, 0px);
@@ -274,6 +273,19 @@
   button:not(:disabled),
   [role="button"]:not([aria-disabled="true"]) {
     cursor: pointer;
+  }
+  /* the system pointer (the site draws none of its own): data-cursor picks its shape */
+  :is([data-cursor="hover"], [data-cursor="open"], [data-cursor="view"]) {
+    cursor: pointer;
+  }
+  [data-cursor="text"] {
+    cursor: text;
+  }
+  [data-cursor="drag"] {
+    cursor: grab;
+  }
+  [data-cursor="drag"]:active {
+    cursor: grabbing;
   }
 
   /* no double-tap-zoom delay on controls */
