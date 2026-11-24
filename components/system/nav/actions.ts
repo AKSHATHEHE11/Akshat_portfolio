@@ -31,8 +31,9 @@ export function flipSound() {
 }
 
 // The ink the new theme pours in with: a grid of mask frames made by scripts/ink.mjs, one sheet for
-// wide screens and one for tall ones. Fetched only once the switch is about to be used (hover, focus,
-// the menu opening), never on page load; until a sheet has decoded, the switch falls back to the iris.
+// wide screens and one for tall ones. Fetched once the switch is about to be used (hover, focus, the menu
+// opening), on touch a few seconds after load (Nav); until a sheet has decoded, the switch falls back to
+// the iris.
 const INK = { land: "/fx/ink-land.webp", port: "/fx/ink-port.webp" };
 const sheets = new Map<string, HTMLImageElement | null>(); // null while loading; kept so it stays decoded
 const inkSheet = () => (window.matchMedia("(orientation: portrait)").matches ? INK.port : INK.land); // as nav.css picks it

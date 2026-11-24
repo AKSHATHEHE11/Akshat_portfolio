@@ -6,10 +6,11 @@ import { useLenis } from "lenis/react";
 import { Button } from "@/components/ui/Button";
 import { Scramble } from "@/components/ui/Scramble";
 import { gsap, useGSAP } from "@/lib/gsap";
-import { useChaos, useReducedMotion, useSystemReady } from "@/lib/hooks";
+import { useChaos, useCoarse, useReducedMotion, useSystemReady } from "@/lib/hooks";
 import { play } from "@/lib/sound";
 import { on, useSystem } from "@/lib/system";
 import { cn } from "@/lib/utils";
+import { primeInk } from "./nav/actions";
 import { Links } from "./nav/Links";
 import { Logo } from "./nav/Logo";
 import { MenuPanel, type Origin } from "./nav/MenuPanel";
@@ -60,6 +61,16 @@ export default function Nav() {
     setOpen(false);
   }, []);
   useEffect(() => on("menu:close", () => closePanel(true)), [closePanel]);
+
+  // Touch has no hover to fetch the Lights ink on, and the menu is too short a warning on mobile data:
+  // fetch it once the page has settled (not for visitors saving data).
+  const coarse = useCoarse();
+  useEffect(() => {
+    const saving = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData;
+    if (!coarse || saving) return;
+    const id = window.setTimeout(primeInk, 4000);
+    return () => window.clearTimeout(id);
+  }, [coarse]);
 
   return (
     <>
