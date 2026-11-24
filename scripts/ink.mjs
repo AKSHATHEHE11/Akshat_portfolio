@@ -130,7 +130,7 @@ async function sheet(fw, fh, ox, oy, file) {
   // white, with the mask in the alpha channel
   await sharp({ create: { width: W, height: fh * ROWS, channels: 3, background: "#fff" } })
     .joinChannel(out, { raw: { width: W, height: fh * ROWS, channels: 1 } })
-    .webp({ quality: 80, alphaQuality: 80, effort: 6 })
+    .webp({ quality: 80, alphaQuality: 50, effort: 6 }) // 50: half the bytes of 80, same look
     .toFile(file);
   return img;
 }
