@@ -105,9 +105,10 @@ Mostly neutral. Accents appear strategically. Never a rainbow (project worlds ma
 - Nav is fixed and ~`var(--nav-h)` tall at top: leave room.
 
 ### Component stylesheets
-- A component's own `.css` file goes inside `@layer components { … }`. Unlayered CSS beats every
-  Tailwind utility, so `max-lg:hidden` or `max-md:text-[…]` on that element would silently do nothing
-  (this hid nothing on phones until the graffiti tags were moved into the layer).
+- Component `.css` files are unlayered, so they beat every Tailwind utility: a utility can't override a
+  property the stylesheet sets (`max-lg:hidden` loses to its `display`). Put responsive overrides in the
+  stylesheet too, or wrap the file in `@layer components { … }` when callers must override it with
+  utilities (`graffiti.css` does).
 
 ### Depth / shadows
 `shadow-key` (physical key), `shadow-key-down` (pressed), `shadow-hard` (ink offset), `shadow-float`, `shadow-glow`.
