@@ -270,7 +270,8 @@ imported directly by client components.
 
 Search and sharing come from the same data: `site.url` is the live domain, and `app/sitemap.ts`,
 `app/robots.ts`, `app/manifest.ts`, the home page's schema.org Person (from `profile`) and each world's
-link preview (its `heroImage`) are all built from it. Add a page to `site.nav` and it joins the sitemap.
+link preview (its `heroImage`) are all built from it. Add a page to `site.nav` and it joins the sitemap;
+a project joins once it has a `live` site (the demo worlds stay out).
 
 ### Real websites inside worlds
 When `project.live` exists, the world's screen (window, display, mirror…) renders
