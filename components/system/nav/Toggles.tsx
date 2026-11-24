@@ -6,7 +6,7 @@ import { Led } from "@/components/ui/marks";
 import { play } from "@/lib/sound";
 import { emit, useSystem } from "@/lib/system";
 import { cn } from "@/lib/utils";
-import { flipChaos, flipLights, flipSound, originOf, primeInk } from "./actions";
+import { flipChaos, flipLights, flipSound, inkLoading, originOf, primeInk } from "./actions";
 
 /*
   The console's three switches. "bar" = compact pill in the nav; "panel" = a tile in the menu panel.
@@ -210,11 +210,22 @@ export function LightsToggle({ variant = "bar" }: { variant?: Variant }) {
       onPrime={primeInk}
       onPress={(el) => {
         const at = originOf(el);
-        if (variant !== "panel") return void flipLights(at);
         // the menu panel covers the page (and looks the same in both themes): fold it away first,
-        // then pour the ink over the page itself. 480ms = the panel's exit (MenuPanel, 0.45s).
-        emit("menu:close");
-        window.setTimeout(() => flipLights(at), 480);
+        // then pour the ink over the page itself. Wait until the panel has really gone (a busy phone takes
+        // longer than its 0.45s exit, and ink over the panel shows nothing) and the sheet has arrived.
+        if (variant === "panel") emit("menu:close");
+        // The exit doubles as a speed test: capable phones fold the panel in ~0.5s, struggling ones take longer.
+        const start = performance.now();
+        const latest = start + (variant === "panel" ? 2500 : 800);
+        let folded = 0;
+        const pour = () => {
+          const now = performance.now();
+          const panel = variant === "panel" && document.getElementById("sys-panel");
+          if (!panel) folded ||= now - start;
+          if ((panel || inkLoading()) && now < latest) requestAnimationFrame(pour);
+          else flipLights(at, variant === "panel" && (!folded || folded > 650));
+        };
+        pour();
       }}
     >
       {variant === "panel" ? (

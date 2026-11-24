@@ -228,10 +228,10 @@ html[data-chaos="on"] .sys-nav[data-scrolled="true"] {
    the frames of an ink sheet (public/fx/ink-*.webp, made by scripts/ink.mjs; a 6×5 grid).
    Each step jumps to the next frame, so the mask never interpolates between two of them. The iris is
    the fallback until the sheet has loaded (actions.ts). */
-/* one picture: named parts (nav, HUD, grain) join the root snapshot so the ink reveals them with the
-   page, and nothing runs its own colour transition behind the ink */
-html:is(.sys-lights, .sys-ink) :is(*, *::before, *::after) {
-  transition: none !important;
+/* one picture: named parts (nav, HUD, grain: all named inline) join the root snapshot so the ink reveals
+   them with the page. Never a rule on every element here (or an inherited property on <html>): restyling
+   the whole page freezes phones before the ink. Colour transitions are settled in actions.ts. */
+html:is(.sys-lights, .sys-ink) [style*="view-transition-name"] {
   view-transition-name: none !important;
 }
 html:is(.sys-lights, .sys-ink)::view-transition-old(root) {
@@ -251,9 +251,26 @@ html.sys-lights::view-transition-new(root) {
 html.sys-ink::view-transition-new(root) {
   /* the UA cross-fade adds the two snapshots (plus-lighter); the ink's soft edge must not glow */
   mix-blend-mode: normal;
-  mask-image: var(--sys-ink);
+  animation: sys-ink 1.4s step-end both;
+}
+html.sys-ink::view-transition-new(root),
+.sys-pour {
+  /* the sheet is picked here, not through a custom property on <html>: that restyles the whole page */
+  mask-image: url("/fx/ink-land.webp");
   mask-repeat: no-repeat;
   mask-size: 600% 500%;
+}
+@media (orientation: portrait) {
+  html.sys-ink::view-transition-new(root),
+  .sys-pour {
+    mask-image: url("/fx/ink-port.webp");
+  }
+}
+/* browsers without view transitions: the ink floods the screen in the new theme's colour (actions.ts) */
+.sys-pour {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
   animation: sys-ink 1.4s step-end both;
 }
 @keyframes sys-ink {
