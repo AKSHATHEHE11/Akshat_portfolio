@@ -1,0 +1,83 @@
+/* LiveScreen's border: a red tape round the website with the disclaimer running along all four sides.
+   The text itself is on the page too (WorldShell), so the tape is decoration for screen readers. */
+.lv-edge {
+  --lv: 1.25rem; /* the tape's width */
+  position: relative;
+  overflow: hidden;
+  padding: var(--lv);
+  border-radius: 12px;
+  background: #c4121f;
+  color: #fff;
+}
+@media (min-width: 48rem) {
+  .lv-edge {
+    --lv: 1.625rem;
+  }
+}
+.lv-band {
+  position: absolute;
+  overflow: hidden;
+  font-family: var(--font-plex);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  line-height: var(--lv);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.lv-band:is([data-side="top"], [data-side="bottom"]) {
+  inset-inline: 0;
+  height: var(--lv);
+}
+.lv-band:is([data-side="left"], [data-side="right"]) {
+  inset-block: var(--lv);
+  width: var(--lv);
+}
+.lv-band[data-side="top"] {
+  top: 0;
+}
+.lv-band[data-side="bottom"] {
+  bottom: 0;
+}
+.lv-band[data-side="right"] {
+  right: 0;
+}
+/* turned round, so it reads upwards and runs down */
+.lv-band[data-side="left"] {
+  left: 0;
+  rotate: 180deg;
+}
+.lv-run {
+  width: max-content;
+  animation: lv-x 48s linear infinite;
+}
+.lv-band:is([data-side="left"], [data-side="right"]) .lv-run {
+  width: var(--lv);
+  height: max-content;
+  writing-mode: vertical-rl;
+  animation-name: lv-y;
+}
+.lv-run span {
+  padding-inline-end: 2.5rem;
+}
+/* four copies: half of them is one loop */
+@keyframes lv-x {
+  to {
+    transform: translateX(-50%);
+  }
+}
+@keyframes lv-y {
+  to {
+    transform: translateY(-50%);
+  }
+}
+/* still while off screen, and while the mouse is on the tape so it can be read */
+.lv-edge:not([data-run]) .lv-run,
+.lv-edge:has(.lv-band:hover) .lv-run {
+  animation-play-state: paused;
+}
+@media (prefers-reduced-motion: reduce) {
+  .lv-run {
+    animation: none;
+  }
+}

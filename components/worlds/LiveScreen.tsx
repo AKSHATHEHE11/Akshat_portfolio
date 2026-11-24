@@ -13,10 +13,12 @@
 import { useEffect, useRef, useState } from "react";
 import { ArrowUpRight, Lock, Power, RotateCw } from "lucide-react";
 import type { LiveSite } from "@/lib/types";
-import { useReducedMotion } from "@/lib/hooks";
+import { site } from "@/data/site";
+import { useOnScreen, useReducedMotion } from "@/lib/hooks";
 import { play } from "@/lib/sound";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
+import "./live.css";
 
 const VIEWPORT = {
   desktop: { w: 1440, h: 900 },
@@ -41,6 +43,8 @@ export function LiveScreen({ live, title, className }: { live: LiveSite; title: 
   const reduced = useReducedMotion();
 
   const screenRef = useRef<HTMLDivElement>(null);
+  const edge = useRef<HTMLDivElement>(null);
+  const seen = useOnScreen(edge, "0px");
   const [scale, setScale] = useState(0);
   const [state, setState] = useState<State>("standby");
   const [nonce, setNonce] = useState(0);
@@ -188,38 +192,52 @@ export function LiveScreen({ live, title, className }: { live: LiveSite; title: 
     </div>
   );
 
+  const box = phone ? (
+    <div className="mx-auto w-full max-w-[22rem] rounded-[2.4rem] border-[10px] border-ink bg-ink shadow-float">
+      <div aria-hidden className="mx-auto mb-1 h-1.5 w-16 rounded-full bg-char" />
+      {screen}
+    </div>
+  ) : (
+    <div className="overflow-hidden rounded-[8px] border border-ink/80 bg-ink shadow-float ring-1 ring-white/10">
+      <div className="flex h-9 items-center gap-3 px-3 text-bone">
+        <span aria-hidden className="flex gap-1.5">
+          <span className="size-2.5 rounded-full bg-orange" />
+          <span className="size-2.5 rounded-full bg-bone/40" />
+          <span className="size-2.5 rounded-full bg-bone/40" />
+        </span>
+        <span className="label flex min-w-0 flex-1 items-center justify-center gap-1.5 truncate rounded-full bg-white/8 px-3 py-1 normal-case tracking-[0.04em]">
+          <Lock size={11} aria-hidden className="shrink-0 opacity-70" />
+          <span className="truncate">{host}</span>
+        </span>
+        {frameOn && (
+          <button type="button" onClick={reload} aria-label="Reload the live site" className="grid size-6 place-items-center rounded-sm hover:bg-white/10" data-cursor="hover">
+            <RotateCw size={13} />
+          </button>
+        )}
+        <a href={live.url} target="_blank" rel="noreferrer" aria-label={`Open ${host} in a new tab`} className="grid size-6 place-items-center rounded-sm hover:bg-white/10" data-cursor="hover">
+          <ArrowUpRight size={14} />
+        </a>
+      </div>
+      {screen}
+    </div>
+  );
+
   return (
     <figure className={cn("relative", className)} aria-label={`${title} live website`}>
       <style>{`@keyframes live-capture-scroll{to{transform:translateY(var(--travel))}}.live-scanlines{background:repeating-linear-gradient(0deg,rgb(0 0 0/.28) 0 1px,transparent 1px 3px)}`}</style>
-      {phone ? (
-        <div className="mx-auto w-full max-w-[22rem] rounded-[2.4rem] border-[10px] border-ink bg-ink shadow-float">
-          <div aria-hidden className="mx-auto mb-1 h-1.5 w-16 rounded-full bg-char" />
-          {screen}
-        </div>
-      ) : (
-        <div className="overflow-hidden rounded-[8px] border border-ink/80 bg-ink shadow-float ring-1 ring-white/10">
-          <div className="flex h-9 items-center gap-3 px-3 text-bone">
-            <span aria-hidden className="flex gap-1.5">
-              <span className="size-2.5 rounded-full bg-orange" />
-              <span className="size-2.5 rounded-full bg-bone/40" />
-              <span className="size-2.5 rounded-full bg-bone/40" />
-            </span>
-            <span className="label flex min-w-0 flex-1 items-center justify-center gap-1.5 truncate rounded-full bg-white/8 px-3 py-1 normal-case tracking-[0.04em]">
-              <Lock size={11} aria-hidden className="shrink-0 opacity-70" />
-              <span className="truncate">{host}</span>
-            </span>
-            {frameOn && (
-              <button type="button" onClick={reload} aria-label="Reload the live site" className="grid size-6 place-items-center rounded-sm hover:bg-white/10" data-cursor="hover">
-                <RotateCw size={13} />
-              </button>
-            )}
-            <a href={live.url} target="_blank" rel="noreferrer" aria-label={`Open ${host} in a new tab`} className="grid size-6 place-items-center rounded-sm hover:bg-white/10" data-cursor="hover">
-              <ArrowUpRight size={14} />
-            </a>
+      {/* the disclaimer runs round the box */}
+      <div ref={edge} className="lv-edge" data-run={seen || undefined}>
+        {(["top", "right", "bottom", "left"] as const).map((side) => (
+          <div key={side} aria-hidden className="lv-band" data-side={side}>
+            <div className="lv-run">
+              {[0, 1, 2, 3].map((i) => (
+                <span key={i}>{site.disclaimer.text}</span>
+              ))}
+            </div>
           </div>
-          {screen}
-        </div>
-      )}
+        ))}
+        {box}
+      </div>
       {phone && (
         <figcaption className="label mt-3 flex items-center justify-center gap-2">
           <Lock size={11} aria-hidden /> {host}
