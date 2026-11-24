@@ -51,12 +51,13 @@ project's story, process, decisions, stack and results inside its own metaphor, 
 itself running at the centre.
 
 A project with a real website gets a simpler **showcase page** instead: its own fonts and colours, a
-short intro, and the real site inside the page behind a **Power on** button.
+short intro, and behind a **Power on** button the site itself, live, or a scrolling picture of it when the
+site doesn't allow framing.
 
 | # | Project | World | The product inside it |
 |---|---|---|---|
 | 01 | DecisionOS | AI command centre | Ask the board: four AI agents argue a decision, then a brief assembles |
-| 02 | Safar Zaika | Indian railway journey | The real Safar Zaika site behind **Power on**, then a train ride that delivers the order |
+| 02 | Safar Zaika | Indian railway journey | A scrolling capture of the real Safar Zaika site behind **Power on**, then a train ride that delivers the order |
 | 03 | Fybr8 | Its own storefront | The real fybr8.com, live and usable, in the store's own colours and fonts |
 | 04 | CredWise | Analyst ledger terminal | Score a borrower and see the reasons behind the number |
 | 05 | Synthora SID | Campus blueprint | The student app: next class, attendance margin, digital ID |
