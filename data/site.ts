@@ -12,7 +12,7 @@ export const site = {
   /** The red line at the end of these projects' pages, and the text running round a project's website. */
   disclaimer: {
     on: ["fybr8", "safar-zaika", "synthora-sid"] as string[],
-    text: "Disclaimer: this project and its copyrights are owned by Akshat Agrawal or their respective owners. Akshat is associated with it as a developer who contributed to building it.",
+    text: "Disclaimer: this project is not owned by Akshat Agrawal, and Akshat does not hold its copyrights. All rights belong to their respective owners. Akshat is associated with it only as a developer who contributed to building it.",
   },
 
   /** The music island (top centre) plays this Spotify playlist through Spotify's own player. */
