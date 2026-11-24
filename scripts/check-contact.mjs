@@ -1,25 +1,25 @@
-// Checks the contact form's rules (components/home/contact/rules.ts): what may reach the inbox.
+// Self-check for the contact form's rules (the terminal and the server both use them):
 //   npm run check:contact
 // Node runs the .ts file directly (type stripping, Node 23.6+).
 import assert from "node:assert/strict";
 import { tidy } from "../components/home/contact/rules.ts";
 
-const good = { intent: "work", name: "  Ada   Lovelace ", email: "ada@example.com", phone: "", message: " Hello " };
-
-const ok = tidy(good);
-assert.equal(ok.ok, true);
-assert.equal(ok.value.name, "Ada Lovelace", "name: trimmed, inner spaces collapsed");
-assert.equal(ok.value.message, "Hello", "message: trimmed");
-
-const wrong = (patch) => tidy({ ...good, ...patch }).field;
-assert.equal(wrong({ name: "   " }), "name", "blank name");
-assert.equal(wrong({ name: "x".repeat(81) }), "name", "name over 80");
-assert.equal(wrong({ email: "ada@example" }), "email", "email without a domain ending");
-assert.equal(wrong({ email: "a da@example.com" }), "email", "email with a space");
-assert.equal(wrong({ phone: "call me" }), "phone", "phone with letters");
-assert.equal(wrong({ phone: "+91 98765 43210" }), undefined, "Indian phone format passes");
-assert.equal(wrong({ message: "" }), "message", "empty message");
-assert.equal(wrong({ message: "x".repeat(4001) }), "message", "message over 4000");
-assert.equal(tidy(null).field, "name", "no input at all");
-
-console.log("✓ contact rules: all checks passed");
+const good = { intent: "work", name: "  Ada   Lovelace ", email: " ada@example.com ", phone: "", message: " hi \n" };
+assert.deepEqual(tidy(good), { ok: true, value: { intent: "work", name: "Ada Lovelace", email: "ada@example.com", phone: "", message: "hi" } });
+assert.equal(tidy({ ...good, phone: "+91 98765 43210" }).ok, true);
+assert.equal(tidy({ ...good, phone: "(022) 555-0134" }).ok, true);
+assert.deepEqual(tidy({ ...good, name: "   " }), { ok: false, field: "name" });
+assert.deepEqual(tidy({ ...good, name: "x".repeat(81) }), { ok: false, field: "name" });
+assert.deepEqual(tidy({ ...good, email: "ada@" }), { ok: false, field: "email" });
+assert.deepEqual(tidy({ ...good, email: "ada@example" }), { ok: false, field: "email" });
+assert.deepEqual(tidy({ ...good, email: "ada example.com" }), { ok: false, field: "email" });
+assert.deepEqual(tidy({ ...good, email: "a da@example.com" }), { ok: false, field: "email" });
+assert.deepEqual(tidy({ ...good, phone: "call me" }), { ok: false, field: "phone" });
+assert.deepEqual(tidy({ ...good, message: "" }), { ok: false, field: "message" });
+assert.deepEqual(tidy({ ...good, message: "  " }), { ok: false, field: "message" });
+assert.deepEqual(tidy({ ...good, message: "x".repeat(4001) }), { ok: false, field: "message" });
+// junk straight from the network, not from the terminal
+assert.deepEqual(tidy({ intent: 1, name: null, email: undefined }), { ok: false, field: "name" });
+assert.deepEqual(tidy(undefined), { ok: false, field: "name" });
+assert.deepEqual(tidy(null), { ok: false, field: "name" });
+console.log("contact rules: ok");
