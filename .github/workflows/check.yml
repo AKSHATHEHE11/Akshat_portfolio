@@ -10,6 +10,11 @@ on:
 permissions:
   contents: read
 
+# a newer push makes the run before it pointless
+concurrency:
+  group: check-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   check:
     runs-on: ubuntu-latest
