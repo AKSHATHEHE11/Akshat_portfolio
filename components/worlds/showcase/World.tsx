@@ -5,6 +5,7 @@ import { Morph } from "@/components/transitions/Morph";
 import { morph } from "@/lib/transitions";
 import { cn } from "@/lib/utils";
 import { LiveScreen } from "../LiveScreen";
+import { Disclaimer } from "../shell/Disclaimer";
 import type { WorldProps } from "../types";
 import { brandFonts } from "./fonts";
 
@@ -22,7 +23,7 @@ export default function ShowcaseWorld({ project, children }: WorldProps & { chil
 
   return (
     <div className={cn(font?.body, "relative pb-28")} style={{ backgroundColor: color.bg, color: color.fg } as CSSProperties}>
-      <section id="cover" aria-label={title} className="relative isolate flex min-h-[78svh] flex-col justify-end px-(--margin) pb-14 pt-[calc(var(--nav-h)+3rem)]">
+      <section id="cover" aria-label={title} className="relative isolate flex min-h-[78svh] flex-col justify-end px-(--margin) pb-14 pt-[calc(var(--nav-h)+1.5rem)]">
         <Morph name={morph.stage(slug)}>
           <div aria-hidden className="absolute inset-0 -z-10" style={{ backgroundColor: color.bg }} />
         </Morph>
@@ -32,6 +33,7 @@ export default function ShowcaseWorld({ project, children }: WorldProps & { chil
         <Morph name={morph.title(slug)} variant="text">
           <h1 className={cn(display, "mt-4 w-fit text-[clamp(4rem,15vw,12.5rem)]")}>{title}</h1>
         </Morph>
+        <Disclaimer slug={slug} at="title" />
         <p className="mt-6 max-w-[30ch] text-[clamp(1.25rem,1rem+1vw,1.75rem)] font-medium leading-snug">{tagline}</p>
         <p className="mt-3 max-w-[58ch] text-[1.0625rem] leading-relaxed opacity-80">{description}</p>
         <div className="mt-9 flex flex-wrap gap-3">

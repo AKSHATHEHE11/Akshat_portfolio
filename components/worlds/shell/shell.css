@@ -56,14 +56,33 @@
 /* the disclaimer: its own red band, so it reads the same over every world's colours */
 .ws-disclaimer {
   position: relative;
-  padding: 0.75rem var(--margin);
   background: #c4121f;
   color: #fff;
   font-size: 0.875rem;
-  font-weight: 500;
-  line-height: 1.5;
+  font-weight: 600;
+  line-height: 1.45;
+}
+.ws-disclaimer[data-at="end"] {
+  padding: 0.75rem var(--margin);
   text-align: center;
   text-wrap: balance;
+}
+/* under the project's name */
+.ws-disclaimer[data-at="title"] {
+  width: fit-content;
+  max-width: min(100%, 62rem);
+  margin-top: 1rem;
+  padding: 0.55rem 0.8rem;
+  border-radius: 6px;
+}
+/* short laptop screens: leave room for the page's main button */
+@media (min-width: 64rem) and (max-height: 50rem) {
+  .ws-disclaimer[data-at="title"] {
+    margin-top: 0.75rem;
+    padding: 0.35rem 0.7rem;
+    font-size: 0.8125rem;
+    line-height: 1.35;
+  }
 }
 
 /* keycaps */

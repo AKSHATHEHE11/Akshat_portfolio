@@ -1,10 +1,10 @@
 "use client";
 import { useEffect, useRef } from "react";
 import { useIsomorphicLayoutEffect } from "@/lib/hooks";
-import { site } from "@/data/site";
 import { system } from "@/lib/system";
 import type { ProjectSummary } from "@/lib/types";
 import { ControlBar } from "./ControlBar";
+import { Disclaimer } from "./Disclaimer";
 import { Finale } from "./Finale";
 
 /**
@@ -49,11 +49,7 @@ export default function WorldShell({
   return (
     <>
       <div ref={content}>{children}</div>
-      {site.disclaimer.on.includes(current.slug) && (
-        <p role="note" className="ws-disclaimer">
-          {site.disclaimer.text}
-        </p>
-      )}
+      <Disclaimer slug={current.slug} at="end" />
       {n > 1 && next.slug !== current.slug && (
         <Finale current={current} next={next} nextIndex={(index + 1) % n} total={n} />
       )}

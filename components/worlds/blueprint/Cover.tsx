@@ -12,6 +12,7 @@ import { play } from "@/lib/sound";
 import { useSystem } from "@/lib/system";
 import { morph } from "@/lib/transitions";
 import type { Project } from "@/lib/types";
+import { Disclaimer } from "../shell/Disclaimer";
 import { Compass } from "./Compass";
 import { buildingOf, upNext, toMin } from "./logic";
 import type { BlueprintScene } from "./scene";
@@ -89,6 +90,7 @@ export function Cover({ project, sheets }: { project: Project<BlueprintScene>; s
                 ))}
               </h1>
             </Morph>
+            <Disclaimer slug={slug} at="title" />
             <p className="bp-tagline">
               <svg aria-hidden viewBox="0 0 80 40" className="bp-tagline-leader">
                 <path data-bd d="M78 6H34L4 34" />
