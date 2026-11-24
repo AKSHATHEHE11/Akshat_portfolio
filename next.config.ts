@@ -27,6 +27,12 @@ const nextConfig: NextConfig = {
           { key: "Content-Security-Policy", value: "frame-ancestors 'self'" },
         ],
       },
+      {
+        // the ink sheets: kept for a year, or the browser asks the server again as the ink starts.
+        // Give a sheet a new name if it ever changes.
+        source: "/fx/:path*",
+        headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
+      },
     ];
   },
 };
