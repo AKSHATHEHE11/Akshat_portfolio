@@ -8,7 +8,7 @@ export default function manifest(): MetadataRoute.Manifest {
     short_name: site.short,
     description: site.description,
     start_url: "/",
-    display: "standalone",
+    display: "browser", // a website, not an app: no install prompt, and the browser keeps its back button
     background_color: "#f2eee7", // --color-bone
     theme_color: "#111111", // --color-ink
     icons: [{ src: "/icon.svg", sizes: "any", type: "image/svg+xml" }],
