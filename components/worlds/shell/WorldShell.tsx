@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef } from "react";
 import { useIsomorphicLayoutEffect } from "@/lib/hooks";
+import { site } from "@/data/site";
 import { system } from "@/lib/system";
 import type { ProjectSummary } from "@/lib/types";
 import { ControlBar } from "./ControlBar";
@@ -9,7 +10,7 @@ import { Finale } from "./Finale";
 /**
  * The persistent frame around every project world: tells the system which world is open,
  * exposes its palette as --world-bg/--world-fg/--world-accent on <html> (nav + cursor read them),
- * renders the world, then the next-world finale, then the fixed console strip.
+ * renders the world, then the disclaimer, the next-world finale and the fixed console strip.
  */
 export default function WorldShell({
   current,
@@ -48,6 +49,11 @@ export default function WorldShell({
   return (
     <>
       <div ref={content}>{children}</div>
+      {site.disclaimer.on.includes(current.slug) && (
+        <p role="note" className="ws-disclaimer">
+          {site.disclaimer.text}
+        </p>
+      )}
       {n > 1 && next.slug !== current.slug && (
         <Finale current={current} next={next} nextIndex={(index + 1) % n} total={n} />
       )}

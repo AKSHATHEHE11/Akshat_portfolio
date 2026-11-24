@@ -53,6 +53,19 @@
   transform-origin: 0 50%;
 }
 
+/* the disclaimer: its own red band, so it reads the same over every world's colours */
+.ws-disclaimer {
+  position: relative;
+  padding: 0.75rem var(--margin);
+  background: #c4121f;
+  color: #fff;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.5;
+  text-align: center;
+  text-wrap: balance;
+}
+
 /* keycaps */
 .ws-cap {
   position: relative;

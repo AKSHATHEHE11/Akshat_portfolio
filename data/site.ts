@@ -9,6 +9,12 @@ export const site = {
   build: "2026.11",
   version: "AKSHAT/OS 26.11",
 
+  /** The red line at the end of these projects' pages, and the text running round a project's website. */
+  disclaimer: {
+    on: ["fybr8", "safar-zaika", "synthora-sid"] as string[],
+    text: "Disclaimer: this project and its copyrights are owned by Akshat Agrawal or their respective owners. Akshat is associated with it as a developer who contributed to building it.",
+  },
+
   /** The music island (top centre) plays this Spotify playlist through Spotify's own player. */
   music: { playlist: "6gyglL1vMvpjGLXBKfRxHa", title: "The Weeknd: Best Of The Best" },
 
