@@ -19,7 +19,7 @@ async function accessToken(): Promise<string | null> {
     },
     body: "grant_type=client_credentials",
   });
-  if (!r.ok) return null;
+  if (!r.ok) throw new Error(`token ${r.status}`); // wrong keys: say so, don't look like "not set up"
   const j = await r.json();
   token = { value: j.access_token, until: Date.now() + (j.expires_in - 60) * 1000 };
   return token.value;
@@ -36,24 +36,27 @@ type Hit = {
 export async function GET(req: Request) {
   const q = new URL(req.url).searchParams.get("q")?.trim().slice(0, 100);
   if (!q || q.length < 2) return Response.json({ tracks: [] }); // the island searches from 2 letters; don't spend Spotify calls on less
-  const auth = await accessToken();
-  if (!auth) return Response.json({ error: "search is not set up" }, { status: 503 });
+  try {
+    const auth = await accessToken();
+    if (!auth) return Response.json({ error: "search is not set up" }, { status: 503 });
 
-  const r = await fetch(`https://api.spotify.com/v1/search?${new URLSearchParams({ q, type: "track", limit: "8" })}`, {
-    cache: "no-store",
-    headers: { Authorization: `Bearer ${auth}` },
-  });
-  if (!r.ok) {
+    const r = await fetch(`https://api.spotify.com/v1/search?${new URLSearchParams({ q, type: "track", limit: "8" })}`, {
+      cache: "no-store",
+      headers: { Authorization: `Bearer ${auth}` },
+    });
     if (r.status === 401) token = { value: "", until: 0 };
-    return Response.json({ error: `spotify ${r.status}` }, { status: 502 });
+    if (!r.ok) throw new Error(`search ${r.status}`);
+    const items: Hit[] = (await r.json()).tracks?.items ?? [];
+    const tracks = items.map((t) => ({
+      uri: t.uri,
+      title: t.name,
+      artist: t.artists.map((a) => a.name).join(", "),
+      ms: t.duration_ms,
+      cover: (t.album.images.at(-2) ?? t.album.images[0])?.url ?? null, // ~300px, else the only one
+    }));
+    return Response.json({ tracks }, { headers: { "Cache-Control": "public, s-maxage=86400, stale-while-revalidate=604800" } });
+  } catch (err) {
+    console.error("music: Spotify search failed", err);
+    return Response.json({ error: err instanceof Error ? `spotify: ${err.message}` : "spotify" }, { status: 502 });
   }
-  const items: Hit[] = (await r.json()).tracks?.items ?? [];
-  const tracks = items.map((t) => ({
-    uri: t.uri,
-    title: t.name,
-    artist: t.artists.map((a) => a.name).join(", "),
-    ms: t.duration_ms,
-    cover: (t.album.images.at(-2) ?? t.album.images[0])?.url ?? null, // ~300px, else the only one
-  }));
-  return Response.json({ tracks }, { headers: { "Cache-Control": "public, s-maxage=86400, stale-while-revalidate=604800" } });
 }
