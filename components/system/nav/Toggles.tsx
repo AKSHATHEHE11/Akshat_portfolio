@@ -223,7 +223,7 @@ export function LightsToggle({ variant = "bar" }: { variant?: Variant }) {
           const panel = variant === "panel" && document.getElementById("sys-panel");
           if (!panel) folded ||= now - start;
           if ((panel || inkLoading()) && now < latest) requestAnimationFrame(pour);
-          else flipLights(at, variant === "panel" && (!folded || folded > 650));
+          else flipLights(at, variant === "panel" && (!folded || folded > 600));
         };
         pour();
       }}
